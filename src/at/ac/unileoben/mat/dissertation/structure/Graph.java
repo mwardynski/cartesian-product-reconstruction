@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,20 +12,24 @@ import java.util.List;
  */
 public class Graph
 {
-  List<Vertex> vertices;
-  Edge[][] adjacencyMatrix;
+  private List<Vertex> vertices;
+  private Edge[][] adjacencyMatrix;
+  private GraphColoring graphColoring;
+  private List<List<Vertex>> layers;
 
   public Graph(List<Vertex> vertices)
   {
     this.vertices = vertices;
-    adjacencyMatrix = createAdjacencyMatrix(vertices);
+    adjacencyMatrix = createAdjacencyMatrix();
+    graphColoring = new GraphColoring(getRoot().getEdges().size());
+    layers = createLayersList();
   }
 
-  private Edge[][] createAdjacencyMatrix(List<Vertex> verices)
+  private Edge[][] createAdjacencyMatrix()
   {
-    Edge[][] adjacencyMatrix = new Edge[verices.size()][verices.size()];
+    Edge[][] adjacencyMatrix = new Edge[vertices.size()][vertices.size()];
 
-    for (Vertex v : verices)
+    for (Vertex v : vertices)
     {
       for (Edge e : v.getEdges())
       {
@@ -35,6 +40,21 @@ public class Graph
     return adjacencyMatrix;
   }
 
+  private List<List<Vertex>> createLayersList()
+  {
+    int layersCount = vertices.get(vertices.size() - 1).getBfsLayer() + 1;
+    List<List<Vertex>> layers = new ArrayList<List<Vertex>>(layersCount);
+    for (int i = 0; i < layersCount; i++)
+    {
+      layers.add(new ArrayList<Vertex>());
+    }
+    for (Vertex v : vertices)
+    {
+      layers.get(v.getBfsLayer()).add(v);
+    }
+    return layers;
+  }
+
   public List<Vertex> getVertices()
   {
     return vertices;
@@ -43,6 +63,16 @@ public class Graph
   public Edge getEdge(int origin, int endpoint)
   {
     return adjacencyMatrix[origin][endpoint];
+  }
+
+  public GraphColoring getGraphColoring()
+  {
+    return graphColoring;
+  }
+
+  public List<Vertex> getLayer(int i)
+  {
+    return layers.get(i);
   }
 
   public Vertex getRoot()

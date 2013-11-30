@@ -17,4 +17,10 @@ public class ColorGroupLocation
     this.index = index;
     this.length = length;
   }
+
+  @Override
+  public String toString()
+  {
+    return String.format("[%d %d]", index, length);
+  }
 }

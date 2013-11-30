@@ -13,12 +13,12 @@ import java.util.List;
 public class EdgesRef
 {
   List<ColorGroupLocation> colorPositions;
-  int remainColorsAmount;
+  int colorsAmount;
 
-  public EdgesRef(int colorAmount)
+  public EdgesRef(int colorsAmount)
   {
-    colorPositions = new ArrayList<ColorGroupLocation>(colorAmount);
-    remainColorsAmount = colorAmount;
+    colorPositions = new ArrayList<ColorGroupLocation>(colorsAmount);
+    this.colorsAmount = colorsAmount;
   }
 
   public void setColorAmounts(int... colorAmounts)
@@ -33,11 +33,17 @@ public class EdgesRef
     colorPositions.add(firstColorGroupLocation);
     int lastColorEnd = colorAmounts[0];
 
-    for (Integer colorLength : colorAmounts)
+    for (int i = 1; i < colorAmounts.length; i++)
     {
-      ColorGroupLocation colorGroupLocation = new ColorGroupLocation(lastColorEnd, colorLength);
+      ColorGroupLocation colorGroupLocation = new ColorGroupLocation(lastColorEnd, colorAmounts[i]);
       colorPositions.add(colorGroupLocation);
-      lastColorEnd += colorLength;
+      lastColorEnd += colorAmounts[i];
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    return colorPositions.toString();
   }
 }
