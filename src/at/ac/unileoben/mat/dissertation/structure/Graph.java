@@ -79,4 +79,16 @@ public class Graph
   {
     return vertices.get(0);
   }
+
+  public int getLayersAmount()
+  {
+    return layers.size();
+  }
+
+  public Edge getEdgeForVertices(Vertex u, Vertex v)
+  {
+    int uNo = u.getVertexNo();
+    int vNo = v.getVertexNo();
+    return adjacencyMatrix[uNo][vNo];
+  }
 }

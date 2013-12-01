@@ -99,6 +99,27 @@ public class Vertex
     this.upEdges = upEdges;
   }
 
+  public Edge getEdgeByLabel(Label label, EdgeType edgeType)
+  {
+    EdgesGroup edgesGroup = null;
+    if (edgeType == EdgeType.DOWN)
+    {
+      edgesGroup = getDownEdges();
+    }
+    else if (edgeType == EdgeType.CROSS)
+    {
+      edgesGroup = getCrossEdges();
+    }
+    else
+    {
+      edgesGroup = getUpEdges();
+    }
+
+    List<Edge> edges = edgesGroup.getEdges();
+    int positionForLabel = edgesGroup.getEdgesRef().getPositionForLabel(label);
+    return edges.get(positionForLabel);
+  }
+
   @Override
   public String toString()
   {

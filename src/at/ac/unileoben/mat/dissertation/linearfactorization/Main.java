@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.common.GraphCorrectnessChecker;
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
 import java.util.List;
@@ -16,10 +17,11 @@ import java.util.List;
 public class Main
 {
 
-  String graphFilePath;
-  GraphReader graphReader;
-  GraphCorrectnessChecker graphCorrectnessChecker;
-  GraphPreparer graphPreparer;
+  private String graphFilePath;
+  private GraphReader graphReader;
+  private GraphCorrectnessChecker graphCorrectnessChecker;
+  private GraphPreparer graphPreparer;
+  private GraphFactorizer graphFactorizer;
 
 
   Main(String graphFilePath)
@@ -28,6 +30,7 @@ public class Main
     graphReader = new GraphReader();
     graphCorrectnessChecker = new GraphCorrectnessChecker();
     graphPreparer = new GraphPreparer();
+    graphFactorizer = new GraphFactorizer();
   }
 
   public static void main(String... args)
@@ -45,13 +48,13 @@ public class Main
 
   private void run()
   {
-    List<Vertex> graph = graphReader.readGraph(graphFilePath);
-    if (!checkGraphCorrectness(graph))
+    List<Vertex> vertices = graphReader.readGraph(graphFilePath);
+    if (!checkGraphCorrectness(vertices))
     {
       System.exit(-1);
     }
-    graphPreparer.prepareToLinearFactorization(graph);
-
+    Graph graph = graphPreparer.prepareToLinearFactorization(vertices);
+    graphFactorizer.factorize(graph);
   }
 
   private boolean checkGraphCorrectness(List<Vertex> graph)

@@ -9,13 +9,23 @@ package at.ac.unileoben.mat.dissertation.structure;
  */
 public class ColorGroupLocation
 {
-  int index;
-  int length;
+  private int index;
+  private int length;
 
   public ColorGroupLocation(int index, int length)
   {
     this.index = index;
     this.length = length;
+  }
+
+  public int getIndex()
+  {
+    return index;
+  }
+
+  public int getLength()
+  {
+    return length;
   }
 
   @Override
