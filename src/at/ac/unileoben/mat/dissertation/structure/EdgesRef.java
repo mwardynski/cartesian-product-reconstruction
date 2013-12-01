@@ -21,6 +21,11 @@ public class EdgesRef
     this.colorsAmount = colorsAmount;
   }
 
+  public int getColorsAmount()
+  {
+    return colorsAmount;
+  }
+
   public void setColorAmounts(int... colorAmounts)
   {
     if (colorAmounts.length == 0)

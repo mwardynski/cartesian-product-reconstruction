@@ -116,8 +116,34 @@ public class Vertex
     }
 
     List<Edge> edges = edgesGroup.getEdges();
-    int positionForLabel = edgesGroup.getEdgesRef().getPositionForLabel(label);
-    return edges.get(positionForLabel);
+    int positionForLabel1 = edgesGroup.getEdgesRef().getPositionForLabel(label);
+    int positionForLabel = positionForLabel1;
+    if (positionForLabel != -1)
+    {
+      return edges.get(positionForLabel);
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+  public Edge getEdgeOfDifferentColor(int color, GraphColoring graphColoring)
+  {
+    EdgesRef edgesRef = getDownEdges().getEdgesRef();
+    List<Edge> edges = getDownEdges().getEdges();
+    for (int i = 0; i < edgesRef.getColorsAmount(); i++)
+    {
+      if (graphColoring.getCurrentColorMapping(i) != color)
+      {
+        int positionForLabel = edgesRef.getPositionForLabel(new Label(0, i));
+        if (positionForLabel != -1)
+        {
+          return edges.get(positionForLabel);
+        }
+      }
+    }
+    return null;
   }
 
   @Override
