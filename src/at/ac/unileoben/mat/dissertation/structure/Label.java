@@ -34,6 +34,40 @@ public class Label
   }
 
   @Override
+  public boolean equals(Object o)
+  {
+    if (this == o)
+    {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass())
+    {
+      return false;
+    }
+
+    Label label = (Label) o;
+
+    if (color != label.color)
+    {
+      return false;
+    }
+    if (name != label.name)
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int result = name;
+    result = 31 * result + color;
+    return result;
+  }
+
+  @Override
   public String toString()
   {
     return String.format("n:%d, c:%d", name, color);

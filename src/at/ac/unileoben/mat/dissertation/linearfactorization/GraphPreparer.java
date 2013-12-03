@@ -144,11 +144,13 @@ public class GraphPreparer
         {
           e.setEdgeType(EdgeType.DOWN);
           downEdges.add(e);
-        } else if (v.getBfsLayer() == e.getEndpoint().getBfsLayer())
+        }
+        else if (v.getBfsLayer() == e.getEndpoint().getBfsLayer())
         {
           e.setEdgeType(EdgeType.CROSS);
           crossEdges.add(e);
-        } else
+        }
+        else
         {
           e.setEdgeType(EdgeType.UP);
           upEdges.add(e);
@@ -179,10 +181,12 @@ public class GraphPreparer
     for (int i = 0; i < upEdges.size(); i++)
     {
       Label upLabel = new Label(0, i);
-      upEdges.get(i).setLabel(upLabel);
+      Edge upEdge = upEdges.get(i);
+      upEdge.setLabel(upLabel);
+      upEdge.getEndpoint().setUnitLayer(true);
 
-      addLabelAndRefToDownEdgesL1(upEdges.get(i), i, graph.getGraphColoring().getOriginalColorsAmount());
-      addLabelAndRefToCrossEdgesL1(upEdges.get(i), graph);
+      addLabelAndRefToDownEdgesL1(upEdge, i, graph.getGraphColoring().getOriginalColorsAmount());
+      addLabelAndRefToCrossEdgesL1(upEdge, graph);
     }
 
   }
@@ -197,7 +201,8 @@ public class GraphPreparer
       if (j == i)
       {
         colorLengths[j] = 1;
-      } else
+      }
+      else
       {
         colorLengths[j] = 0;
       }

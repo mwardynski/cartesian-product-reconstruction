@@ -26,6 +26,11 @@ public class EdgesRef
     return colorsAmount;
   }
 
+  public int getAllColorsAmount()
+  {
+    return colorPositions.size();
+  }
+
   public void setColorAmounts(int... colorAmounts)
   {
     if (colorAmounts.length == 0)
@@ -63,13 +68,28 @@ public class EdgesRef
   public int getPositionForLabel(Label label)
   {
     ColorGroupLocation colorGroupLocation = colorPositions.get(label.getColor());
-    if (colorGroupLocation.getLength() < label.getName())
+    if (colorGroupLocation == null || colorGroupLocation.getLength() < label.getName())
     {
-      System.err.println(String.format("no entry in ColorGroupLocation for given label(c:%d,n:%d) - the size of color: %d ",
-              label.getColor(), label.getName(), colorGroupLocation.getLength()));
+      System.err.println(String.format("no entry in ColorGroupLocation for given label(c:%d,n:%d)",
+              label.getColor(), label.getName()));
       return -1;
     }
     return colorGroupLocation.getIndex() + label.getName();
+  }
+
+  public List<Integer> getPositionsForColor(int color)
+  {
+    ColorGroupLocation colorGroupLocation = colorPositions.get(color);
+    if (colorGroupLocation == null)
+    {
+      return new ArrayList<Integer>();
+    }
+    List<Integer> positionsForColor = new ArrayList<Integer>(colorGroupLocation.getLength());
+    for (int i = 0; i < colorGroupLocation.getLength(); i++)
+    {
+      positionsForColor.add(colorGroupLocation.getIndex() + i);
+    }
+    return positionsForColor;
   }
 
   @Override

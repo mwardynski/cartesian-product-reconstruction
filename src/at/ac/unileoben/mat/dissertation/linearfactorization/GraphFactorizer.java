@@ -3,6 +3,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -22,6 +23,10 @@ public class GraphFactorizer
       labelDownEdges(graph, currentLayerNo);
       labelCrossEdges(graph, currentLayerNo);
       labelUpEdges(graph, currentLayerNo);
+      if (!consistencyCheck(graph, currentLayerNo))
+      {
+        //TODO merge colors
+      }
     }
   }
 
@@ -42,8 +47,14 @@ public class GraphFactorizer
         Edge vx = v.getDownEdges().getEdges().iterator().next();
         int vxColor = vx.getLabel().getColor();
         uv.setLabel(new Label(0, vxColor));
-        uv.getOpposite().setLabel(new Label(0, vxColor));
         incrementColorCounter(vxColor, colorsCounter, colorsOrder);
+
+        u.setUnitLayer(true);
+        if (!v.isUnitLayer())
+        {
+          v.setUnitLayer(true);
+          //TODO merge colors of DOWN- and CROSS-EDGES from v
+        }
 
         int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
         colorLengths[vxColor] = 1;
@@ -114,7 +125,10 @@ public class GraphFactorizer
             }
           }
         }
-
+        if (uUnitLayer)
+        {
+          u.setUnitLayer(true);
+        }
         for (int i = 0; i < uDownEdges.size(); i++)
         {
           Edge uy = uDownEdges.get(i);
@@ -267,5 +281,84 @@ public class GraphFactorizer
       colorsOrder.add(color);
     }
     colorsCounter[color]++;
+  }
+
+
+  private boolean consistencyCheck(Graph graph, int currentLayerNo)
+  {
+    List<Vertex> currentLayer = graph.getLayer(currentLayerNo);
+    List<Vertex> previousLayer = graph.getLayer(currentLayerNo - 1);
+    return downAndCrossEdgesConsistencyCheck(graph, currentLayer) && upEdgesConsistencyCheck(graph, previousLayer);
+  }
+
+  private boolean downAndCrossEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
+  {
+    for (Vertex u : currentLayer)
+    {
+      if (u.isUnitLayer())
+      {
+        continue;
+      }
+      Edge uv = u.getDownEdges().getEdges().get(0);
+      int uvMappedColor = graph.getGraphColoring().getCurrentColorMapping(uv.getLabel().getColor());
+      Edge uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());
+      EnumSet<EdgeType> edgeTypes = EnumSet.of(EdgeType.DOWN, EdgeType.CROSS);
+      for (EdgeType edgeType : edgeTypes)
+      {
+        if (!checkPivotSquares(uv, edgeType, graph) || !checkPivotSquares(uw, edgeType, graph))
+        {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private boolean upEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
+  {
+    for (Vertex u : currentLayer)
+    {
+      Edge uv = u.getDownEdges().getEdges().get(0);
+      Edge uw = null;
+      if (!u.isUnitLayer())
+      {
+        int uvMappedColor = graph.getGraphColoring().getCurrentColorMapping(uv.getLabel().getColor());
+        uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());
+      }
+      if (!checkPivotSquares(uv, EdgeType.UP, graph) || (uw != null && !checkPivotSquares(uw, EdgeType.UP, graph)))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean checkPivotSquares(Edge uv, EdgeType edgeType, Graph graph)
+  {
+    Vertex u = uv.getOrigin();
+    Vertex v = uv.getEndpoint();
+    List<Edge> uDifferentThanUv = u.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
+    List<Edge> vDifferentThanUv = v.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
+    if (uDifferentThanUv.size() != vDifferentThanUv.size())
+    {
+      return false;
+    }
+    for (Edge uz : uDifferentThanUv)
+    {
+      Label uzLabel = uz.getLabel();
+      Edge vzp = v.getEdgeByLabel(uzLabel, edgeType);
+      if (vzp == null)
+      {
+        return false;
+      }
+      Vertex z = uz.getEndpoint();
+      Vertex zp = vzp.getEndpoint();
+      Edge zzp = graph.getEdgeForVertices(z, zp);
+      if (zzp == null || !uv.getLabel().equals(zzp.getLabel()))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 }

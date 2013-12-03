@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -15,6 +16,7 @@ public class Vertex
 
   private int vertexNo;
   private List<Edge> edges;
+  private boolean unitLayer;
   private Color color;
   private int bfsLayer;
   private EdgesGroup downEdges;
@@ -47,6 +49,16 @@ public class Vertex
   public void setEdges(List<Edge> edges)
   {
     this.edges = edges;
+  }
+
+  public boolean isUnitLayer()
+  {
+    return unitLayer;
+  }
+
+  public void setUnitLayer(boolean unitLayer)
+  {
+    this.unitLayer = unitLayer;
   }
 
   public Color getColor()
@@ -101,22 +113,10 @@ public class Vertex
 
   public Edge getEdgeByLabel(Label label, EdgeType edgeType)
   {
-    EdgesGroup edgesGroup = null;
-    if (edgeType == EdgeType.DOWN)
-    {
-      edgesGroup = getDownEdges();
-    }
-    else if (edgeType == EdgeType.CROSS)
-    {
-      edgesGroup = getCrossEdges();
-    }
-    else
-    {
-      edgesGroup = getUpEdges();
-    }
+    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
 
-    List<Edge> edges = edgesGroup.getEdges();
-    int positionForLabel1 = edgesGroup.getEdgesRef().getPositionForLabel(label);
+    List<Edge> edges = edgeGroup.getEdges();
+    int positionForLabel1 = edgeGroup.getEdgesRef().getPositionForLabel(label);
     int positionForLabel = positionForLabel1;
     if (positionForLabel != -1)
     {
@@ -134,7 +134,7 @@ public class Vertex
     List<Edge> edges = getDownEdges().getEdges();
     for (int i = 0; i < edgesRef.getColorsAmount(); i++)
     {
-      if (graphColoring.getCurrentColorMapping(i) != color)
+      if (graphColoring.getCurrentColorMapping(i) != graphColoring.getCurrentColorMapping(color))
       {
         int positionForLabel = edgesRef.getPositionForLabel(new Label(0, i));
         if (positionForLabel != -1)
@@ -144,6 +144,43 @@ public class Vertex
       }
     }
     return null;
+  }
+
+  public List<Edge> getAllEdgesOfDifferentColor(int color, GraphColoring graphColoring, EdgeType edgeType)
+  {
+    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
+    EdgesRef edgesRef = edgeGroup.getEdgesRef();
+    List<Edge> allDownEdges = edgeGroup.getEdges();
+
+    List<Edge> resultEdges = new LinkedList<Edge>();
+    for (int i = 0; i < edgesRef.getAllColorsAmount(); i++)
+    {
+      if (graphColoring.getCurrentColorMapping(i) != graphColoring.getCurrentColorMapping(color))
+      {
+        List<Integer> positionsForColor = edgesRef.getPositionsForColor(i);
+        for (int edgePosition : positionsForColor)
+        {
+          resultEdges.add(allDownEdges.get(edgePosition));
+        }
+      }
+    }
+    return resultEdges;
+  }
+
+  private EdgesGroup getEdgeGroupForEdgeType(EdgeType edgeType)
+  {
+    if (edgeType == EdgeType.DOWN)
+    {
+      return getDownEdges();
+    }
+    else if (edgeType == EdgeType.CROSS)
+    {
+      return getCrossEdges();
+    }
+    else
+    {
+      return getUpEdges();
+    }
   }
 
   @Override
