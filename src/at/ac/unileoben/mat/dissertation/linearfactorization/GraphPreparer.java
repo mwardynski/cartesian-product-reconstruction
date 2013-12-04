@@ -248,7 +248,7 @@ public class GraphPreparer
       int oppositeEdgeColor = oppositeEdgeLabel.getColor();
       if (thisEdgeColor != oppositeEdgeColor)
       {
-        graphColoring.mergeColors(thisEdgeColor, oppositeEdgeColor);
+        graphColoring.mergeColors(Arrays.asList(thisEdgeColor, oppositeEdgeColor));
       }
     }
   }

@@ -23,9 +23,13 @@ public class GraphFactorizer
       labelDownEdges(graph, currentLayerNo);
       labelCrossEdges(graph, currentLayerNo);
       labelUpEdges(graph, currentLayerNo);
-      if (!consistencyCheck(graph, currentLayerNo))
+      ConsistencyCheckResult consistencyCheckResult = consistencyCheck(graph, currentLayerNo);
+      if (consistencyCheckResult.isNotEmpty())
       {
-        //TODO merge colors
+        for (Vertex v : consistencyCheckResult.getInconsistentVertices())
+        {
+          graph.assignVertexToUnitLayerAndMergeColors(v);
+        }
       }
     }
   }
@@ -52,8 +56,7 @@ public class GraphFactorizer
         u.setUnitLayer(true);
         if (!v.isUnitLayer())
         {
-          v.setUnitLayer(true);
-          //TODO merge colors of DOWN- and CROSS-EDGES from v
+          graph.assignVertexToUnitLayerAndMergeColors(v);
         }
 
         int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
@@ -71,7 +74,6 @@ public class GraphFactorizer
         }
         Edge uw = uDownEdges.get(1);
         Vertex w = uw.getEndpoint();
-//          Edge uwPlus = null;
         Vertex v = uv.getEndpoint();
         Edge vx = v.getDownEdges().getEdges().iterator().next();
         Vertex x = vx.getEndpoint();
@@ -88,8 +90,6 @@ public class GraphFactorizer
           {
             uv.setLabel(new Label(0, wxColor));
             incrementColorCounter(wxColor, colorsCounter, colorsOrder);
-//                uw.setLabel(new Label(i, vxColor));
-//                uwPlus = uw;
           }
           else
           {
@@ -114,13 +114,11 @@ public class GraphFactorizer
                   int wpxpColor = wpxp.getLabel().getColor();
                   uv.setLabel(new Label(0, wpxpColor));
                   incrementColorCounter(wpxpColor, colorsCounter, colorsOrder);
-//                        uwp.setLabel(new Label(j, vxpColor));
-//                        uwPlus = uwp;
                 }
               }
               if (uv.getLabel() == null)
               {
-                //TODO consistencyTest
+                graph.assignVertexToUnitLayerAndMergeColors(u);
               }
             }
           }
@@ -140,7 +138,7 @@ public class GraphFactorizer
           }
           else
           {
-            if (uy.equals(uv) /*|| uy.equals(uwPlus)*/)
+            if (uy.equals(uv))
             {
               continue;
             }
@@ -213,7 +211,7 @@ public class GraphFactorizer
           }
           else
           {
-            //TODO consistencyTest - is it possible?
+            graph.assignVertexToUnitLayerAndMergeColors(u);
           }
         }
       }
@@ -284,15 +282,18 @@ public class GraphFactorizer
   }
 
 
-  private boolean consistencyCheck(Graph graph, int currentLayerNo)
+  private ConsistencyCheckResult consistencyCheck(Graph graph, int currentLayerNo)
   {
     List<Vertex> currentLayer = graph.getLayer(currentLayerNo);
     List<Vertex> previousLayer = graph.getLayer(currentLayerNo - 1);
-    return downAndCrossEdgesConsistencyCheck(graph, currentLayer) && upEdgesConsistencyCheck(graph, previousLayer);
+    ConsistencyCheckResult consistencyCheckResult = downAndCrossEdgesConsistencyCheck(graph, currentLayer);
+    upEdgesConsistencyCheck(graph, previousLayer, consistencyCheckResult);
+    return consistencyCheckResult;
   }
 
-  private boolean downAndCrossEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
+  private ConsistencyCheckResult downAndCrossEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
   {
+    ConsistencyCheckResult consistencyCheckResult = new ConsistencyCheckResult(graph.getVertices().size());
     for (Vertex u : currentLayer)
     {
       if (u.isUnitLayer())
@@ -307,14 +308,15 @@ public class GraphFactorizer
       {
         if (!checkPivotSquares(uv, edgeType, graph) || !checkPivotSquares(uw, edgeType, graph))
         {
-          return false;
+          consistencyCheckResult.addVertex(u);
+          break;
         }
       }
     }
-    return true;
+    return consistencyCheckResult;
   }
 
-  private boolean upEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
+  private void upEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer, ConsistencyCheckResult consistencyCheckResult)
   {
     for (Vertex u : currentLayer)
     {
@@ -327,10 +329,9 @@ public class GraphFactorizer
       }
       if (!checkPivotSquares(uv, EdgeType.UP, graph) || (uw != null && !checkPivotSquares(uw, EdgeType.UP, graph)))
       {
-        return false;
+        consistencyCheckResult.addVertex(u);
       }
     }
-    return true;
   }
 
   private boolean checkPivotSquares(Edge uv, EdgeType edgeType, Graph graph)

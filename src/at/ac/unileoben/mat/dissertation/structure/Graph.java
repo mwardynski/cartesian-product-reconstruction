@@ -91,4 +91,29 @@ public class Graph
     int vNo = v.getVertexNo();
     return adjacencyMatrix[uNo][vNo];
   }
+
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v)
+  {
+    v.setUnitLayer(true);
+    List<Edge> vDownEdges = v.getDownEdges().getEdges();
+    boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
+    for (Edge vw : vDownEdges)
+    {
+      if (!colorPresence[vw.getLabel().getColor()])
+      {
+        colorPresence[vw.getLabel().getColor()] = true;
+      }
+      Vertex w = vw.getEndpoint();
+      w.setUnitLayer(true);
+    }
+    List<Integer> colorsToMerge = new ArrayList<Integer>(colorPresence.length);
+    for (int i = 0; i < colorPresence.length; i++)
+    {
+      if (colorPresence[i])
+      {
+        colorsToMerge.add(i);
+      }
+    }
+    graphColoring.mergeColors(colorsToMerge);
+  }
 }

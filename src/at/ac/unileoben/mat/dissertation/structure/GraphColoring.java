@@ -40,23 +40,28 @@ public class GraphColoring
     return colorsMapping.get(colorKey);
   }
 
-  public void mergeColors(int firstColor, int secondColor)
+  public void mergeColors(List<Integer> colors)
   {
-    if (firstColor < secondColor)
+    int minColor = Integer.MAX_VALUE;
+    for (int color : colors)
     {
-      if (colorsMapping.get(secondColor) != firstColor)
+      if (colorsMapping.get(color) < minColor)
       {
-        colorsMapping.set(secondColor, firstColor);
-        actualColors.remove((Integer) secondColor);
-        actualColorsAmount--;
+        minColor = colorsMapping.get(color);
       }
-    } else
+    }
+    for (int color : colors)
     {
-      if (colorsMapping.get(firstColor) != secondColor)
+      if (colorsMapping.get(color) != minColor)
       {
-        colorsMapping.set(firstColor, secondColor);
-        actualColors.remove((Integer) firstColor);
-        actualColorsAmount--;
+        actualColors.remove(colorsMapping.get(color));
+        for (int i = 0; i < colorsMapping.size(); i++)
+        {
+          if (colorsMapping.get(i) == colorsMapping.get(color))
+          {
+            colorsMapping.set(i, minColor);
+          }
+        }
       }
     }
   }

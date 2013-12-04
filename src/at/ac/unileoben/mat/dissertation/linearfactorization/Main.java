@@ -46,7 +46,7 @@ public class Main
     main.run();
   }
 
-  private void run()
+  void run()
   {
     List<Vertex> vertices = graphReader.readGraph(graphFilePath);
     if (!checkGraphCorrectness(vertices))
