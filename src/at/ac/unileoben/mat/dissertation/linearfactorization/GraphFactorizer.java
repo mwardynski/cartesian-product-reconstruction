@@ -70,11 +70,11 @@ public class GraphFactorizer
         Vertex v = uv.getEndpoint();
         Edge vx = v.getDownEdges().getEdges().iterator().next();
         Vertex x = vx.getEndpoint();
-        boolean uUnitLayer = true;
+        boolean noPivotSquare = true;
         Edge wx = graph.getEdgeForVertices(w, x);
         if (wx != null)
         {
-          uUnitLayer = false;
+          noPivotSquare = false;
           int vxColor = vx.getLabel().getColor();
           int vxMappedColor = graph.getGraphColoring().getCurrentColorMapping(vxColor);
           int wxColor = wx.getLabel().getColor();
@@ -86,11 +86,9 @@ public class GraphFactorizer
           }
           else
           {
-            uUnitLayer = true;
             Edge vxp = v.getEdgeOfDifferentColor(vxMappedColor, graph.getGraphColoring());
             if (vxp != null)
             {
-              uUnitLayer = false;
               Vertex xp = vxp.getEndpoint();
               for (int j = 0; j < uDownEdges.size(); j++)
               {
@@ -107,23 +105,33 @@ public class GraphFactorizer
                   int wpxpColor = wpxp.getLabel().getColor();
                   uv.setLabel(new Label(0, wpxpColor));
                   incrementColorCounter(wpxpColor, colorsCounter, colorsOrder);
+                  break;//TODO is break necessary
                 }
               }
               if (uv.getLabel() == null)
               {
+                //FIXME is it correct, uv can have no labeled edges
                 graph.assignVertexToUnitLayerAndMergeColors(u);
+                System.err.println("ALERT - not sure");
               }
+            }
+            else
+            {
+              uv.setLabel(new Label(0, wxColor));
+              u.setUnitLayer(true);
+              //FIXME is merge needed??
+              incrementColorCounter(wxColor, colorsCounter, colorsOrder);
             }
           }
         }
-        if (uUnitLayer)
+        if (noPivotSquare)
         {
           u.setUnitLayer(true);
         }
         for (int i = 0; i < uDownEdges.size(); i++)
         {
           Edge uy = uDownEdges.get(i);
-          if (uUnitLayer)
+          if (noPivotSquare)
           {
             int vxColor = vx.getLabel().getColor();
             uy.setLabel(new Label(colorsCounter[vxColor], vxColor));
@@ -142,10 +150,6 @@ public class GraphFactorizer
             if (vz != null)
             {
               int vzColor = vz.getLabel().getColor();
-              if (vz.getLabel().getName() != colorsCounter[i])
-              {
-                System.out.println("ALLEEERRRRTTTTT");
-              }
               uy.setLabel(new Label(colorsCounter[vzColor], vzColor));
               incrementColorCounter(vzColor, colorsCounter, colorsOrder);
             }
