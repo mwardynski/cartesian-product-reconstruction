@@ -65,62 +65,67 @@ public class GraphFactorizer
         {
           break;
         }
-        Edge uw = uDownEdges.get(1);
-        Vertex w = uw.getEndpoint();
+        boolean noPivotSquare = true;
         Vertex v = uv.getEndpoint();
         Edge vx = v.getDownEdges().getEdges().iterator().next();
         Vertex x = vx.getEndpoint();
-        boolean noPivotSquare = true;
-        Edge wx = graph.getEdgeForVertices(w, x);
-        if (wx != null)
+        for (int i = 1; i < uDownEdges.size(); i++) //FIXME is this for needed
         {
-          noPivotSquare = false;
-          int vxColor = vx.getLabel().getColor();
-          int vxMappedColor = graph.getGraphColoring().getCurrentColorMapping(vxColor);
-          int wxColor = wx.getLabel().getColor();
-          int wxMappedColor = graph.getGraphColoring().getCurrentColorMapping(wxColor);
-          if (vxMappedColor != wxMappedColor)
+          Edge uw = uDownEdges.get(i);
+          Vertex w = uw.getEndpoint();
+          Edge wx = graph.getEdgeForVertices(w, x);
+          if (wx != null)
           {
-            uv.setLabel(new Label(0, wxColor));
-            incrementColorCounter(wxColor, colorsCounter, colorsOrder);
-          }
-          else
-          {
-            Edge vxp = v.getEdgeOfDifferentColor(vxMappedColor, graph.getGraphColoring());
-            if (vxp != null)
+            noPivotSquare = false;
+            i = uDownEdges.size();
+
+            int vxColor = vx.getLabel().getColor();
+            int vxMappedColor = graph.getGraphColoring().getCurrentColorMapping(vxColor);
+            int wxColor = wx.getLabel().getColor();
+            int wxMappedColor = graph.getGraphColoring().getCurrentColorMapping(wxColor);
+            if (vxMappedColor != wxMappedColor)
             {
-              Vertex xp = vxp.getEndpoint();
-              for (int j = 0; j < uDownEdges.size(); j++)
-              {
-                Edge uwp = uDownEdges.get(j);
-                if (uv.equals(uwp))
-                {
-                  continue;
-                }
-                Vertex wp = uwp.getEndpoint();
-                Edge wpxp = graph.getEdgeForVertices(wp, xp);
-                if (wpxp != null)
-                {
-                  //FIXME maybe more appropriate l(uv) = l(wpxp), l(uwp) = l(vxp)
-                  int wpxpColor = wpxp.getLabel().getColor();
-                  uv.setLabel(new Label(0, wpxpColor));
-                  incrementColorCounter(wpxpColor, colorsCounter, colorsOrder);
-                  break;//TODO is break necessary
-                }
-              }
-              if (uv.getLabel() == null)
-              {
-                //FIXME is it correct, uv can have no labeled edges
-                graph.assignVertexToUnitLayerAndMergeColors(u);
-                System.err.println("ALERT - not sure");
-              }
+              uv.setLabel(new Label(0, wxColor));
+              incrementColorCounter(wxColor, colorsCounter, colorsOrder);
             }
             else
             {
-              uv.setLabel(new Label(0, wxColor));
-              u.setUnitLayer(true);
-              //FIXME is merge needed??
-              incrementColorCounter(wxColor, colorsCounter, colorsOrder);
+              Edge vxp = v.getEdgeOfDifferentColor(vxMappedColor, graph.getGraphColoring());
+              if (vxp != null)
+              {
+                Vertex xp = vxp.getEndpoint();
+                for (int j = 0; j < uDownEdges.size(); j++)
+                {
+                  Edge uwp = uDownEdges.get(j);
+                  if (uv.equals(uwp))
+                  {
+                    continue;
+                  }
+                  Vertex wp = uwp.getEndpoint();
+                  Edge wpxp = graph.getEdgeForVertices(wp, xp);
+                  if (wpxp != null)
+                  {
+                    //FIXME maybe more appropriate l(uv) = l(wpxp), l(uwp) = l(vxp)
+                    int wpxpColor = wpxp.getLabel().getColor();
+                    uv.setLabel(new Label(0, wpxpColor));
+                    incrementColorCounter(wpxpColor, colorsCounter, colorsOrder);
+                    break;//TODO is break necessary
+                  }
+                }
+                if (uv.getLabel() == null)
+                {
+                  //FIXME is it correct, uv can have no labeled edges
+                  graph.assignVertexToUnitLayerAndMergeColors(u);
+                  System.err.println("ALERT - not sure");
+                }
+              }
+              else
+              {
+                uv.setLabel(new Label(0, wxColor));
+                u.setUnitLayer(true);
+                //FIXME is merge needed??
+                incrementColorCounter(wxColor, colorsCounter, colorsOrder);
+              }
             }
           }
         }
