@@ -60,11 +60,6 @@ public class Graph
     return vertices;
   }
 
-  public Edge getEdge(int origin, int endpoint)
-  {
-    return adjacencyMatrix[origin][endpoint];
-  }
-
   public GraphColoring getGraphColoring()
   {
     return graphColoring;
