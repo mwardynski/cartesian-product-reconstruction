@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -87,12 +88,18 @@ public class Graph
     return adjacencyMatrix[uNo][vNo];
   }
 
-  public void assignVertexToUnitLayerAndMergeColors(Vertex v)
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges)
   {
     v.setUnitLayer(true);
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
+    List<Edge> edgesToRelabel = new LinkedList<Edge>(vDownEdges);
+    if (mergeCrossEdges)
+    {
+      List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
+      edgesToRelabel.addAll(vCrossEdges);
+    }
     boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
-    for (Edge vw : vDownEdges)
+    for (Edge vw : edgesToRelabel)
     {
       if (!colorPresence[vw.getLabel().getColor()])
       {
@@ -107,6 +114,19 @@ public class Graph
       if (colorPresence[i])
       {
         colorsToMerge.add(i);
+      }
+    }
+    //TODO remove this debug code
+    if (!colorsToMerge.isEmpty())
+    {
+      int firstColor = getGraphColoring().getCurrentColorMapping(colorsToMerge.get(0));
+      for (Integer singleColor : colorsToMerge)
+      {
+        int secondColor = getGraphColoring().getCurrentColorMapping(singleColor);
+        if (firstColor != secondColor)
+        {
+          System.out.println("merge for vertex: " + v);
+        }
       }
     }
     graphColoring.mergeColors(colorsToMerge);

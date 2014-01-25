@@ -116,8 +116,7 @@ public class Vertex
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
 
     List<Edge> edges = edgeGroup.getEdges();
-    int positionForLabel1 = edgeGroup.getEdgesRef().getPositionForLabel(label);
-    int positionForLabel = positionForLabel1;
+    int positionForLabel = edgeGroup.getEdgesRef().getPositionForLabel(label);
     if (positionForLabel != -1)
     {
       return edges.get(positionForLabel);
@@ -132,8 +131,12 @@ public class Vertex
   {
     EdgesRef edgesRef = getDownEdges().getEdgesRef();
     List<Edge> edges = getDownEdges().getEdges();
-    for (int i = 0; i < edgesRef.getColorsAmount(); i++)
+    for (int i = 0; i < edgesRef.getAllColorsAmount(); i++)
     {
+      if (edgesRef.getPositionsForColor(i).isEmpty())//FIXME optimize it!!!
+      {
+        continue;
+      }
       if (graphColoring.getCurrentColorMapping(i) != graphColoring.getCurrentColorMapping(color))
       {
         int positionForLabel = edgesRef.getPositionForLabel(new Label(0, i));
@@ -165,6 +168,23 @@ public class Vertex
       }
     }
     return resultEdges;
+  }
+
+  public List<Edge> getAllEdgesOfColors(List<Integer> colors, EdgeType edgeType)
+  {
+    List<Edge> edgesOfGivenColors = new LinkedList<Edge>();
+    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
+    EdgesRef edgesRef = edgeGroup.getEdgesRef();
+    List<Edge> allEdges = edgeGroup.getEdges();
+    for (Integer givenColor : colors)
+    {
+      List<Integer> positionsForColor = edgesRef.getPositionsForColor(givenColor);
+      for (int edgePosition : positionsForColor)
+      {
+        edgesOfGivenColors.add(allEdges.get(edgePosition));
+      }
+    }
+    return edgesOfGivenColors;
   }
 
   private EdgesGroup getEdgeGroupForEdgeType(EdgeType edgeType)

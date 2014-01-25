@@ -68,7 +68,7 @@ public class EdgesRef
   public int getPositionForLabel(Label label)
   {
     ColorGroupLocation colorGroupLocation = colorPositions.get(label.getColor());
-    if (colorGroupLocation == null || colorGroupLocation.getLength() < label.getName())
+    if (colorGroupLocation == null || colorGroupLocation.getLength() <= label.getName())
     {
       System.err.println(String.format("no entry in ColorGroupLocation for given label(c:%d,n:%d)",
               label.getColor(), label.getName()));

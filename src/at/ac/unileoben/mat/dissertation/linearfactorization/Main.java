@@ -55,6 +55,7 @@ public class Main
     }
     Graph graph = graphPreparer.prepareToLinearFactorization(vertices);
     graphFactorizer.factorize(graph);
+    System.out.println(graph.getGraphColoring().getActualColors().size());
   }
 
   private boolean checkGraphCorrectness(List<Vertex> graph)

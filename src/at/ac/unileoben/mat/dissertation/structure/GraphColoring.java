@@ -13,17 +13,16 @@ import java.util.List;
  */
 public class GraphColoring
 {
-  private int actualColorsAmount;
   private int originalColorsAmount;
   private List<Integer> colorsMapping;
   private List<Integer> actualColors;
 
   public GraphColoring(int colorsAmount)
   {
-    originalColorsAmount = actualColorsAmount = colorsAmount;
-    colorsMapping = new ArrayList<Integer>(actualColorsAmount);
+    originalColorsAmount = colorsAmount;
+    colorsMapping = new ArrayList<Integer>(originalColorsAmount);
     actualColors = new LinkedList<Integer>();
-    for (int i = 0; i < actualColorsAmount; i++)
+    for (int i = 0; i < originalColorsAmount; i++)
     {
       colorsMapping.add(i);
       actualColors.add(i);
@@ -38,6 +37,11 @@ public class GraphColoring
   public int getCurrentColorMapping(int colorKey)
   {
     return colorsMapping.get(colorKey);
+  }
+
+  public List<Integer> getActualColors()
+  {
+    return actualColors;
   }
 
   public void mergeColors(List<Integer> colors)
@@ -69,6 +73,6 @@ public class GraphColoring
   @Override
   public String toString()
   {
-    return String.format("(%d)%s%s", actualColorsAmount, colorsMapping, actualColors);
+    return String.format("%s%s", colorsMapping, actualColors);
   }
 }
