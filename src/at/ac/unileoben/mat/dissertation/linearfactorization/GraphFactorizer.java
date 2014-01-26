@@ -34,9 +34,7 @@ public class GraphFactorizer
     List<Vertex> currentLayer = graph.getLayer(currentLayerNo);
     for (Vertex u : currentLayer)
     {
-      //FIXME wrap this two in an object
       int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-      List<Integer> colorsOrder = new ArrayList<Integer>(graph.getGraphColoring().getOriginalColorsAmount());
       EdgesGroup downEdgesGroup = u.getDownEdges();
       List<Edge> uDownEdges = downEdgesGroup.getEdges();
       if (uDownEdges.size() == 1)
@@ -46,7 +44,7 @@ public class GraphFactorizer
         Edge vx = v.getDownEdges().getEdges().iterator().next();
         int vxColor = vx.getLabel().getColor();
         uv.setLabel(new Label(0, vxColor));
-        incrementColorCounter(vxColor, colorsCounter, colorsOrder);
+        colorsCounter[vxColor]++;
 
         u.setUnitLayer(true);//FIXME UNIT
         if (!v.isUnitLayer())
@@ -70,6 +68,8 @@ public class GraphFactorizer
         boolean noPivotSquare = true;
         Vertex v = uv.getEndpoint();
         Edge vx = v.getDownEdges().getEdges().iterator().next();
+        int vxColor = vx.getLabel().getColor();
+        int vxMappedColor = graph.getGraphColoring().getCurrentColorMapping(vxColor);
         Vertex x = vx.getEndpoint();
         for (int i = 1; i < uDownEdges.size(); i++)
         {
@@ -78,59 +78,43 @@ public class GraphFactorizer
           Edge wx = graph.getEdgeForVertices(w, x);
           if (wx != null)
           {
-            noPivotSquare = false;
-            i = uDownEdges.size();//TODO maybe to fast to end
-
-            int vxColor = vx.getLabel().getColor();
-            int vxMappedColor = graph.getGraphColoring().getCurrentColorMapping(vxColor);
             int wxColor = wx.getLabel().getColor();
             int wxMappedColor = graph.getGraphColoring().getCurrentColorMapping(wxColor);
             if (vxMappedColor != wxMappedColor)
             {
+              noPivotSquare = false;
               uv.setLabel(new Label(0, wxColor));//TODO set label from lower vertex
-              incrementColorCounter(wxColor, colorsCounter, colorsOrder);
+              colorsCounter[wxColor]++;
+              break;
             }
-            else
+          }
+          if (uv.getLabel() == null)
+          {
+            Edge vxp = v.getEdgeOfDifferentColor(vxMappedColor, graph.getGraphColoring());
+            if (vxp != null)
             {
-              Edge vxp = v.getEdgeOfDifferentColor(vxMappedColor, graph.getGraphColoring());
-              if (vxp != null)
+              Vertex xp = vxp.getEndpoint();
+
+              Edge wxp = graph.getEdgeForVertices(w, xp);
+              if (wxp != null)
               {
-                Vertex xp = vxp.getEndpoint();
-                for (int j = 0; j < uDownEdges.size(); j++)
+                int vxpColor = vxp.getLabel().getColor();
+                int wxpColor = wxp.getLabel().getColor();
+                int vxpMappedColor = graph.getGraphColoring().getCurrentColorMapping(vxpColor);
+                int wxpMappedColor = graph.getGraphColoring().getCurrentColorMapping(wxpColor);
+                if (vxpMappedColor != wxpMappedColor)
                 {
-                  Edge uwp = uDownEdges.get(j);
-                  if (uv.equals(uwp))
+                  noPivotSquare = false;
+                  //TODO maybe more appropriate l(uv) = l(wpxp), l(uwp) = l(vxp)
+                  if (wxp.getLabel().getName() != 0)
                   {
-                    continue;
+                    System.err.println("not first downEdge in the color");
                   }
-                  Vertex wp = uwp.getEndpoint();
-                  Edge wpxp = graph.getEdgeForVertices(wp, xp);
-                  if (wpxp != null)
-                  {
-                    //TODO maybe more appropriate l(uv) = l(wpxp), l(uwp) = l(vxp)
-                    if (wpxp.getLabel().getName() != 0)
-                    {
-                      System.err.println("not first downEdge in the color");
-                    }
-                    int wpxpColor = wpxp.getLabel().getColor();
-                    uv.setLabel(new Label(0, wpxpColor));
-                    incrementColorCounter(wpxpColor, colorsCounter, colorsOrder);
-                    break;
-                  }
+                  int wpxpColor = wxp.getLabel().getColor();
+                  uv.setLabel(new Label(0, wpxpColor));
+                  colorsCounter[wpxpColor]++;
+                  break;
                 }
-                if (uv.getLabel() == null)
-                {
-                  //FIXME is it correct, uv can have no labeled edges
-                  System.err.println("ALERT - couldn't happen!!");//not invoked
-                  uv.setLabel(new Label(0, wxColor));
-                  u.setUnitLayer(true);
-                }
-              }
-              else
-              {
-                uv.setLabel(new Label(0, wxColor));
-                u.setUnitLayer(true);
-                incrementColorCounter(wxColor, colorsCounter, colorsOrder);
               }
             }
           }
@@ -138,6 +122,8 @@ public class GraphFactorizer
         if (noPivotSquare)
         {
           u.setUnitLayer(true);
+          uv.setLabel(new Label(colorsCounter[vxColor], vxColor));
+          colorsCounter[vxColor]++;
         }
         for (int i = 0; i < uDownEdges.size(); i++)
         {
@@ -152,19 +138,17 @@ public class GraphFactorizer
               graph.assignVertexToUnitLayerAndMergeColors(y, true);
             }
           }
-
+          if (uy.equals(uv))
+          {
+            continue;
+          }
           if (noPivotSquare) //TODO when no pivot sqere, then is the labeling correct?
           {
-            int vxColor = vx.getLabel().getColor();
             uy.setLabel(new Label(colorsCounter[vxColor], vxColor));
-            incrementColorCounter(vxColor, colorsCounter, colorsOrder);
+            colorsCounter[vxColor]++;
           }
           else
           {
-            if (uy.equals(uv))
-            {
-              continue;
-            }
             Vertex y = uy.getEndpoint();
             Edge yz = y.getEdgeByLabel(uv.getLabel(), EdgeType.DOWN);
             //FIXME instead of it i can use 'else' below
@@ -188,20 +172,22 @@ public class GraphFactorizer
               {
                 int vzColor = vz.getLabel().getColor();
                 uy.setLabel(new Label(colorsCounter[vzColor], vzColor));
-                incrementColorCounter(vzColor, colorsCounter, colorsOrder);
+                colorsCounter[vzColor]++;
               }
             }
             if (uy.getLabel() == null)
             {
               int uvColor = uv.getLabel().getColor();
               uy.setLabel(new Label(colorsCounter[uvColor], uvColor));
-              incrementColorCounter(uvColor, colorsCounter, colorsOrder);
+              colorsCounter[uvColor]++;
             }
           }
         }
       }
-      EdgesRef downEdgesRef = getEdgesRef(colorsCounter, colorsOrder);
+      EdgesRef downEdgesRef = getEdgesRef(colorsCounter);
       u.getDownEdges().setEdgesRef(downEdgesRef);
+      List<Edge> sortedEdges = sortEdgesAccordingToLabels(u.getDownEdges().getEdges(), graph.getGraphColoring());
+      u.getDownEdges().setEdges(sortedEdges);
     }
   }
 
@@ -212,7 +198,6 @@ public class GraphFactorizer
     {
       List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
       int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-      List<Integer> colorsOrder = new ArrayList<Integer>(graph.getGraphColoring().getOriginalColorsAmount());
       for (int i = 0; i < uCrossEdges.size(); i++)
       {
         Edge uv = uCrossEdges.get(i);
@@ -221,7 +206,7 @@ public class GraphFactorizer
         {
           int oppositeEdgeColor = oppositeEdgeLabel.getColor();
           uv.setLabel(new Label(colorsCounter[oppositeEdgeColor], oppositeEdgeColor));
-          incrementColorCounter(oppositeEdgeColor, colorsCounter, colorsOrder);
+          colorsCounter[oppositeEdgeColor]++;
           continue;
         }
         Vertex v = uv.getEndpoint();
@@ -232,7 +217,7 @@ public class GraphFactorizer
         {
           int wxColor = wxLabel.getColor();
           uv.setLabel(new Label(colorsCounter[wxColor], wxColor));
-          incrementColorCounter(wxColor, colorsCounter, colorsOrder);
+          colorsCounter[wxColor]++;
         }
         else
         {
@@ -244,7 +229,7 @@ public class GraphFactorizer
             {
               int wxColor = wxLabel.getColor();
               uv.setLabel(new Label(colorsCounter[wxColor], wxColor));
-              incrementColorCounter(wxColor, colorsCounter, colorsOrder);
+              colorsCounter[wxColor]++;
             }
           }
           if (uv.getLabel() == null)
@@ -256,12 +241,14 @@ public class GraphFactorizer
             }
             int uwColor = uw.getLabel().getColor();
             uv.setLabel(new Label(colorsCounter[uwColor], uwColor));
-            incrementColorCounter(uwColor, colorsCounter, colorsOrder);
+            colorsCounter[uwColor]++;
           }
         }
       }
-      EdgesRef crossEdgesRef = getEdgesRef(colorsCounter, colorsOrder);
+      EdgesRef crossEdgesRef = getEdgesRef(colorsCounter);
       u.getCrossEdges().setEdgesRef(crossEdgesRef);
+      List<Edge> sortedEdges = sortEdgesAccordingToLabels(u.getCrossEdges().getEdges(), graph.getGraphColoring());
+      u.getCrossEdges().setEdges(sortedEdges);
       if (u.isUnitLayer())
       {
         graph.assignVertexToUnitLayerAndMergeColors(u, true);
@@ -293,20 +280,21 @@ public class GraphFactorizer
     {
       List<Edge> uUpEdges = u.getUpEdges().getEdges();
       int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-      List<Integer> colorsOrder = new ArrayList<Integer>(graph.getGraphColoring().getOriginalColorsAmount());
       for (int i = 0; i < uUpEdges.size(); i++)
       {
         Edge uv = uUpEdges.get(i);
         int oppositeEdgeColor = uv.getOpposite().getLabel().getColor();
         uv.setLabel(new Label(colorsCounter[oppositeEdgeColor], oppositeEdgeColor));
-        incrementColorCounter(oppositeEdgeColor, colorsCounter, colorsOrder);
+        colorsCounter[oppositeEdgeColor]++;
       }
-      EdgesRef upEdgesRef = getEdgesRef(colorsCounter, colorsOrder);
+      EdgesRef upEdgesRef = getEdgesRef(colorsCounter);
       u.getUpEdges().setEdgesRef(upEdgesRef);
+      List<Edge> sortedEdges = sortEdgesAccordingToLabels(u.getUpEdges().getEdges(), graph.getGraphColoring());
+      u.getUpEdges().setEdges(sortedEdges);
     }
   }
 
-  private EdgesRef getEdgesRef(int[] colorsCounter, List<Integer> colorsOrder)
+  private EdgesRef getEdgesRef(int[] colorsCounter)
   {
     int colorsAmount = 0;
     for (int singleColorCounter : colorsCounter)
@@ -317,17 +305,32 @@ public class GraphFactorizer
       }
     }
     EdgesRef edgesRef = new EdgesRef(colorsAmount);
-    edgesRef.setColorsOrderAndAmount(colorsOrder, colorsCounter);
+    edgesRef.setColorsOrderAndAmount(colorsCounter);
     return edgesRef;
   }
 
-  private void incrementColorCounter(int color, int[] colorsCounter, List<Integer> colorsOrder)
+  private List<Edge> sortEdgesAccordingToLabels(List<Edge> edgesToSort, GraphColoring graphColoring)
   {
-    if (colorsCounter[color] == 0)
+    List<Edge> sortedEdges = new ArrayList<Edge>(edgesToSort.size());
+    List<Edge>[] colorOccurrence = (List<Edge>[]) new LinkedList<?>[graphColoring.getOriginalColorsAmount()];
+    for (Edge edge : edgesToSort)
     {
-      colorsOrder.add(color);
+      Label label = edge.getLabel();
+      int color = label.getColor();
+      if (colorOccurrence[color] == null)
+      {
+        colorOccurrence[color] = new LinkedList<Edge>();
+      }
+      colorOccurrence[color].add(edge);
     }
-    colorsCounter[color]++;
+    for (List<Edge> edges : colorOccurrence)
+    {
+      if (edges != null)
+      {
+        sortedEdges.addAll(edges);
+      }
+    }
+    return sortedEdges;
   }
 
 

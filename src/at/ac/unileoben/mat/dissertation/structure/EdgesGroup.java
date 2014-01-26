@@ -24,6 +24,11 @@ public class EdgesGroup
     return edges;
   }
 
+  public void setEdges(List<Edge> edges)
+  {
+    this.edges = edges;
+  }
+
   public EdgesRef getEdgesRef()
   {
     return edgesRef;

@@ -52,15 +52,18 @@ public class EdgesRef
     }
   }
 
-  public void setColorsOrderAndAmount(List<Integer> colorsOrder, int[] colorAmounts)
+  public void setColorsOrderAndAmount(int[] colorAmounts)
   {
     ColorGroupLocation[] colorPositionsArray = new ColorGroupLocation[colorAmounts.length];
     int actualIndex = 0;
-    for (Integer color : colorsOrder)
+    for (int i = 0; i < colorAmounts.length; i++)
     {
-      ColorGroupLocation colorGroupLocation = new ColorGroupLocation(actualIndex, colorAmounts[color]);
-      actualIndex += colorAmounts[color];
-      colorPositionsArray[color] = colorGroupLocation;
+      if (colorAmounts[i] > 0)
+      {
+        ColorGroupLocation colorGroupLocation = new ColorGroupLocation(actualIndex, colorAmounts[i]);
+        actualIndex += colorAmounts[i];
+        colorPositionsArray[i] = colorGroupLocation;
+      }
     }
     colorPositions = Arrays.asList(colorPositionsArray);
   }
@@ -70,8 +73,6 @@ public class EdgesRef
     ColorGroupLocation colorGroupLocation = colorPositions.get(label.getColor());
     if (colorGroupLocation == null || colorGroupLocation.getLength() <= label.getName())
     {
-      System.err.println(String.format("no entry in ColorGroupLocation for given label(c:%d,n:%d)",
-              label.getColor(), label.getName()));
       return -1;
     }
     return colorGroupLocation.getIndex() + label.getName();
