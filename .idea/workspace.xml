@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="0cb84232-a728-49a4-a830-edb67b449a72" name="Default" comment="iterate over down-edges of u to find uw, that is an edge of the square uvxw">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/AdjacencyVector.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationStep.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationSteps.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer2.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/.classpath" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/.classpath" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/partialCubes/Bipartiteness.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/partialCubes/Bipartiteness.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/CartesianProductDecomposition.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/CartesianProductDecomposition.java" />
@@ -13,13 +16,13 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/Coordinatization.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/Coordinatization.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/directProductFactorization/DirectProductFactorizationProgram.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/directProductFactorization/DirectProductFactorizationProgram.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/generator/DirectProductGenerator.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/generator/DirectProductGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/testsrc/at/ac/unileoben/mat/dissertation/linearfactorization/FactorizationTest.java" afterPath="$PROJECT_DIR$/testsrc/at/ac/unileoben/mat/dissertation/linearfactorization/FactorizationTest.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/triangles/FindTrianglesProgram.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/triangles/FindTrianglesProgram.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/cartProductFactorization/GraphFactorizer.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/cartProductFactorization/GraphFactorizer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/GraphReader.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/GraphReader.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/generator/GraphWriter.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/generator/GraphWriter.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/partialCubes/HammingLabeling.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/partialCubes/HammingLabeling.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/InputCorrectnessChecker.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/InputCorrectnessChecker.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java" afterPath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/Neighbor.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/Neighbor.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/NeighborHelper.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/NeighborHelper.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/directProductFactorization/Optimizer.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/directProductFactorization/Optimizer.java" />
@@ -35,16 +38,18 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/Tau.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/Tau.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/ThetaOneStar.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/simpleFactorization/ThetaOneStar.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/triangles/TriangleFinder.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/triangles/TriangleFinder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java" afterPath="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/Vertex.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/Vertex.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/VertexHelper.java" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/common/VertexHelper.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/sq.txt" afterPath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/sq.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="cartesianProduct.iws" />
     <ignored path=".idea/workspace.xml" />
     <file path="/Dummy.txt" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391014396938" ignored="false" />
-    <file path="/fragment.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390748955261" ignored="false" />
+    <file path="/fragment.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391027828646" ignored="false" />
     <file path="/GraphReader.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385738254058" ignored="false" />
-    <file path="/Vertex.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390426410138" ignored="false" />
+    <file path="/Vertex.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391027472278" ignored="false" />
     <file path="/Edge.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385813918118" ignored="false" />
     <file path="/Main.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390414502454" ignored="false" />
     <file path="/InputCorrectnessChecker.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385739311689" ignored="false" />
@@ -56,16 +61,20 @@
     <file path="/EdgesRef.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390741922302" ignored="false" />
     <file path="/a.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1386177236349" ignored="false" />
     <file path="/sample.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385845084182" ignored="false" />
-    <file path="/Graph.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390662701649" ignored="false" />
+    <file path="/Graph.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391017385325" ignored="false" />
     <file path="/EdgeType.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385809556630" ignored="false" />
     <file path="/ColorGroupLocation.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385849335812" ignored="false" />
     <file path="/GraphColoring.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1386190236614" ignored="false" />
     <file path="/Factorizer.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1385851599595" ignored="false" />
-    <file path="/GraphFactorizer.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390745595952" ignored="false" />
+    <file path="/GraphFactorizer.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391022447217" ignored="false" />
     <file path="/FactorizationTest.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390595865834" ignored="false" />
     <file path="/ConsistencyCheckResult.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1386189107193" ignored="false" />
-    <file path="/a.dummy" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1390751251870" ignored="false" />
+    <file path="/a.dummy" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391025317443" ignored="false" />
     <file path="/.gitignore" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391014651417" ignored="false" />
+    <file path="/FactorizationSteps.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391022621645" ignored="false" />
+    <file path="/FactorizationStep.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391027781610" ignored="false" />
+    <file path="/GraphFactorizer2.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391029763117" ignored="false" />
+    <file path="/AdjacencyVector.java" changelist="0cb84232-a728-49a4-a830-edb67b449a72" time="1391024461476" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +97,7 @@
   </component>
   <component name="DebuggerManager">
     <line_breakpoints default_suspend_policy="SuspendAll" default_condition_enabled="true">
-      <breakpoint url="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java" line="113" class="at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer" package="at.ac.unileoben.mat.dissertation.linearfactorization">
+      <breakpoint url="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java" line="144" class="at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer" package="at.ac.unileoben.mat.dissertation.linearfactorization">
         <option name="ENABLED" value="true" />
         <option name="LOG_ENABLED" value="false" />
         <option name="LOG_EXPRESSION_ENABLED" value="false" />
@@ -131,6 +140,21 @@
         <option name="CLASS_FILTERS_ENABLED" value="false" />
         <option name="INSTANCE_FILTERS_ENABLED" value="false" />
         <option name="CONDITION" value="u.getVertexNo() == 33&#13;&#13;JAVA" />
+        <option name="LOG_MESSAGE" value="&#13;&#13;JAVA" />
+      </breakpoint>
+      <breakpoint url="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationStep.java" line="32" class="at.ac.unileoben.mat.dissertation.structure.FactorizationStep" package="at.ac.unileoben.mat.dissertation.structure">
+        <option name="ENABLED" value="true" />
+        <option name="LOG_ENABLED" value="false" />
+        <option name="LOG_EXPRESSION_ENABLED" value="false" />
+        <option name="REMOVE_AFTER_HIT" value="false" />
+        <option name="SUSPEND_POLICY" value="SuspendAll" />
+        <option name="SUSPEND" value="true" />
+        <option name="COUNT_FILTER_ENABLED" value="false" />
+        <option name="COUNT_FILTER" value="0" />
+        <option name="CONDITION_ENABLED" value="true" />
+        <option name="CLASS_FILTERS_ENABLED" value="false" />
+        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
+        <option name="CONDITION" value="referenceVertex.getVertexNo()- firstVertexInLayerIndex &lt; 0&#13;&#13;JAVA" />
         <option name="LOG_MESSAGE" value="&#13;&#13;JAVA" />
       </breakpoint>
     </line_breakpoints>
@@ -186,8 +210,8 @@
         <option name="CONDITION_ENABLED" value="true" />
         <option name="CLASS_FILTERS_ENABLED" value="false" />
         <option name="INSTANCE_FILTERS_ENABLED" value="false" />
-        <option name="CONDITION" value="" />
-        <option name="LOG_MESSAGE" value="" />
+        <option name="CONDITION" value="&#13;&#13;JAVA" />
+        <option name="LOG_MESSAGE" value="&#13;&#13;JAVA" />
       </breakpoint>
     </exception_breakpoints>
     <breakpoint_rules />
@@ -199,10 +223,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="GraphPreparer.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphPreparer.java">
+      <file leaf-file-name="Main.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="166" column="0" selection-start="4235" selection-end="4235" vertical-scroll-proportion="0.0">
+            <state line="56" column="0" selection-start="1514" selection-end="1514" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -211,13 +235,36 @@
       <file leaf-file-name="GraphFactorizer.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="344" column="40" selection-start="12013" selection-end="12013" vertical-scroll-proportion="0.0">
+            <state line="27" column="46" selection-start="592" selection-end="766" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#11080#11086#0" expanded="true" />
                 <element signature="e#13910#13919#0" expanded="true" />
                 <element signature="e#14718#14724#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="GraphFactorizer2.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer2.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="179" column="5" selection-start="6439" selection-end="6439" vertical-scroll-proportion="0.39229423">
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#11902#11908#0" expanded="true" />
+                <element signature="e#14732#14741#0" expanded="true" />
+                <element signature="e#15540#15546#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AdjacencyVector.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/AdjacencyVector.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="16" column="0" selection-start="354" selection-end="354" vertical-scroll-proportion="0.0">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -231,55 +278,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Label.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Label.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="27" column="0" selection-start="437" selection-end="437" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Edge.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Edge.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="55" column="0" selection-start="857" selection-end="857" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Vertex.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="121" column="0" selection-start="2098" selection-end="2098" vertical-scroll-proportion="0.0">
+            <state line="27" column="35" selection-start="622" selection-end="622" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FactorizationTest.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="FactorizationTest.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/testsrc/at/ac/unileoben/mat/dissertation/linearfactorization/FactorizationTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="32" column="24" selection-start="906" selection-end="906" vertical-scroll-proportion="0.3659091">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EdgesGroup.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/EdgesGroup.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="27" column="3" selection-start="471" selection-end="471" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EdgesRef.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/EdgesRef.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="0" selection-start="2132" selection-end="2132" vertical-scroll-proportion="0.0">
+            <state line="46" column="0" selection-start="1312" selection-end="1312" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -290,6 +301,26 @@
           <provider selected="true" editor-type-id="text-editor">
             <state line="127" column="0" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.0">
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FactorizationSteps.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationSteps.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="41" column="0" selection-start="1162" selection-end="1162" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FactorizationStep.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationStep.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="32" column="0" selection-start="839" selection-end="839" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -312,22 +343,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Factorizer.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/ColorGroupLocation.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Edge.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Label.java" />
         <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/ConsistencyCheckResult.java" />
         <option value="$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/cartProductFactorization/GraphFactorizer.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java" />
         <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/GraphColoring.java" />
         <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphPreparer.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Graph.java" />
         <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/EdgesGroup.java" />
-        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java" />
         <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/EdgesRef.java" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/testsrc/at/ac/unileoben/mat/dissertation/linearfactorization/FactorizationTest.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Graph.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationSteps.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/AdjacencyVector.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationStep.java" />
+        <option value="$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer2.java" />
       </list>
     </option>
   </component>
@@ -392,11 +423,55 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="testsrc" />
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dissertation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="structure" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cartesianProduct" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cartesianProduct" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dissertation" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="linearfactorization" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cartesianProduct" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cartesianProduct" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dissertation" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -436,11 +511,11 @@
     <key name="CreateClassDialog.RecentsKey">
       <recent name="at.ac.unileoben.mat.dissertation.structure" />
     </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/../../workspaces-eclipse/relationS" />
-    </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="at.ac.unileoben.mat.desertion.graph" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../../workspaces-eclipse/relationS" />
     </key>
   </component>
   <component name="RunManager" selected="JUnit.FactorizationTest">
@@ -689,24 +764,24 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="1626" height="1028" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32599118" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.46145374" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32819384" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4857143" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24177215" sideWeight="0.51428574" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.5319149" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32674772" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24177215" sideWeight="0.6740088" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32599118" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32826748" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.17711864" sideWeight="0.6732523" order="5" side_tool="true" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -791,56 +866,15 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../../workspaces-eclipse/relationS/src/pl/edu/agh/thesis/cartProductFactorization/GraphFactorizer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="150" column="47" selection-start="4824" selection-end="4824" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../workspaces-eclipse/relationS/cartesianProductWithCrossEdges.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/GraphColoring.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="70" column="0" selection-start="1612" selection-end="1612" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../workspaces-eclipse/relationS/g1">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../workspaces-eclipse/relationS/przyklad.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="57" column="30" selection-start="1550" selection-end="1625" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphPreparer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="166" column="0" selection-start="4235" selection-end="4235" vertical-scroll-proportion="0.0">
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="344" column="40" selection-start="12013" selection-end="12013" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#11080#11086#0" expanded="true" />
-            <element signature="e#13910#13919#0" expanded="true" />
-            <element signature="e#14718#14724#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -854,13 +888,6 @@
     <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Edge.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="55" column="0" selection-start="857" selection-end="857" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="121" column="0" selection-start="2098" selection-end="2098" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -879,13 +906,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Graph.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="127" column="0" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="5" selection-start="5" selection-end="5" vertical-scroll-proportion="0.0">
@@ -893,10 +913,78 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Vertex.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="27" column="35" selection-start="622" selection-end="622" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="27" column="46" selection-start="592" selection-end="766" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#11080#11086#0" expanded="true" />
+            <element signature="e#13910#13919#0" expanded="true" />
+            <element signature="e#14718#14724#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/AdjacencyVector.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="0" selection-start="354" selection-end="354" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationSteps.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="41" column="0" selection-start="1162" selection-end="1162" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/testsrc/at/ac/unileoben/mat/dissertation/linearfactorization/FactorizationTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="24" selection-start="906" selection-end="906" vertical-scroll-proportion="0.3659091">
+        <state line="46" column="0" selection-start="1312" selection-end="1312" vertical-scroll-proportion="0.0">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/Main.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="56" column="0" selection-start="1514" selection-end="1514" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/FactorizationStep.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="32" column="0" selection-start="839" selection-end="839" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/structure/Graph.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="127" column="0" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/at/ac/unileoben/mat/dissertation/linearfactorization/GraphFactorizer2.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="179" column="5" selection-start="6439" selection-end="6439" vertical-scroll-proportion="0.39229423">
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#11902#11908#0" expanded="true" />
+            <element signature="e#14732#14741#0" expanded="true" />
+            <element signature="e#15540#15546#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

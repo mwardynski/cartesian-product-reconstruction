@@ -21,7 +21,7 @@ public class Main
   private GraphReader graphReader;
   private GraphCorrectnessChecker graphCorrectnessChecker;
   private GraphPreparer graphPreparer;
-  private GraphFactorizer graphFactorizer;
+  private GraphFactorizer2 graphFactorizer;
 
 
   Main(String graphFilePath)
@@ -30,7 +30,7 @@ public class Main
     graphReader = new GraphReader();
     graphCorrectnessChecker = new GraphCorrectnessChecker();
     graphPreparer = new GraphPreparer();
-    graphFactorizer = new GraphFactorizer();
+    graphFactorizer = new GraphFactorizer2();
   }
 
   public static void main(String... args)
