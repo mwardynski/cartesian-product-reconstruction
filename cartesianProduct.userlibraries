@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eclipse-userlibraries>
+  <library name="junit:junit:4.10">
+    <archive path="/Users/marcin/dev/ideaProjects/cartesianProduct/lib/junit-4.10.jar" />
+    <archive path="/Users/marcin/dev/ideaProjects/cartesianProduct/lib/hamcrest-core-1.1.jar" />
+  </library>
+</eclipse-userlibraries>
+
