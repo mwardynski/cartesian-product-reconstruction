@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/cartesianProduct.iml" filepath="$PROJECT_DIR$/cartesianProduct.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../workspaces-eclipse/relationS/relationS.iml" filepath="$PROJECT_DIR$/../../workspaces-eclipse/relationS/relationS.iml" />
     </modules>
   </component>
 </project>

@@ -23,6 +23,11 @@ public class Label
     return name;
   }
 
+  public void setName(int name)
+  {
+    this.name = name;
+  }
+
   public int getColor()
   {
     return color;

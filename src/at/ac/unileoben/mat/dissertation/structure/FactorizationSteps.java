@@ -15,6 +15,12 @@ public class FactorizationSteps
   private FactorizationStep findSquareSecondPhase;
   private FactorizationStep labelVerticesPhase;
 
+  public FactorizationSteps(List<Vertex> firstLayer)
+  {
+    findSquareFirstPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size());
+    findSquareSecondPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size());
+  }
+
   public FactorizationSteps(List<Vertex> firstLayer, List<Vertex> secondLayer)
   {
     findSquareFirstPhase = new FactorizationStep(secondLayer.get(0).getVertexNo(), secondLayer.size());
@@ -37,9 +43,14 @@ public class FactorizationSteps
     return labelVerticesPhase;
   }
 
-  public void initialVertexInsert(Vertex u, Vertex v, Vertex x)
+  public void initialVertexInsertForDownEdges(Vertex u, Vertex v, Vertex x)
   {
     findSquareFirstPhase.addVertex(x, u);
     labelVerticesPhase.addVertex(v, u);
+  }
+
+  public void initialVertexInsertForCrossEdges(Vertex u, Vertex w)
+  {
+    findSquareFirstPhase.addVertex(w, u);
   }
 }
