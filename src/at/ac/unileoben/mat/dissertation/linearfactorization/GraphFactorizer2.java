@@ -5,7 +5,10 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategi
 import at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.impl.DownEdgesPivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -52,7 +55,7 @@ public class GraphFactorizer2
         uv.setLabel(new Label(0, vxColor));
         colorsCounter[vxColor]++;
 
-        u.setUnitLayer(true);//FIXME UNIT
+        u.setUnitLayer(true);
         if (!v.isUnitLayer())
         {
           graph.assignVertexToUnitLayerAndMergeColors(v, true); //not invoked
@@ -144,9 +147,9 @@ public class GraphFactorizer2
           }
         }
 
-        EdgesRef downEdgesRef = getEdgesRef(colorsCounter);
+        EdgesRef downEdgesRef = FactorizationUtils.getEdgesRef(colorsCounter);
         u.getDownEdges().setEdgesRef(downEdgesRef);
-        List<Edge> sortedEdges = sortEdgesAccordingToLabels(u.getDownEdges().getEdges(), graph.getGraphColoring());
+        List<Edge> sortedEdges = FactorizationUtils.sortEdgesAccordingToLabels(u.getDownEdges().getEdges(), graph.getGraphColoring());
         u.getDownEdges().setEdges(sortedEdges);
 
         assignedVerticesIterator.remove();
@@ -191,7 +194,6 @@ public class GraphFactorizer2
 
 
     FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer);
-    k
 
     for (Vertex u : currentLayer)
     {
@@ -205,30 +207,7 @@ public class GraphFactorizer2
 
     PivotSquareFinderStrategy pivotSquareFinderStrategy = new CrossEdgesPivotSquareFinderStrategy();
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
-    FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
-    singleFindPivotSquarePhase(graph, pivotSquareFinderStrategy, findSquareFirstPhase, findSquareSecondPhase);
-    singleFindPivotSquarePhase(graph, pivotSquareFinderStrategy, findSquareSecondPhase, null);
-
-    for (Vertex u : currentLayer)
-    {
-      int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-      List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
-      for (Edge uv : uCrossEdges)
-      {
-        Label uvLabel = uv.getLabel();
-        int uvColor = uvLabel.getColor();
-        uvLabel.setName(colorsCounter[uvColor]);
-        colorsCounter[uvColor]++;
-      }
-      EdgesRef crossEdgesRef = getEdgesRef(colorsCounter);
-      u.getCrossEdges().setEdgesRef(crossEdgesRef);
-      List<Edge> sortedEdges = sortEdgesAccordingToLabels(uCrossEdges, graph.getGraphColoring());
-      u.getCrossEdges().setEdges(sortedEdges);
-      if (u.isUnitLayer())
-      {
-        graph.assignVertexToUnitLayerAndMergeColors(u, true);
-      }
-    }
+    singleFindPivotSquarePhase(graph, pivotSquareFinderStrategy, findSquareFirstPhase, null);
   }
 
   private void labelUpEdges(Graph graph, int currentLayerNo)
@@ -245,50 +224,11 @@ public class GraphFactorizer2
         uv.setLabel(new Label(colorsCounter[oppositeEdgeColor], oppositeEdgeColor));
         colorsCounter[oppositeEdgeColor]++;
       }
-      EdgesRef upEdgesRef = getEdgesRef(colorsCounter);
+      EdgesRef upEdgesRef = FactorizationUtils.getEdgesRef(colorsCounter);
       u.getUpEdges().setEdgesRef(upEdgesRef);
-      List<Edge> sortedEdges = sortEdgesAccordingToLabels(u.getUpEdges().getEdges(), graph.getGraphColoring());
+      List<Edge> sortedEdges = FactorizationUtils.sortEdgesAccordingToLabels(u.getUpEdges().getEdges(), graph.getGraphColoring());
       u.getUpEdges().setEdges(sortedEdges);
     }
-  }
-
-  private EdgesRef getEdgesRef(int[] colorsCounter)
-  {
-    int colorsAmount = 0;
-    for (int singleColorCounter : colorsCounter)
-    {
-      if (singleColorCounter != 0)
-      {
-        colorsAmount++;
-      }
-    }
-    EdgesRef edgesRef = new EdgesRef(colorsAmount);
-    edgesRef.setColorsOrderAndAmount(colorsCounter);
-    return edgesRef;
-  }
-
-  private List<Edge> sortEdgesAccordingToLabels(List<Edge> edgesToSort, GraphColoring graphColoring)
-  {
-    List<Edge> sortedEdges = new ArrayList<Edge>(edgesToSort.size());
-    List<Edge>[] colorOccurrence = (List<Edge>[]) new LinkedList<?>[graphColoring.getOriginalColorsAmount()];
-    for (Edge edge : edgesToSort)
-    {
-      Label label = edge.getLabel();
-      int color = label.getColor();
-      if (colorOccurrence[color] == null)
-      {
-        colorOccurrence[color] = new LinkedList<Edge>();
-      }
-      colorOccurrence[color].add(edge);
-    }
-    for (List<Edge> edges : colorOccurrence)
-    {
-      if (edges != null)
-      {
-        sortedEdges.addAll(edges);
-      }
-    }
-    return sortedEdges;
   }
 
 

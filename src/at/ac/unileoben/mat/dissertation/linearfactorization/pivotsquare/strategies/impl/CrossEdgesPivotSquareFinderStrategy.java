@@ -1,9 +1,9 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.impl;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.FactorizationUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,7 +19,7 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
   public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase, Graph graph)
   {
     List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
-    List<Edge> notLabeledEdges = new LinkedList<Edge>();
+    int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     for (Edge uv : uCrossEdges)
     {
       if (uv.getLabel() != null)
@@ -41,41 +41,23 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
       if (wxLabel != null)
       {
         int wxColor = wxLabel.getColor();
-        uv.setLabel(new Label(-1, wxColor));
+        uv.setLabel(new Label(colorsCounter[wxColor], wxColor));
         continue;
       }
       else
       {
-        notLabeledEdges.add(uv);
+        Label uwLabel = uw.getLabel();
+        int uwColor = uwLabel.getColor();
+        uv.setLabel(new Label(colorsCounter[uwColor], uwColor));
       }
     }
-    if (notLabeledEdges.isEmpty())
+    EdgesRef crossEdgesRef = FactorizationUtils.getEdgesRef(colorsCounter);
+    u.getCrossEdges().setEdgesRef(crossEdgesRef);
+    List<Edge> sortedEdges = FactorizationUtils.sortEdgesAccordingToLabels(uCrossEdges, graph.getGraphColoring());
+    u.getCrossEdges().setEdges(sortedEdges);
+    if (u.isUnitLayer())
     {
-      return;
-    }
-    else
-    {
-      Edge uw = u.getEdgeWithColorToLabel();
-      if (nextPhase != null)
-      {
-        Edge uwp = u.getEdgeOfDifferentColor(uw.getLabel().getColor(), graph.getGraphColoring());
-        if (uwp != null)
-        {
-          Vertex wp = uwp.getEndpoint();
-          u.setFirstEdge(uwp);
-          nextPhase.addVertex(wp, u);
-          return;
-        }
-      }
-      for (Edge uv : notLabeledEdges)
-      {
-        if (!u.isUnitLayer())
-        {
-          u.setUnitLayer(true);
-        }
-        int uwColor = uw.getLabel().getColor();
-        uv.setLabel(new Label(-1, uwColor));
-      }
+      graph.assignVertexToUnitLayerAndMergeColors(u, true);
     }
   }
 
