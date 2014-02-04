@@ -81,13 +81,6 @@ public class Graph
     return layers.size();
   }
 
-  public Edge getEdgeForVertices(Vertex u, Vertex v)
-  {
-    int uNo = u.getVertexNo();
-    int vNo = v.getVertexNo();
-    return adjacencyMatrix[uNo][vNo];
-  }
-
   public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges)
   {
     v.setUnitLayer(true);
@@ -114,19 +107,6 @@ public class Graph
       if (colorPresence[i])
       {
         colorsToMerge.add(i);
-      }
-    }
-    //TODO remove this debug code
-    if (!colorsToMerge.isEmpty())
-    {
-      int firstColor = getGraphColoring().getCurrentColorMapping(colorsToMerge.get(0));
-      for (Integer singleColor : colorsToMerge)
-      {
-        int secondColor = getGraphColoring().getCurrentColorMapping(singleColor);
-        if (firstColor != secondColor)
-        {
-          System.out.println("merge for vertex: " + v);
-        }
       }
     }
     graphColoring.mergeColors(colorsToMerge);

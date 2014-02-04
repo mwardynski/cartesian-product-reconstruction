@@ -1,7 +1,7 @@
-package at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.impl;
+package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.impl;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.FactorizationUtils;
-import at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.PivotSquareFinderStrategy;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
@@ -51,9 +51,9 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
         uv.setLabel(new Label(colorsCounter[uwColor], uwColor));
       }
     }
-    EdgesRef crossEdgesRef = FactorizationUtils.getEdgesRef(colorsCounter);
+    EdgesRef crossEdgesRef = LabelUtils.getEdgesRef(colorsCounter);
     u.getCrossEdges().setEdgesRef(crossEdgesRef);
-    List<Edge> sortedEdges = FactorizationUtils.sortEdgesAccordingToLabels(uCrossEdges, graph.getGraphColoring());
+    List<Edge> sortedEdges = LabelUtils.sortEdgesAccordingToLabels(uCrossEdges, graph.getGraphColoring());
     u.getCrossEdges().setEdges(sortedEdges);
     if (u.isUnitLayer())
     {

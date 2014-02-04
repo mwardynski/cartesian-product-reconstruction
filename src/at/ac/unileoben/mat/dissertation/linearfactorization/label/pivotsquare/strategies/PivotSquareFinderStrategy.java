@@ -1,4 +1,4 @@
-package at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies;
+package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies;
 
 import at.ac.unileoben.mat.dissertation.structure.AdjacencyVector;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationStep;

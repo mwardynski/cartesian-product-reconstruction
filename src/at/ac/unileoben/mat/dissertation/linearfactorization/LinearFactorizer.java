@@ -14,23 +14,21 @@ import java.util.List;
  * Time: 15:17
  * To change this template use File | Settings | File Templates.
  */
-public class Main
+public class LinearFactorizer
 {
 
   private String graphFilePath;
   private GraphReader graphReader;
   private GraphCorrectnessChecker graphCorrectnessChecker;
   private GraphPreparer graphPreparer;
-  private GraphFactorizer2 graphFactorizer;
 
 
-  Main(String graphFilePath)
+  LinearFactorizer(String graphFilePath)
   {
     this.graphFilePath = graphFilePath;
     graphReader = new GraphReader();
     graphCorrectnessChecker = new GraphCorrectnessChecker();
     graphPreparer = new GraphPreparer();
-    graphFactorizer = new GraphFactorizer2();
   }
 
   public static void main(String... args)
@@ -42,8 +40,8 @@ public class Main
       System.exit(-1);
     }
 
-    Main main = new Main(args[0]);
-    main.run();
+    LinearFactorizer linearFactorizer = new LinearFactorizer(args[0]);
+    linearFactorizer.run();
   }
 
   void run()
@@ -54,6 +52,7 @@ public class Main
       System.exit(-1);
     }
     Graph graph = graphPreparer.prepareToLinearFactorization(vertices);
+    GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
     graphFactorizer.factorize(graph);
     System.out.println(graph.getGraphColoring().getActualColors().size());
   }

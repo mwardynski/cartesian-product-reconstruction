@@ -1,6 +1,6 @@
-package at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.impl;
+package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.impl;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.pivotsquare.strategies.PivotSquareFinderStrategy;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
