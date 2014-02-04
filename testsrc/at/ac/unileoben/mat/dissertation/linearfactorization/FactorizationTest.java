@@ -19,21 +19,20 @@ public class FactorizationTest
 
   static
   {
-//    examplesList.add("cartesianProductWithCrossEdges.txt");
-//    examplesList.add("c.txt");
-//    examplesList.add("cartFactExample.txt");
-//    examplesList.add("cartesianProductWithCrossEdges.txt");
-//    examplesList.add("g1");
-//    examplesList.add("cd.txt");
-//    examplesList.add("g3");
-//    examplesList.add("newEx.txt");
-//    examplesList.add("newExCart.txt");
-//    examplesList.add("przyklad.txt");
-//    examplesList.add("easyPartialCube2.txt");
-//    examplesList.add("simpleExample.txt");
-//    examplesList.add("example.txt");
-//    examplesList.add("exampleOfCartesianProduct.txt");
-//    examplesList.add("exampleOfCartesianProduct3.txt");
+    examplesList.add("c.txt");
+    examplesList.add("cartFactExample.txt");
+    examplesList.add("CartesianProductWithCrossEdges.txt");
+    examplesList.add("g1");
+    examplesList.add("cd.txt");
+    examplesList.add("g3");
+    examplesList.add("newEx.txt");
+    examplesList.add("newExCart.txt");
+    examplesList.add("przyklad.txt");
+    examplesList.add("easyPartialCube2.txt");
+    examplesList.add("simpleExample.txt");
+    examplesList.add("example.txt");
+    examplesList.add("exampleOfCartesianProduct.txt");
+    examplesList.add("exampleOfCartesianProduct3.txt");
     examplesList.add("victory.txt");
   }
 

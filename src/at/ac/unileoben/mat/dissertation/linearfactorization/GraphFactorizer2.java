@@ -240,9 +240,9 @@ public class GraphFactorizer2
     upEdgesConsistencyCheck(graph, previousLayer);
   }
 
-  private void downAndCrossEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
+  private void downAndCrossEdgesConsistencyCheck(Graph graph, List<Vertex> layer)
   {
-    for (Vertex u : currentLayer)
+    for (Vertex u : layer)
     {
       if (u.isUnitLayer())
       {
@@ -250,7 +250,7 @@ public class GraphFactorizer2
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
       int uvMappedColor = graph.getGraphColoring().getCurrentColorMapping(uv.getLabel().getColor());
-      Edge uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());//FIXME still sth wrong with mapped colors
+      Edge uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());
       if (uw == null)
       {
         graph.assignVertexToUnitLayerAndMergeColors(u, true);//not invoked
@@ -261,16 +261,16 @@ public class GraphFactorizer2
       {
         if (!checkPivotSquares(uv, edgeType, graph).isEmpty() || !checkPivotSquares(uw, edgeType, graph).isEmpty())
         {
-          graph.assignVertexToUnitLayerAndMergeColors(u, true);//FIXME merge cross edges //not invoked
+          graph.assignVertexToUnitLayerAndMergeColors(u, true);
           break;
         }
       }
     }
   }
 
-  private void upEdgesConsistencyCheck(Graph graph, List<Vertex> currentLayer)
+  private void upEdgesConsistencyCheck(Graph graph, List<Vertex> layer)
   {
-    for (Vertex u : currentLayer)
+    for (Vertex u : layer)
     {
       Edge uv = u.getDownEdges().getEdges().get(0);
       Edge uw = null;
@@ -333,8 +333,9 @@ public class GraphFactorizer2
       }
       Vertex z = uz.getEndpoint();
       Vertex zp = vzp.getEndpoint();
-      Edge zzp = graph.getEdgeForVertices(z, zp);
-      if (zzp == null || !uv.getLabel().equals(zzp.getLabel()))
+      EdgeType uvEdgeType = edgeType == EdgeType.CROSS ? EdgeType.CROSS : EdgeType.DOWN;
+      Edge zzp = z.getEdgeByLabel(uv.getLabel(), uvEdgeType);
+      if (zzp == null || !zzp.getEndpoint().equals(zp))
       {
         inconsistentEdges.add(uz);//not invoked
       }
