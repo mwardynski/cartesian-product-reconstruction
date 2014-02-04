@@ -42,8 +42,8 @@ public class FactorizationTest
     for (String exampleFilePath : examplesList)
     {
       System.out.print(exampleFilePath + ": ");
-      LinearFactorizer linearFactorizer = new LinearFactorizer(exampleFilePath);
-      linearFactorizer.run();
+      LinearFactorization linearFactorization = new LinearFactorization(exampleFilePath);
+      linearFactorization.run();
     }
   }
 }

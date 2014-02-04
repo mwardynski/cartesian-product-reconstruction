@@ -14,7 +14,7 @@ import java.util.List;
  * Time: 15:17
  * To change this template use File | Settings | File Templates.
  */
-public class LinearFactorizer
+public class LinearFactorization
 {
 
   private String graphFilePath;
@@ -23,7 +23,7 @@ public class LinearFactorizer
   private GraphPreparer graphPreparer;
 
 
-  LinearFactorizer(String graphFilePath)
+  LinearFactorization(String graphFilePath)
   {
     this.graphFilePath = graphFilePath;
     graphReader = new GraphReader();
@@ -40,8 +40,8 @@ public class LinearFactorizer
       System.exit(-1);
     }
 
-    LinearFactorizer linearFactorizer = new LinearFactorizer(args[0]);
-    linearFactorizer.run();
+    LinearFactorization linearFactorization = new LinearFactorization(args[0]);
+    linearFactorization.run();
   }
 
   void run()
