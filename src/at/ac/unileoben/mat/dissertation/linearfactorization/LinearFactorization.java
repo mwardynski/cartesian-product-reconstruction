@@ -64,6 +64,16 @@ public class LinearFactorization
       System.err.println(graphCorrectnessChecker.NOT_SIMPLE);
       return false;
     }
+    else if (!graphCorrectnessChecker.isConnected(graph))
+    {
+      System.err.println(graphCorrectnessChecker.NOT_CONNECTED);
+      return false;
+    }
+    else if (!graphCorrectnessChecker.isNotBipartite(graph))
+    {
+      System.err.println(graphCorrectnessChecker.BIPARTITE);
+      return false;
+    }
     return true;
   }
 }

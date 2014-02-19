@@ -1,9 +1,13 @@
 package at.ac.unileoben.mat.dissertation.common;
 
+import at.ac.unileoben.mat.dissertation.structure.BipartiteColor;
+import at.ac.unileoben.mat.dissertation.structure.Color;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class GraphCorrectnessChecker
 {
@@ -39,25 +43,26 @@ public class GraphCorrectnessChecker
     }
     return true;
   }
-/*
-    public boolean isNotBipartite(List<Vertex> structure) {
-        boolean result = bfs(structure.iterator().next());
-        recoverAfterBfs();
+
+  public boolean isConnected(List<Vertex> graph) {
+    boolean result = true;
+    bfs(graph.get(0));
+    for (Vertex v : graph) {
+      if (v.getColor() != Color.BLACK) {
+        result = false;
+      }
+    }
+    removeGraphColoring(graph);
+    return result;
+  }
+
+
+    public boolean isNotBipartite(List<Vertex> graph) {
+        boolean result = bfs(graph.get(0));
+        removeGraphColoring(graph);
         return result;
     }
-
-    public boolean isConnected(List<Vertex> structure) {
-        boolean result = true;
-        bfs(structure.iterator().next());
-        for (Vertex v : structure) {
-            if (v.colour != Color.BLACK) {
-                result = false;
-            }
-        }
-        recoverAfterBfs();
-        return result;
-    }
-
+   /*
     public boolean isThin(List<Vertex> structure) {
         RelationFinder relationFinder = new RelationFinder();
         List<List<Vertex>> vertexClasses = relationFinder.findClasses(structure, RelationType.TypeR);
@@ -66,42 +71,50 @@ public class GraphCorrectnessChecker
         }
         return false;
     }
-
-    private boolean bfs(Vertex root) {
-        boolean result = false;
-        root.colour = Color.GREY;
-        root.bipartiteColor = BipartiteColor.RED;
-        Queue<Vertex> queue = new LinkedList<Vertex>();
-        queue.add(root);
-        while (!queue.isEmpty()) {
-            Vertex u = queue.poll();
-            Iterator<Neighbor> it = u.neighbours.iterator();
-            while (it.hasNext()) {
-                Vertex v = structure.get(it.next().neighbourVertexNo);
-                if (v.colour == Color.WHITE) {
-                    v.colour = Color.GREY;
-                    if (u.bipartiteColor == BipartiteColor.RED) {
-                        v.bipartiteColor = BipartiteColor.BLUE;
-                    } else {
-                        v.bipartiteColor = BipartiteColor.RED;
-                    }
-                    queue.add(v);
-                } else {
-                    if (u.bipartiteColor == v.bipartiteColor) {
-                        result = true;
-                    }
-                }
-            }
-            u.colour = Color.BLACK;
+     */
+  private boolean bfs(Vertex root)
+  {
+    boolean result = false;
+    root.setColor(Color.GRAY);
+    root.setBipartiteColor(BipartiteColor.RED);
+    Queue<Vertex> queue = new LinkedList<Vertex>();
+    queue.add(root);
+    while (!queue.isEmpty())
+    {
+      Vertex u = queue.poll();
+      for (Edge e : u.getEdges())
+      {
+        Vertex v = e.getEndpoint();
+        if (v.getColor() == Color.WHITE)
+        {
+          v.setColor(Color.GRAY);
+          if(u.getBipartiteColor() == BipartiteColor.RED)
+          {
+            v.setBipartiteColor(BipartiteColor.BLUE);
+          }
+          else
+          {
+            v.setBipartiteColor(BipartiteColor.RED);
+          }
+          queue.add(v);
         }
-        return result;
-    }
-
-    private void recoverAfterBfs() {
-        for (Vertex v : structure) {
-            v.colour = Color.WHITE;
-            v.bipartiteColor = null;
+        else
+        {
+          if(u.getBipartiteColor() == v.getBipartiteColor())
+          {
+            result = true;
+          }
         }
+      }
+      u.setColor(Color.BLACK);
     }
-    */
+    return result;
+  }
+
+  private void removeGraphColoring(List<Vertex> graph) {
+    for (Vertex v : graph) {
+      v.setColor(Color.WHITE);
+      v.setBipartiteColor(null);
+    }
+  }
 }

@@ -19,6 +19,10 @@ public class FactorizationTest
 
   static
   {
+    examplesList.add("breakExample.txt");
+    examplesList.add("breakExample2.txt");
+    examplesList.add("breakExample3.txt");
+    examplesList.add("breakExample4.txt");
     examplesList.add("c.txt");
     examplesList.add("cartFactExample.txt");
     examplesList.add("CartesianProductWithCrossEdges.txt");
