@@ -49,11 +49,13 @@ public class LinearFactorization
     List<Vertex> vertices = graphReader.readGraph(graphFilePath);
     if (!checkGraphCorrectness(vertices))
     {
-      System.exit(-1);
+      return;
     }
-    Graph graph = graphPreparer.prepareToLinearFactorization(vertices);
+    int[] reindexArray = new int[vertices.size()];
+    Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
     GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
     graphFactorizer.factorize(graph);
+    graphPreparer.finalizeFactorization(graph, reindexArray);
     System.out.println(graph.getGraphColoring().getActualColors().size());
   }
 
@@ -61,17 +63,12 @@ public class LinearFactorization
   {
     if (!graphCorrectnessChecker.isSimple(graph))
     {
-      System.err.println(graphCorrectnessChecker.NOT_SIMPLE);
+      System.out.println(graphCorrectnessChecker.NOT_SIMPLE);
       return false;
     }
     else if (!graphCorrectnessChecker.isConnected(graph))
     {
-      System.err.println(graphCorrectnessChecker.NOT_CONNECTED);
-      return false;
-    }
-    else if (!graphCorrectnessChecker.isNotBipartite(graph))
-    {
-      System.err.println(graphCorrectnessChecker.BIPARTITE);
+      System.out.println(graphCorrectnessChecker.NOT_CONNECTED);
       return false;
     }
     return true;

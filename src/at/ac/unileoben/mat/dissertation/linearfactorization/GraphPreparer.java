@@ -15,10 +15,10 @@ import java.util.*;
 public class GraphPreparer
 {
 
-  public Graph prepareToLinearFactorization(List<Vertex> vertices)
+  public Graph prepareToLinearFactorization(List<Vertex> vertices, int[] reindexArray)
   {
     Vertex root = findVertexWithMinDegree(vertices);
-    int[] reindexArray = bfs(vertices, root);
+    bfs(root, reindexArray);
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);
@@ -26,6 +26,26 @@ public class GraphPreparer
     Graph graph = new Graph(vertices);
     arrangeFirstLayerEdges(graph);
     return graph;
+  }
+
+  public void finalizeFactorization(Graph graph, int[] reindexArray)
+  {
+    List<Vertex> vertices = graph.getVertices();
+    int[] reverseReindexArray = createReverseReindexArray(reindexArray);
+    reindex(vertices, reverseReindexArray);
+    vertices = sortVertices(vertices);
+    sortEdges(vertices);
+    graph.setVertices(vertices);
+  }
+
+  private int[] createReverseReindexArray(int[] reindexArray)
+  {
+    int[] reverseReindexArray = new int[reindexArray.length];
+    for(int i=0; i < reindexArray.length; i++)
+    {
+      reverseReindexArray[reindexArray[i]] = i;
+    }
+    return reverseReindexArray;
   }
 
 
@@ -45,9 +65,8 @@ public class GraphPreparer
     return result;
   }
 
-  private int[] bfs(List<Vertex> vertices, Vertex root)
+  private void bfs(Vertex root, int[] reindexArray)
   {
-    int[] reindexArray = new int[vertices.size()];
     int counter = 0;
     root.setColor(Color.GRAY);
     root.setBfsLayer(0);
@@ -70,7 +89,6 @@ public class GraphPreparer
       }
       u.setColor(Color.BLACK);
     }
-    return reindexArray;
   }
 
   private void reindex(List<Vertex> vertices, int[] reindexArray)

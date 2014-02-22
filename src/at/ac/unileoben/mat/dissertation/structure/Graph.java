@@ -14,31 +14,14 @@ import java.util.List;
 public class Graph
 {
   private List<Vertex> vertices;
-  private Edge[][] adjacencyMatrix;
   private GraphColoring graphColoring;
   private List<List<Vertex>> layers;
 
   public Graph(List<Vertex> vertices)
   {
     this.vertices = vertices;
-    adjacencyMatrix = createAdjacencyMatrix();
     graphColoring = new GraphColoring(getRoot().getEdges().size());
     layers = createLayersList();
-  }
-
-  private Edge[][] createAdjacencyMatrix()
-  {
-    Edge[][] adjacencyMatrix = new Edge[vertices.size()][vertices.size()];
-
-    for (Vertex v : vertices)
-    {
-      for (Edge e : v.getEdges())
-      {
-        adjacencyMatrix[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = e;
-      }
-    }
-
-    return adjacencyMatrix;
   }
 
   private List<List<Vertex>> createLayersList()
@@ -59,6 +42,11 @@ public class Graph
   public List<Vertex> getVertices()
   {
     return vertices;
+  }
+
+  public void setVertices(List<Vertex> vertices)
+  {
+    this.vertices = vertices;
   }
 
   public GraphColoring getGraphColoring()
