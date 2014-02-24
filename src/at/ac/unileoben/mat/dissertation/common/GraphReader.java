@@ -74,11 +74,13 @@ public class GraphReader
       }
       br.close();
       fr.close();
-      return Arrays.asList(graph);
-    } catch (FileNotFoundException e)
+      return new ArrayList<Vertex>(Arrays.asList(graph));
+    }
+    catch (FileNotFoundException e)
     {
       e.printStackTrace();
-    } catch (IOException e)
+    }
+    catch (IOException e)
     {
       e.printStackTrace();
     }

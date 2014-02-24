@@ -35,7 +35,8 @@ public class GraphCorrectnessChecker
         if (counter[i] > 1)
         {
           return false;
-        } else
+        }
+        else
         {
           counter[i] = 0;
         }
@@ -44,11 +45,14 @@ public class GraphCorrectnessChecker
     return true;
   }
 
-  public boolean isConnected(List<Vertex> graph) {
+  public boolean isConnected(List<Vertex> graph)
+  {
     boolean result = true;
     bfs(graph.get(0));
-    for (Vertex v : graph) {
-      if (v.getColor() != Color.BLACK) {
+    for (Vertex v : graph)
+    {
+      if (v.getColor() != Color.BLACK)
+      {
         result = false;
       }
     }
@@ -57,21 +61,23 @@ public class GraphCorrectnessChecker
   }
 
 
-    public boolean isNotBipartite(List<Vertex> graph) {
-        boolean result = bfs(graph.get(0));
-        removeGraphColoring(graph);
-        return result;
-    }
-   /*
-    public boolean isThin(List<Vertex> structure) {
-        RelationFinder relationFinder = new RelationFinder();
-        List<List<Vertex>> vertexClasses = relationFinder.findClasses(structure, RelationType.TypeR);
-        if (vertexClasses.size() == structure.size()) {
-            return true;
-        }
-        return false;
-    }
-     */
+  public boolean isNotBipartite(List<Vertex> graph)
+  {
+    boolean result = bfs(graph.get(0));
+    removeGraphColoring(graph);
+    return result;
+  }
+
+  /*
+   public boolean isThin(List<Vertex> structure) {
+       RelationFinder relationFinder = new RelationFinder();
+       List<List<Vertex>> vertexClasses = relationFinder.findClasses(structure, RelationType.TypeR);
+       if (vertexClasses.size() == structure.size()) {
+           return true;
+       }
+       return false;
+   }
+    */
   private boolean bfs(Vertex root)
   {
     boolean result = false;
@@ -88,7 +94,7 @@ public class GraphCorrectnessChecker
         if (v.getColor() == Color.WHITE)
         {
           v.setColor(Color.GRAY);
-          if(u.getBipartiteColor() == BipartiteColor.RED)
+          if (u.getBipartiteColor() == BipartiteColor.RED)
           {
             v.setBipartiteColor(BipartiteColor.BLUE);
           }
@@ -100,7 +106,7 @@ public class GraphCorrectnessChecker
         }
         else
         {
-          if(u.getBipartiteColor() == v.getBipartiteColor())
+          if (u.getBipartiteColor() == v.getBipartiteColor())
           {
             result = true;
           }
@@ -111,8 +117,10 @@ public class GraphCorrectnessChecker
     return result;
   }
 
-  private void removeGraphColoring(List<Vertex> graph) {
-    for (Vertex v : graph) {
+  private void removeGraphColoring(List<Vertex> graph)
+  {
+    for (Vertex v : graph)
+    {
       v.setColor(Color.WHITE);
       v.setBipartiteColor(null);
     }

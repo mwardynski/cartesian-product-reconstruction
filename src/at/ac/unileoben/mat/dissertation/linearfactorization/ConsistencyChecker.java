@@ -115,10 +115,6 @@ public class ConsistencyChecker
     List<Edge> uDifferentThanUv = u.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     for (Edge uz : uDifferentThanUv)
     {
-      if (uz.getEndpoint().isUnitLayer())
-      {
-        continue;
-      }
       Label uzLabel = uz.getLabel();
       Edge vzp = v.getEdgeByLabel(uzLabel, edgeType);
       if (vzp == null)
