@@ -31,6 +31,7 @@ public class FactorizationTest
     examplesList.add("g3");
     examplesList.add("newEx.txt");
     examplesList.add("newExCart.txt");
+    examplesList.add("newExCart-mod.txt");
     examplesList.add("przyklad.txt");
     examplesList.add("easyPartialCube2.txt");
     examplesList.add("simpleExample.txt");
@@ -45,7 +46,7 @@ public class FactorizationTest
   {
     for (String exampleFilePath : examplesList)
     {
-      System.out.print(exampleFilePath + ": ");
+      System.out.println(exampleFilePath + ": ");
       LinearFactorization linearFactorization = new LinearFactorization(exampleFilePath);
       linearFactorization.run();
     }

@@ -46,17 +46,32 @@ public class LinearFactorization
 
   void run()
   {
-    List<Vertex> vertices = graphReader.readGraph(graphFilePath);
-    if (!checkGraphCorrectness(vertices))
+    List<Vertex> vvv = graphReader.readGraph(graphFilePath);
+    int vertexIndexToRemove = vvv.size() - 1;
+    while (true)
     {
-      return;
+      List<Vertex> vertices = graphReader.readGraph(graphFilePath);
+      if (vertices.size() > vertexIndexToRemove)
+      {
+//        graphPreparer.removeVertex(vertices, vertexIndexToRemove);
+//        System.out.println("removed vertex: " + vertexIndexToRemove);
+        vertexIndexToRemove++;
+      }
+      else
+      {
+        break;
+      }
+      if (!checkGraphCorrectness(vertices))
+      {
+        continue;
+      }
+      int[] reindexArray = new int[vertices.size()];
+      Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
+      GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
+      graphFactorizer.factorize(graph);
+      graphPreparer.finalizeFactorization(graph, reindexArray);
+      System.out.println(graph.getGraphColoring().getActualColors().size());
     }
-    int[] reindexArray = new int[vertices.size()];
-    Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
-    GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
-    graphFactorizer.factorize(graph);
-    graphPreparer.finalizeFactorization(graph, reindexArray);
-    System.out.println(graph.getGraphColoring().getActualColors().size());
   }
 
   private boolean checkGraphCorrectness(List<Vertex> graph)

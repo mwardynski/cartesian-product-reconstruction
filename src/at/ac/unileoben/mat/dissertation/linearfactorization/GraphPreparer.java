@@ -38,10 +38,39 @@ public class GraphPreparer
     graph.setVertices(vertices);
   }
 
+  public void removeVertex(List<Vertex> vertices, int vertexIndex)
+  {
+    Iterator<Vertex> vertexIterator = vertices.iterator();
+    while (vertexIterator.hasNext())
+    {
+      Vertex v = vertexIterator.next();
+      Iterator<Edge> edgeIterator = v.getEdges().iterator();
+      while (edgeIterator.hasNext())
+      {
+        Edge e = edgeIterator.next();
+        if (e.getOrigin().getVertexNo() == vertexIndex || e.getEndpoint().getVertexNo() == vertexIndex)
+        {
+          edgeIterator.remove();
+        }
+      }
+      if (v.getVertexNo() == vertexIndex)
+      {
+        vertexIterator.remove();
+      }
+    }
+    for (Vertex v : vertices)
+    {
+      if (v.getVertexNo() > vertexIndex)
+      {
+        v.setVertexNo(v.getVertexNo() - 1);
+      }
+    }
+  }
+
   private int[] createReverseReindexArray(int[] reindexArray)
   {
     int[] reverseReindexArray = new int[reindexArray.length];
-    for(int i=0; i < reindexArray.length; i++)
+    for (int i = 0; i < reindexArray.length; i++)
     {
       reverseReindexArray[reindexArray[i]] = i;
     }
