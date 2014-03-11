@@ -124,8 +124,7 @@ public class ConsistencyChecker
       }
       Vertex z = uz.getEndpoint();
       Vertex zp = vzp.getEndpoint();
-      EdgeType uvEdgeType = edgeType == EdgeType.CROSS ? EdgeType.CROSS : EdgeType.DOWN;
-      Edge zzp = z.getEdgeByLabel(uv.getLabel(), uvEdgeType);
+      Edge zzp = z.getEdgeByLabel(uv.getLabel(), EdgeType.DOWN);
       if (zzp == null || !zzp.getEndpoint().equals(zp))
       {
         inconsistentEdges.add(uz);//not invoked

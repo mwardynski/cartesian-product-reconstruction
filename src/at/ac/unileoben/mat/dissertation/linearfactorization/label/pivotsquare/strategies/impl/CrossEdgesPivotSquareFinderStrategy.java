@@ -29,9 +29,8 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
       Label oppositeEdgeLabel = uv.getOpposite().getLabel();
       if (oppositeEdgeLabel != null)
       {
-        int oppositeEdgeName = oppositeEdgeLabel.getName();
         int oppositeEdgeColor = oppositeEdgeLabel.getColor();
-        uv.setLabel(new Label(oppositeEdgeName, oppositeEdgeColor));
+        uv.setLabel(new Label(colorsCounter[oppositeEdgeColor]++, oppositeEdgeColor));
         continue;
       }
       Vertex v = uv.getEndpoint();
@@ -42,16 +41,14 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
       if (wxLabel != null)
       {
         int wxColor = wxLabel.getColor();
-        uv.setLabel(new Label(colorsCounter[wxColor], wxColor));
-        colorsCounter[wxColor]++;
+        uv.setLabel(new Label(colorsCounter[wxColor]++, wxColor));
         continue;
       }
       else
       {
         Label uwLabel = uw.getLabel();
         int uwColor = uwLabel.getColor();
-        uv.setLabel(new Label(colorsCounter[uwColor], uwColor));
-        colorsCounter[uwColor]++;
+        uv.setLabel(new Label(colorsCounter[uwColor]++, uwColor));
       }
     }
     EdgesRef crossEdgesRef = LabelUtils.getEdgesRef(colorsCounter);
