@@ -112,25 +112,46 @@ public class ConsistencyChecker
     List<Edge> inconsistentEdges = new LinkedList<Edge>();
     Vertex u = uv.getOrigin();
     Vertex v = uv.getEndpoint();
-    List<Edge> uDifferentThanUv = u.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
-    for (Edge uz : uDifferentThanUv)
+    List<List<Edge>> uDifferentThanUv = u.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
+    List<List<Edge>> vDifferentThanUv = v.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
+    List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
+    inconsistentEdges.addAll(notCorrespondingEdges);
+    for (List<Edge> uzForColor : uDifferentThanUv)
     {
-      Label uzLabel = uz.getLabel();
-      Edge vzp = v.getEdgeByLabel(uzLabel, edgeType);
-      if (vzp == null)
+      for (Edge uz : uzForColor)
       {
-        inconsistentEdges.add(uz);
-        continue;
-      }
-      Vertex z = uz.getEndpoint();
-      Vertex zp = vzp.getEndpoint();
-      Edge zzp = z.getEdgeByLabel(uv.getLabel(), EdgeType.DOWN);
-      if (zzp == null || !zzp.getEndpoint().equals(zp))
-      {
-        inconsistentEdges.add(uz);//not invoked
+        Label uzLabel = uz.getLabel();
+        Edge vzp = v.getEdgeByLabel(uzLabel, edgeType);
+        if (vzp == null)
+        {
+          inconsistentEdges.add(uz);
+          continue;
+        }
+        Vertex z = uz.getEndpoint();
+        Vertex zp = vzp.getEndpoint();
+        Edge zzp = z.getEdgeByLabel(uv.getLabel(), EdgeType.DOWN);
+        if (zzp == null || !zzp.getEndpoint().equals(zp))
+        {
+          inconsistentEdges.add(uz);//not invoked
+        }
       }
     }
     return inconsistentEdges;
+  }
+
+  private List<Edge> getNotCorrespondingEdgesRegardingColor(List<List<Edge>> uEdges, List<List<Edge>> vEdges)
+  {
+    List<Edge> notCorrespondingEdges = new LinkedList<>();
+    for (int i = 0; i < uEdges.size(); i++)
+    {
+      List<Edge> uEdgesOfColorI = uEdges.get(i);
+      List<Edge> vEdgesOfColorI = vEdges.get(i);
+      if (uEdgesOfColorI.size() != vEdgesOfColorI.size())
+      {
+        notCorrespondingEdges.addAll(uEdgesOfColorI);
+      }
+    }
+    return notCorrespondingEdges;
   }
 
 }

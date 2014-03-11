@@ -194,13 +194,19 @@ public class Vertex
     return null;
   }
 
-  public List<Edge> getAllEdgesOfDifferentColor(int color, GraphColoring graphColoring, EdgeType edgeType)
+  public List<List<Edge>> getAllEdgesOfDifferentColor(int color, GraphColoring graphColoring, EdgeType edgeType)
   {
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
     EdgesRef edgesRef = edgeGroup.getEdgesRef();
     List<Edge> allDownEdges = edgeGroup.getEdges();
 
-    List<Edge> resultEdges = new LinkedList<Edge>();
+    int originalColorsAmount = graphColoring.getOriginalColorsAmount();
+    List<List<Edge>> resultEdges = new ArrayList<>();
+    for (int i = 0; i < originalColorsAmount; i++)
+    {
+      resultEdges.add(new LinkedList<Edge>());
+    }
+
     for (int i = 0; i < edgesRef.getAllColorsAmount(); i++)
     {
       if (graphColoring.getCurrentColorMapping(i) != graphColoring.getCurrentColorMapping(color))
@@ -208,7 +214,8 @@ public class Vertex
         List<Integer> positionsForColor = edgesRef.getPositionsForColor(i);
         for (int edgePosition : positionsForColor)
         {
-          resultEdges.add(allDownEdges.get(edgePosition));
+          Edge edge = allDownEdges.get(edgePosition);
+          resultEdges.get(edge.getLabel().getColor()).add(edge);
         }
       }
     }
