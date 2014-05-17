@@ -36,6 +36,11 @@ public class ConsistencyChecker
     {
       if (u.isUnitLayer())
       {
+        List<Integer> unitLayerColors = collectUnitLayerColors(u);
+        if (unitLayerColors.size() > 1)
+        {
+          graph.getGraphColoring().mergeColors(unitLayerColors);
+        }
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
@@ -56,6 +61,28 @@ public class ConsistencyChecker
         }
       }
     }
+  }
+
+  private List<Integer> collectUnitLayerColors(Vertex u)
+  {
+    boolean[] collectedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+    List<Edge> uDownEdges = u.getDownEdges().getEdges();
+    for (Edge uDownEdge : uDownEdges)
+    {
+      Vertex v = uDownEdge.getEndpoint();
+      Edge firstVDownEdge = v.getDownEdges().getEdges().iterator().next();
+      int unitLayerColor = graph.getGraphColoring().getCurrentColorMapping(firstVDownEdge.getLabel().getColor());
+      collectedColors[unitLayerColor] = true;
+    }
+    List<Integer> unitLayerColors = new LinkedList<>();
+    for (int collectedColorIndex = 0; collectedColorIndex < collectedColors.length; collectedColorIndex++)
+    {
+      if (collectedColors[collectedColorIndex])
+      {
+        unitLayerColors.add(collectedColorIndex);
+      }
+    }
+    return unitLayerColors;
   }
 
   private void upEdgesConsistencyCheck(List<Vertex> layer)
