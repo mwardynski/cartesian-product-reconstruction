@@ -41,7 +41,8 @@ public class LinearFactorization
     }
 
     LinearFactorization linearFactorization = new LinearFactorization(args[0]);
-    linearFactorization.run();
+    int amountOfFactors = linearFactorization.factorize();
+    System.out.println(amountOfFactors);
   }
 
   void run()
@@ -72,6 +73,21 @@ public class LinearFactorization
       graphPreparer.finalizeFactorization(graph, reindexArray);
       System.out.println(graph.getGraphColoring().getActualColors().size());
     }
+  }
+
+  int factorize()
+  {
+    List<Vertex> vertices = graphReader.readGraph(graphFilePath);
+    if (!checkGraphCorrectness(vertices))
+    {
+      return -1;
+    }
+    int[] reindexArray = new int[vertices.size()];
+    Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
+    GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
+    graphFactorizer.factorize(graph);
+    graphPreparer.finalizeFactorization(graph, reindexArray);
+    return graph.getGraphColoring().getActualColors().size();
   }
 
   private boolean checkGraphCorrectness(List<Vertex> graph)

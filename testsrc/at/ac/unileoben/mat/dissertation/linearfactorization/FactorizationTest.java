@@ -5,6 +5,9 @@ import org.junit.Test;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
+
 /**
  * Created with IntelliJ IDEA.
  * User: marcin
@@ -15,40 +18,40 @@ import java.util.List;
 public class FactorizationTest
 {
 
-  private final static List<String> examplesList = new LinkedList<String>();
+  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
 
   static
   {
-    examplesList.add("breakExample.txt");
-    examplesList.add("breakExample2.txt");
-    examplesList.add("breakExample3.txt");
-    examplesList.add("breakExample4.txt");
-    examplesList.add("c.txt");
-    examplesList.add("cartFactExample.txt");
-    examplesList.add("CartesianProductWithCrossEdges.txt");
-    examplesList.add("g1");
-    examplesList.add("cd.txt");
-    examplesList.add("g3");
-    examplesList.add("newEx.txt");
-    examplesList.add("newExCart.txt");
-    examplesList.add("newExCart-mod.txt");
-    examplesList.add("przyklad.txt");
-    examplesList.add("easyPartialCube2.txt");
-    examplesList.add("simpleExample.txt");
-    examplesList.add("example.txt");
-    examplesList.add("exampleOfCartesianProduct.txt");
-    examplesList.add("exampleOfCartesianProduct3.txt");
-    examplesList.add("victory.txt");
+    examplesList.add(new FactorizationCase("breakExample.txt", 2));
+    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
+    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
+    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
+    examplesList.add(new FactorizationCase("c.txt", 3));
+    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
+    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
+    examplesList.add(new FactorizationCase("g1", 2));
+    examplesList.add(new FactorizationCase("cd.txt", 1));
+    examplesList.add(new FactorizationCase("g3", 1));
+//    examplesList.add(new FactorizationCase("newEx.txt", -1));
+    examplesList.add(new FactorizationCase("newExCart.txt", 2));
+    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));
+    examplesList.add(new FactorizationCase("przyklad.txt", 1));
+//    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
+    examplesList.add(new FactorizationCase("simpleExample.txt", 1));
+    examplesList.add(new FactorizationCase("example.txt", 1));
+    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
+    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
+    examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 
   @Test
   public void checkExamples()
   {
-    for (String exampleFilePath : examplesList)
+    for (FactorizationCase factorizationCase : examplesList)
     {
-      System.out.println(exampleFilePath + ": ");
-      LinearFactorization linearFactorization = new LinearFactorization(exampleFilePath);
-      linearFactorization.run();
+      LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
+      int amountOfFactors = linearFactorization.factorize();
+      assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
     }
   }
 }
