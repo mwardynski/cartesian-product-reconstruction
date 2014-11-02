@@ -69,7 +69,7 @@ public class Graph
     return layers.size();
   }
 
-  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges)
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges) //mergeCrossEdges always true
   {
     v.setUnitLayer(true);
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
@@ -82,10 +82,7 @@ public class Graph
     boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
     for (Edge vw : edgesToRelabel)
     {
-      if (!colorPresence[vw.getLabel().getColor()])
-      {
-        colorPresence[vw.getLabel().getColor()] = true;
-      }
+      colorPresence[vw.getLabel().getColor()] = true;
       Vertex w = vw.getEndpoint();
       w.setUnitLayer(true);
     }
