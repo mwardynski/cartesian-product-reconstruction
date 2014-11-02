@@ -201,7 +201,7 @@ public class Vertex
     List<Edge> allDownEdges = edgeGroup.getEdges();
 
     int originalColorsAmount = graphColoring.getOriginalColorsAmount();
-    List<List<Edge>> resultEdges = new ArrayList<>();
+    List<List<Edge>> resultEdges = new ArrayList<List<Edge>>();
     for (int i = 0; i < originalColorsAmount; i++)
     {
       resultEdges.add(new LinkedList<Edge>());

@@ -74,7 +74,7 @@ public class ConsistencyChecker
       int unitLayerColor = graph.getGraphColoring().getCurrentColorMapping(firstVDownEdge.getLabel().getColor());
       collectedColors[unitLayerColor] = true;
     }
-    List<Integer> unitLayerColors = new LinkedList<>();
+    List<Integer> unitLayerColors = new LinkedList<Integer>();
     for (int collectedColorIndex = 0; collectedColorIndex < collectedColors.length; collectedColorIndex++)
     {
       if (collectedColors[collectedColorIndex])
@@ -168,7 +168,7 @@ public class ConsistencyChecker
 
   private List<Edge> getNotCorrespondingEdgesRegardingColor(List<List<Edge>> uEdges, List<List<Edge>> vEdges)
   {
-    List<Edge> notCorrespondingEdges = new LinkedList<>();
+    List<Edge> notCorrespondingEdges = new LinkedList<Edge>();
     for (int i = 0; i < uEdges.size(); i++)
     {
       List<Edge> uEdgesOfColorI = uEdges.get(i);
