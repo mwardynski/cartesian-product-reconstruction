@@ -82,18 +82,43 @@ public class Graph
     boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
     for (Edge vw : edgesToRelabel)
     {
-      colorPresence[vw.getLabel().getColor()] = true;
       Vertex w = vw.getEndpoint();
       w.setUnitLayer(true);
     }
-    List<Integer> colorsToMerge = new ArrayList<Integer>(colorPresence.length);
+    mergeColorsForEdges(edgesToRelabel);
+  }
+
+  public List<Integer> getColorsForEdges(List<Edge> edges)
+  {
+    boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
+    for (Edge e : edges)
+    {
+      Label label = e.getLabel();
+      if(label != null)
+      {
+        int currentLabelColor = graphColoring.getCurrentColorMapping(label.getColor());
+        colorPresence[currentLabelColor] = true;
+      }
+    }
+    List<Integer> colors = new ArrayList<Integer>(colorPresence.length);
     for (int i = 0; i < colorPresence.length; i++)
     {
       if (colorPresence[i])
       {
-        colorsToMerge.add(i);
+        colors.add(i);
       }
     }
-    graphColoring.mergeColors(colorsToMerge);
+    return colors;
+  }
+
+  public boolean mergeColorsForEdges(List<Edge> edges)
+  {
+    List<Integer> colorsToMerge = getColorsForEdges(edges);
+    boolean colorsMerged = false;
+    if(colorsToMerge.size() > 0)
+    {
+      colorsMerged = graphColoring.mergeColors(colorsToMerge);
+    }
+    return colorsMerged;
   }
 }

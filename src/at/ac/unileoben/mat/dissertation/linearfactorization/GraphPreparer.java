@@ -271,8 +271,7 @@ public class GraphPreparer
     for (int i = 0; i < crossEdges.size(); i++)
     {
       Edge crossEdge = crossEdges.get(i);
-      int downEdgeColor = upEdge.getLabel().getColor();
-      int mergedColor = mergeCrossEdgesColors(crossEdge, downEdgeColor, graph.getGraphColoring());
+      int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge, graph);
       crossEdge.setLabel(new Label(i, mergedColor));
       if (crossEdgesAmounts[mergedColor] == 0)
       {
@@ -286,18 +285,21 @@ public class GraphPreparer
     crossEdgesGroup.setEdgesRef(crossEdgesRef);
   }
 
-  private int mergeCrossEdgesColors(Edge crossEdge, int proposedColor, GraphColoring graphColoring)
+  private int mergeCrossEdgesColors(Edge crossEdge, Edge proposedColorEdge, Graph graph)
   {
-    int oppositeEdgeColor = Integer.MAX_VALUE;
-    Label oppositeEdgeLabel = crossEdge.getOpposite().getLabel();
-    if (oppositeEdgeLabel != null)
+    Edge oppositeEdge = crossEdge.getOpposite();
+    graph.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge));
+
+    int proposedColor = proposedColorEdge.getLabel().getColor();
+    Label oppositeEdgeLabel = oppositeEdge.getLabel();
+    if(oppositeEdgeLabel != null)
     {
-      oppositeEdgeColor = oppositeEdgeLabel.getColor();
-      if (proposedColor != oppositeEdgeColor)
-      {
-        graphColoring.mergeColors(Arrays.asList(proposedColor, oppositeEdgeColor));
-      }
+      int oppositeEdgeColor = oppositeEdgeLabel.getColor();
+      return proposedColor < oppositeEdgeColor ? proposedColor : oppositeEdgeColor;
     }
-    return proposedColor < oppositeEdgeColor ? proposedColor : oppositeEdgeColor;
+    else
+    {
+      return proposedColor;
+    }
   }
 }

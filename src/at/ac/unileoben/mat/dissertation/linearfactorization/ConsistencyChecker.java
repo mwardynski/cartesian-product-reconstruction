@@ -36,11 +36,8 @@ public class ConsistencyChecker
     {
       if (u.isUnitLayer())
       {
-        List<Integer> unitLayerColors = collectUnitLayerColors(u);
-        if (unitLayerColors.size() > 1)
-        {
-          graph.getGraphColoring().mergeColors(unitLayerColors);
-        }
+        List<Edge> unitLayerEdges = collectUnitLayerEdges(u);
+        graph.mergeColorsForEdges(unitLayerEdges);
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
@@ -63,26 +60,17 @@ public class ConsistencyChecker
     }
   }
 
-  private List<Integer> collectUnitLayerColors(Vertex u)
+  private List<Edge> collectUnitLayerEdges(Vertex u)
   {
-    boolean[] collectedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+    List<Edge> unitLayerEdges = new LinkedList<Edge>();
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     for (Edge uDownEdge : uDownEdges)
     {
       Vertex v = uDownEdge.getEndpoint();
       Edge firstVDownEdge = v.getDownEdges().getEdges().iterator().next();
-      int unitLayerColor = graph.getGraphColoring().getCurrentColorMapping(firstVDownEdge.getLabel().getColor());
-      collectedColors[unitLayerColor] = true;
+      unitLayerEdges.add(firstVDownEdge);
     }
-    List<Integer> unitLayerColors = new LinkedList<Integer>();
-    for (int collectedColorIndex = 0; collectedColorIndex < collectedColors.length; collectedColorIndex++)
-    {
-      if (collectedColors[collectedColorIndex])
-      {
-        unitLayerColors.add(collectedColorIndex);
-      }
-    }
-    return unitLayerColors;
+    return unitLayerEdges;
   }
 
   private void upEdgesConsistencyCheck(List<Vertex> layer)
@@ -115,25 +103,12 @@ public class ConsistencyChecker
 
   private void handleInconsistentUpEdges(Edge uv, List<Edge> inconsistentEdges)
   {
+    List<Edge> edgesToRelabel = new LinkedList<Edge>(inconsistentEdges);
+    edgesToRelabel.add(uv);
+    List<Integer> colors = graph.getColorsForEdges(edgesToRelabel);
+    graph.mergeColorsForEdges(edgesToRelabel);
+
     Vertex u = uv.getOrigin();
-    int originalColorsAmount = graph.getGraphColoring().getOriginalColorsAmount();
-    boolean[] colorOccurs = new boolean[originalColorsAmount];
-    List<Integer> colors = new LinkedList<Integer>();
-    int uvColor = uv.getLabel().getColor();
-    colorOccurs[uvColor] = true;
-    for (Edge inconsistentEdge : inconsistentEdges)
-    {
-      int color = inconsistentEdge.getLabel().getColor();
-      colorOccurs[color] = true;
-    }
-    for (int i = 0; i < colorOccurs.length; i++)
-    {
-      if (colorOccurs[i])
-      {
-        colors.add(i);
-      }
-    }
-    graph.getGraphColoring().mergeColors(colors);
     List<Edge> allUpEdgesOfGivenColors = u.getAllEdgesOfColors(colors, EdgeType.UP);
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {

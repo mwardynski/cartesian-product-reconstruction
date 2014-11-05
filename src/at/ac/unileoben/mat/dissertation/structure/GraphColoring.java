@@ -44,7 +44,7 @@ public class GraphColoring
     return actualColors;
   }
 
-  public void mergeColors(List<Integer> colors)
+  public boolean mergeColors(List<Integer> colors)
   {
     int minColor = Integer.MAX_VALUE;
     for (int color : colors)
@@ -54,10 +54,12 @@ public class GraphColoring
         minColor = colorsMapping.get(color);
       }
     }
+    boolean colorsMerged = false;
     for (int color : colors)
     {
       if (colorsMapping.get(color) != minColor)
       {
+        colorsMerged = true;
         actualColors.remove(colorsMapping.get(color));
         for (int i = 0; i < colorsMapping.size(); i++)
         {
@@ -68,6 +70,7 @@ public class GraphColoring
         }
       }
     }
+    return colorsMerged;
   }
 
   @Override
