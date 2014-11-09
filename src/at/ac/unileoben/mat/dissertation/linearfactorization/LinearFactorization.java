@@ -60,6 +60,10 @@ public class LinearFactorization
     }
     int[] reindexArray = new int[vertices.size()];
     Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
+    if(graph.getLayersAmount() < 3)
+    {
+      return -1;
+    }
     GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
     graphFactorizer.factorize(graph);
     graphPreparer.finalizeFactorization(graph, reindexArray);

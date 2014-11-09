@@ -7,6 +7,7 @@ package at.ac.unileoben.mat.dissertation.structure;
  * Time: 20:07
  * To change this template use File | Settings | File Templates.
  */
-public class MergeTagEnum
+public enum MergeTagEnum
 {
+  PREPARE, LABEL_DOWN, LABEL_CROSS, CONSISTENCY_DOWN, CONSISTENCY_CROSS, CONSISTENCY_UP
 }
