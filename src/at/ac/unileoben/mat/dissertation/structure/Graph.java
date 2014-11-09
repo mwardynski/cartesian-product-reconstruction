@@ -17,11 +17,15 @@ public class Graph
   private GraphColoring graphColoring;
   private List<List<Vertex>> layers;
 
+  private AnalyzeData analyzeData;
+
   public Graph(List<Vertex> vertices)
   {
     this.vertices = vertices;
     graphColoring = new GraphColoring(getRoot().getEdges().size());
     layers = createLayersList();
+
+    analyzeData = new AnalyzeData();
   }
 
   private List<List<Vertex>> createLayersList()
@@ -69,7 +73,12 @@ public class Graph
     return layers.size();
   }
 
-  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges) //mergeCrossEdges always true
+  public AnalyzeData getAnalyzeData()
+  {
+    return analyzeData;
+  }
+
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
   {
     v.setUnitLayer(true);
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
@@ -85,7 +94,7 @@ public class Graph
       Vertex w = vw.getEndpoint();
       w.setUnitLayer(true);
     }
-    mergeColorsForEdges(edgesToRelabel);
+    mergeColorsForEdges(edgesToRelabel, mergeTag);
   }
 
   public List<Integer> getColorsForEdges(List<Edge> edges)
@@ -111,13 +120,17 @@ public class Graph
     return colors;
   }
 
-  public boolean mergeColorsForEdges(List<Edge> edges)
+  public boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag)
   {
     List<Integer> colorsToMerge = getColorsForEdges(edges);
     boolean colorsMerged = false;
     if(colorsToMerge.size() > 0)
     {
       colorsMerged = graphColoring.mergeColors(colorsToMerge);
+    }
+    if(colorsMerged)
+    {
+      analyzeData.addMergeOperation(graphColoring.getActualColors().size(), edges, mergeTag);
     }
     return colorsMerged;
   }

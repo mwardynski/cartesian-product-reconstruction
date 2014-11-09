@@ -57,7 +57,7 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
     u.getCrossEdges().setEdges(sortedEdges);
     if (u.isUnitLayer())
     {
-      graph.assignVertexToUnitLayerAndMergeColors(u, true);
+      graph.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.LABEL_CROSS);
     }
   }
 

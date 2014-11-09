@@ -37,7 +37,7 @@ public class ConsistencyChecker
       if (u.isUnitLayer())
       {
         List<Edge> unitLayerEdges = collectUnitLayerEdges(u);
-        graph.mergeColorsForEdges(unitLayerEdges);
+        graph.mergeColorsForEdges(unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
@@ -45,7 +45,7 @@ public class ConsistencyChecker
       Edge uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());
       if (uw == null)
       {
-        graph.assignVertexToUnitLayerAndMergeColors(u, true);//not invoked
+        graph.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
         continue;
       }
       EnumSet<EdgeType> edgeTypes = EnumSet.of(EdgeType.DOWN, EdgeType.CROSS);
@@ -53,7 +53,8 @@ public class ConsistencyChecker
       {
         if (!checkPivotSquares(uv, edgeType).isEmpty() || !checkPivotSquares(uw, edgeType).isEmpty())
         {
-          graph.assignVertexToUnitLayerAndMergeColors(u, true);
+          MergeTagEnum mergeTagEnum = edgeType == EdgeType.DOWN ? MergeTagEnum.CONSISTENCY_DOWN : MergeTagEnum.CONSISTENCY_CROSS;
+          graph.assignVertexToUnitLayerAndMergeColors(u, true, mergeTagEnum);
           break;
         }
       }
@@ -90,11 +91,11 @@ public class ConsistencyChecker
       {
         uwInconsistentEdges = checkPivotSquares(uw, EdgeType.UP);
       }
-      if(uvInconsistentEdges != null && !uvInconsistentEdges.isEmpty())
+      if (uvInconsistentEdges != null && !uvInconsistentEdges.isEmpty())
       {
         handleInconsistentUpEdges(uv, uvInconsistentEdges);
       }
-      if(uwInconsistentEdges != null && !uwInconsistentEdges.isEmpty())
+      if (uwInconsistentEdges != null && !uwInconsistentEdges.isEmpty())
       {
         handleInconsistentUpEdges(uw, uwInconsistentEdges);
       }
@@ -106,14 +107,14 @@ public class ConsistencyChecker
     List<Edge> edgesToRelabel = new LinkedList<Edge>(inconsistentEdges);
     edgesToRelabel.add(uv);
     List<Integer> colors = graph.getColorsForEdges(edgesToRelabel);
-    graph.mergeColorsForEdges(edgesToRelabel);
+    graph.mergeColorsForEdges(edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
 
     Vertex u = uv.getOrigin();
     List<Edge> allUpEdgesOfGivenColors = u.getAllEdgesOfColors(colors, EdgeType.UP);
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {
       Vertex endpointVertex = edgeOfGivenColor.getEndpoint();
-      graph.assignVertexToUnitLayerAndMergeColors(endpointVertex, true);
+      graph.assignVertexToUnitLayerAndMergeColors(endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
     }
   }
 

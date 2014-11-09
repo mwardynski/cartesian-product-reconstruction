@@ -45,39 +45,15 @@ public class LinearFactorization
     System.out.println(amountOfFactors);
   }
 
-  void run()
-  {
-    List<Vertex> vvv = graphReader.readGraph(graphFilePath);
-    int vertexIndexToRemove = vvv.size() - 1;
-    while (true)
-    {
-      List<Vertex> vertices = graphReader.readGraph(graphFilePath);
-      if (vertices.size() > vertexIndexToRemove)
-      {
-//        graphPreparer.removeVertex(vertices, vertexIndexToRemove);
-//        System.out.println("removed vertex: " + vertexIndexToRemove);
-        vertexIndexToRemove++;
-      }
-      else
-      {
-        break;
-      }
-      if (!checkGraphCorrectness(vertices))
-      {
-        continue;
-      }
-      int[] reindexArray = new int[vertices.size()];
-      Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
-      GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
-      graphFactorizer.factorize(graph);
-      graphPreparer.finalizeFactorization(graph, reindexArray);
-      System.out.println(graph.getGraphColoring().getActualColors().size());
-    }
-  }
 
   int factorize()
   {
     List<Vertex> vertices = graphReader.readGraph(graphFilePath);
+    return factorizeGivenGraph(vertices);
+  }
+
+  int factorizeGivenGraph(List<Vertex> vertices)
+  {
     if (!checkGraphCorrectness(vertices))
     {
       return -1;

@@ -18,6 +18,12 @@ public class GraphPreparer
   public Graph prepareToLinearFactorization(List<Vertex> vertices, int[] reindexArray)
   {
     Vertex root = findVertexWithMinDegree(vertices);
+    Graph graph = prepareToLinearFactorizationForGivenVertex(vertices, root, reindexArray);
+    return graph;
+  }
+
+  public Graph prepareToLinearFactorizationForGivenVertex(List<Vertex> vertices, Vertex root, int[] reindexArray)
+  {
     bfs(root, reindexArray);
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
@@ -288,7 +294,7 @@ public class GraphPreparer
   private int mergeCrossEdgesColors(Edge crossEdge, Edge proposedColorEdge, Graph graph)
   {
     Edge oppositeEdge = crossEdge.getOpposite();
-    graph.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge));
+    graph.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.CONSISTENCY_CROSS);
 
     int proposedColor = proposedColorEdge.getLabel().getColor();
     Label oppositeEdgeLabel = oppositeEdge.getLabel();

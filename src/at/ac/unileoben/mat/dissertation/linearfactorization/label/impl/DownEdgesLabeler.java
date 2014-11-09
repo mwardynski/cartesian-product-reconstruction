@@ -82,7 +82,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     u.setUnitLayer(true);
     if (!v.isUnitLayer())
     {
-      graph.assignVertexToUnitLayerAndMergeColors(v, true); //not invoked
+      graph.assignVertexToUnitLayerAndMergeColors(v, true, MergeTagEnum.LABEL_DOWN); //not invoked
     }
 
     int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
