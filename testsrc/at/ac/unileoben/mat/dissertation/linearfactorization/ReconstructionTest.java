@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.junit.Test;
 
@@ -46,10 +47,12 @@ public class ReconstructionTest
 //    takes too long examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 
+  GraphReader graphReader = new GraphReader();
+
   @Test
   public void singleFactorFactorizationAfterVertexRemoval()
   {
-    GraphReader graphReader = new GraphReader();
+
     GraphPreparer graphPreparer = new GraphPreparer();
     for (FactorizationCase factorizationCase : examplesList)
     {
@@ -59,12 +62,21 @@ public class ReconstructionTest
         List<Vertex> graphVertices = graphReader.readGraph(factorizationCase.getFileName());
         graphPreparer.removeVertex(graphVertices, i);
         LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
-        int amountOfFactors = linearFactorization.factorizeGivenGraph(graphVertices);
-        if(amountOfFactors != -1)
+        Graph resultGraph = linearFactorization.factorizeWithPreparation(graphVertices, null);
+        if(resultGraph != null)
         {
+          int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
           assertThat(factorizationCase.getFileName(), amountOfFactors, is(1));
         }
       }
     }
+  }
+
+  private Graph factorizeGraphWithAllVertices(String fileName, int removedVertexNo)
+  {
+    List<Vertex> graphVertices = graphReader.readGraph(fileName);
+    Vertex removedVertex = graphVertices.get(removedVertexNo);
+    LinearFactorization linearFactorization = new LinearFactorization(fileName);
+    return linearFactorization.factorizeWithPreparation(graphVertices, removedVertex);
   }
 }

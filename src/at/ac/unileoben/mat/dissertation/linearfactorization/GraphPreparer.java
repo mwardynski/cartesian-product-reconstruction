@@ -15,28 +15,28 @@ import java.util.*;
 public class GraphPreparer
 {
 
-  public Graph prepareToLinearFactorization(List<Vertex> vertices, int[] reindexArray)
+  public Graph prepareToLinearFactorization(List<Vertex> vertices, Vertex root)
   {
-    Vertex root = findVertexWithMinDegree(vertices);
-    Graph graph = prepareToLinearFactorizationForGivenVertex(vertices, root, reindexArray);
-    return graph;
-  }
-
-  public Graph prepareToLinearFactorizationForGivenVertex(List<Vertex> vertices, Vertex root, int[] reindexArray)
-  {
+    if(root == null)
+    {
+      root = findVertexWithMinDegree(vertices);
+    }
+    int[] reindexArray = new int[vertices.size()];
     bfs(root, reindexArray);
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);
     arrangeEdgesToThreeGroups(vertices);
     Graph graph = new Graph(vertices);
+    graph.setReindexArray(reindexArray);
     arrangeFirstLayerEdges(graph);
     return graph;
   }
 
-  public void finalizeFactorization(Graph graph, int[] reindexArray)
+  public void finalizeFactorization(Graph graph)
   {
     List<Vertex> vertices = graph.getVertices();
+    int[] reindexArray = graph.getReindexArray();
     int[] reverseReindexArray = createReverseReindexArray(reindexArray);
     reindex(vertices, reverseReindexArray);
     vertices = sortVertices(vertices);

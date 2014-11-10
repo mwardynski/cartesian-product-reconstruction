@@ -17,6 +17,8 @@ public class Graph
   private GraphColoring graphColoring;
   private List<List<Vertex>> layers;
 
+  private int[] reindexArray;
+
   private AnalyzeData analyzeData;
 
   public Graph(List<Vertex> vertices)
@@ -66,6 +68,16 @@ public class Graph
   public Vertex getRoot()
   {
     return vertices.get(0);
+  }
+
+  public int[] getReindexArray()
+  {
+    return reindexArray;
+  }
+
+  public void setReindexArray(int[] reindexArray)
+  {
+    this.reindexArray = reindexArray;
   }
 
   public int getLayersAmount()

@@ -41,34 +41,56 @@ public class LinearFactorization
     }
 
     LinearFactorization linearFactorization = new LinearFactorization(args[0]);
-    int amountOfFactors = linearFactorization.factorize();
+    Graph resultGraph = linearFactorization.factorizeWithPreparation();
+    int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
   }
 
 
-  int factorize()
+  Graph factorizeWithPreparation()
   {
     List<Vertex> vertices = graphReader.readGraph(graphFilePath);
-    return factorizeGivenGraph(vertices);
+    Graph preparedGraph = prepare(vertices, null);
+    if (preparedGraph == null)
+    {
+      return null;
+    }
+    return factorizeGivenGraph(preparedGraph);
   }
 
-  int factorizeGivenGraph(List<Vertex> vertices)
+  Graph factorizeWithPreparation(List<Vertex> vertices, Vertex root)
+  {
+    Graph preparedGraph = prepare(vertices, root);
+    if (preparedGraph == null)
+    {
+      return null;
+    }
+    return factorizeGivenGraph(preparedGraph);
+  }
+
+  private Graph prepare(List<Vertex> vertices, Vertex root)
   {
     if (!checkGraphCorrectness(vertices))
     {
-      return -1;
+      return null;
     }
-    int[] reindexArray = new int[vertices.size()];
-    Graph graph = graphPreparer.prepareToLinearFactorization(vertices, reindexArray);
-    if(graph.getLayersAmount() < 3)
+    Graph graph = graphPreparer.prepareToLinearFactorization(vertices, root);
+    if (graph.getLayersAmount() < 3)
     {
-      return -1;
+      return null;
     }
+    return graph;
+  }
+
+  private Graph factorizeGivenGraph(Graph graph)
+  {
+
     GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
     graphFactorizer.factorize(graph);
-    graphPreparer.finalizeFactorization(graph, reindexArray);
-    return graph.getGraphColoring().getActualColors().size();
+    graphPreparer.finalizeFactorization(graph);
+    return graph;
   }
+
 
   private boolean checkGraphCorrectness(List<Vertex> graph)
   {

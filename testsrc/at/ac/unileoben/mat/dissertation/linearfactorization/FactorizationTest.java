@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
+import at.ac.unileoben.mat.dissertation.structure.Graph;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -50,8 +51,12 @@ public class FactorizationTest
     for (FactorizationCase factorizationCase : examplesList)
     {
       LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
-      int amountOfFactors = linearFactorization.factorize();
-      assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+      Graph resultGraph = linearFactorization.factorizeWithPreparation();
+      if (resultGraph != null)
+      {
+        int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
+        assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+      }
     }
   }
 }
