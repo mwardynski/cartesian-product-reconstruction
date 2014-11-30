@@ -17,7 +17,7 @@ public class GraphPreparer
 
   public Graph prepareToLinearFactorization(List<Vertex> vertices, Vertex root)
   {
-    if(root == null)
+    if (root == null)
     {
       root = findVertexWithMinDegree(vertices);
     }
@@ -27,7 +27,7 @@ public class GraphPreparer
     vertices = sortVertices(vertices);
     sortEdges(vertices);
     arrangeEdgesToThreeGroups(vertices);
-    Graph graph = new Graph(vertices);
+    Graph graph = new Graph(vertices, root);
     graph.setReindexArray(reindexArray);
     arrangeFirstLayerEdges(graph);
     return graph;
@@ -298,7 +298,7 @@ public class GraphPreparer
 
     int proposedColor = proposedColorEdge.getLabel().getColor();
     Label oppositeEdgeLabel = oppositeEdge.getLabel();
-    if(oppositeEdgeLabel != null)
+    if (oppositeEdgeLabel != null)
     {
       int oppositeEdgeColor = oppositeEdgeLabel.getColor();
       return proposedColor < oppositeEdgeColor ? proposedColor : oppositeEdgeColor;

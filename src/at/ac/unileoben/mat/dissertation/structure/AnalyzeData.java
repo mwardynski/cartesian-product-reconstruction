@@ -26,7 +26,7 @@ public class AnalyzeData
     return mergeOperations;
   }
 
-  class MergeOperation
+  public class MergeOperation
   {
     int colorsLeft;
     List<Edge> edgesByMerge;
@@ -37,6 +37,21 @@ public class AnalyzeData
       this.colorsLeft = colorsLeft;
       this.edgesByMerge = edgesByMerge;
       this.mergeTag = mergeTag;
+    }
+
+    public int getColorsLeft()
+    {
+      return colorsLeft;
+    }
+
+    public List<Edge> getEdgesByMerge()
+    {
+      return edgesByMerge;
+    }
+
+    public MergeTagEnum getMergeTag()
+    {
+      return mergeTag;
     }
   }
 }

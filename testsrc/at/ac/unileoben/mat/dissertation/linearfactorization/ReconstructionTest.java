@@ -1,12 +1,12 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.junit.Test;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -44,7 +44,7 @@ public class ReconstructionTest
     examplesList.add(new FactorizationCase("example.txt", 1));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-//    takes too long examplesList.add(new FactorizationCase("victory.txt", 3));
+    examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 
   GraphReader graphReader = new GraphReader();
@@ -63,20 +63,178 @@ public class ReconstructionTest
         graphPreparer.removeVertex(graphVertices, i);
         LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
         Graph resultGraph = linearFactorization.factorizeWithPreparation(graphVertices, null);
-        if(resultGraph != null)
+        if (resultGraph != null)
         {
           int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
           assertThat(factorizationCase.getFileName(), amountOfFactors, is(1));
+        }
+
+        if (resultGraph != null)
+        {
+          analyze(factorizationCase.getFileName(), resultGraph.getGraphColoring().getOriginalColorsAmount(), resultGraph.getRoot().getVertexNo(), i, resultGraph.getAnalyzeData());
         }
       }
     }
   }
 
-  private Graph factorizeGraphWithAllVertices(String fileName, int removedVertexNo)
+
+  private void analyze(String fileName, int originalColorsAmount, int rootNo, int removedVertexNo, AnalyzeData analyzeData)
+  {
+    if (rootNo >= removedVertexNo)
+    {
+      rootNo++;
+    }
+    Graph bfsGraph = buildBfsGraphFromRoot(fileName, rootNo);
+    Vertex removedVertex = bfsGraph.getVertices().get(removedVertexNo);
+    clearBfsColors(bfsGraph);
+    calculateDistancesFromGivenVertex(removedVertex);
+
+    List<AnalyzeData.MergeOperation> mergeOperations = analyzeData.getMergeOperations();
+    AnalyzeResult analyzeResult = new AnalyzeResult();
+    analyzeResult.setMergeOperationsTotal(mergeOperations.size());
+    analyzeResult.setRemovedVertexNo(removedVertexNo);
+    analyzeResult.setOriginalColorsAmount(originalColorsAmount);
+    System.out.println(fileName);
+    for (int i = mergeOperations.size() - 1; i >= 0; i--)
+    {
+      AnalyzeData.MergeOperation mergeOperation = mergeOperations.get(i);
+      List<Edge> edgesByMerge = mergeOperation.getEdgesByMerge();
+      for (Edge edgeByMerge : edgesByMerge)
+      {
+        Vertex origin = edgeByMerge.getOrigin();
+        Vertex endpoint = edgeByMerge.getEndpoint();
+        Vertex originCorrespondingVertex = getCorrespondingVertex(bfsGraph, origin, removedVertexNo);
+        Vertex endpointCorrespondingVertex = getCorrespondingVertex(bfsGraph, endpoint, removedVertexNo);
+
+        updateAnalyzeResult(originCorrespondingVertex, i, mergeOperation, removedVertexNo, analyzeResult);
+        updateAnalyzeResult(endpointCorrespondingVertex, i, mergeOperation, removedVertexNo, analyzeResult);
+      }
+    }
+    if (mergeOperations.size() != 0)
+    {
+      System.out.println("\t" + analyzeResult);
+    }
+    else
+    {
+      System.out.println("\tNo merges for: " + fileName);
+    }
+  }
+
+  private Vertex getCorrespondingVertex(Graph graph, Vertex v, int removedVertexNo)
+  {
+    int vertexNo = v.getVertexNo();
+    return graph.getVertices().get(vertexNo < removedVertexNo ? vertexNo : vertexNo + 1);
+  }
+
+  private Graph buildBfsGraphFromRoot(String fileName, int rootNo)
   {
     List<Vertex> graphVertices = graphReader.readGraph(fileName);
-    Vertex removedVertex = graphVertices.get(removedVertexNo);
-    LinearFactorization linearFactorization = new LinearFactorization(fileName);
-    return linearFactorization.factorizeWithPreparation(graphVertices, removedVertex);
+    Vertex root = graphVertices.get(rootNo);
+    GraphPreparer graphPreparer = new GraphPreparer();
+    Graph bfsGraph = graphPreparer.prepareToLinearFactorization(graphVertices, root);
+    graphPreparer.finalizeFactorization(bfsGraph);
+    return bfsGraph;
+  }
+
+  private void clearBfsColors(Graph graph)
+  {
+    for (Vertex vertex : graph.getVertices())
+    {
+      vertex.setColor(Color.WHITE);
+    }
+
+  }
+
+  private void calculateDistancesFromGivenVertex(Vertex root)
+  {
+    root.setColor(Color.GRAY);
+    root.setBfsLayer(0);
+    Queue<Vertex> queue = new LinkedList<Vertex>();
+    queue.add(root);
+    while (!queue.isEmpty())
+    {
+      Vertex u = queue.poll();
+      for (Edge e : u.getEdges())
+      {
+        Vertex v = e.getEndpoint();
+        if (v.getColor() == Color.WHITE)
+        {
+          v.setColor(Color.GRAY);
+          v.setBfsLayer(u.getBfsLayer() + 1);
+          queue.add(v);
+        }
+      }
+      u.setColor(Color.BLACK);
+    }
+  }
+
+  private void updateAnalyzeResult(Vertex v, int mergeOperationNo, AnalyzeData.MergeOperation mergeOperation, int removedVertexNo, AnalyzeResult analyzeResult)
+  {
+    if (v.getBfsLayer() < analyzeResult.getDistance())
+    {
+      analyzeResult.setDistance(v.getBfsLayer());
+      analyzeResult.setClosestVertex(v);
+      analyzeResult.setClosestMergeOperation(mergeOperation);
+      analyzeResult.setClosestMergeOperationNo(mergeOperationNo);
+    }
+  }
+
+  class AnalyzeResult
+  {
+    int mergeOperationsTotal;
+    int closestMergeOperationNo;
+    AnalyzeData.MergeOperation closestMergeOperation;
+    Vertex closestVertex;
+    int removedVertexNo;
+    int originalColorsAmount;
+    int distance = Integer.MAX_VALUE;
+
+    int getDistance()
+    {
+      return distance;
+    }
+
+    void setDistance(int distance)
+    {
+      this.distance = distance;
+    }
+
+    void setMergeOperationsTotal(int mergeOperationsTotal)
+    {
+      this.mergeOperationsTotal = mergeOperationsTotal;
+    }
+
+    void setClosestMergeOperationNo(int closestMergeOperationNo)
+    {
+      this.closestMergeOperationNo = closestMergeOperationNo;
+    }
+
+    void setClosestMergeOperation(AnalyzeData.MergeOperation closestMergeOperation)
+    {
+      this.closestMergeOperation = closestMergeOperation;
+    }
+
+    void setClosestVertex(Vertex closestVertex)
+    {
+      this.closestVertex = closestVertex;
+    }
+
+    void setRemovedVertexNo(int removedVertexNo)
+    {
+      this.removedVertexNo = removedVertexNo;
+    }
+
+    void setOriginalColorsAmount(int originalColorsAmount)
+    {
+      this.originalColorsAmount = originalColorsAmount;
+    }
+
+    @Override
+    public String toString()
+    {
+      return removedVertexNo + "->" + closestVertex.getVertexNo() + " d=" + distance +
+              ", " + closestMergeOperation.getMergeTag() + "(" + (closestMergeOperationNo + 1) + "/" + mergeOperationsTotal + ") + initial colors: " + originalColorsAmount;
+
+    }
   }
 }

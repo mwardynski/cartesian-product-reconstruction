@@ -13,6 +13,7 @@ import java.util.List;
  */
 public class Graph
 {
+  private Vertex root;
   private List<Vertex> vertices;
   private GraphColoring graphColoring;
   private List<List<Vertex>> layers;
@@ -21,10 +22,11 @@ public class Graph
 
   private AnalyzeData analyzeData;
 
-  public Graph(List<Vertex> vertices)
+  public Graph(List<Vertex> vertices, Vertex root)
   {
     this.vertices = vertices;
-    graphColoring = new GraphColoring(getRoot().getEdges().size());
+    this.root = root;
+    graphColoring = new GraphColoring(root.getEdges().size());
     layers = createLayersList();
 
     analyzeData = new AnalyzeData();
@@ -67,7 +69,7 @@ public class Graph
 
   public Vertex getRoot()
   {
-    return vertices.get(0);
+    return root;
   }
 
   public int[] getReindexArray()
