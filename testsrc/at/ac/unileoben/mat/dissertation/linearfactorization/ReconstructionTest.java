@@ -25,26 +25,27 @@ public class ReconstructionTest
 
   static
   {
-    examplesList.add(new FactorizationCase("breakExample.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
-    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
-    examplesList.add(new FactorizationCase("c.txt", 3));
-    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
-    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
-    examplesList.add(new FactorizationCase("g1", 2));
-    examplesList.add(new FactorizationCase("cd.txt", 1));
-    examplesList.add(new FactorizationCase("g3", 1));
-//    examplesList.add(new FactorizationCase("newEx.txt", -1));
-    examplesList.add(new FactorizationCase("newExCart.txt", 2));
-    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));
-    examplesList.add(new FactorizationCase("przyklad.txt", 1));
-//    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
-    examplesList.add(new FactorizationCase("simpleExample.txt", 1));
-    examplesList.add(new FactorizationCase("example.txt", 1));
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-    examplesList.add(new FactorizationCase("victory.txt", 3));
+//    examplesList.add(new FactorizationCase("breakExample.txt", 2)); //k2
+//    examplesList.add(new FactorizationCase("breakExample2.txt", 2)); //k2
+//    examplesList.add(new FactorizationCase("breakExample3.txt", 3)); //k2
+//    examplesList.add(new FactorizationCase("breakExample4.txt", 2)); //nk2
+//    examplesList.add(new FactorizationCase("c.txt", 3)); //k2
+//    examplesList.add(new FactorizationCase("cartFactExample.txt", 2)); //k2
+//    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2)); //k2
+//    examplesList.add(new FactorizationCase("g1", 2)); //k2
+//    examplesList.add(new FactorizationCase("cd.txt", 1)); //prime
+//    examplesList.add(new FactorizationCase("g3", 1)); //prime
+//don't use    examplesList.add(new FactorizationCase("newEx.txt", -1));
+//    examplesList.add(new FactorizationCase("newExCart.txt", 2)); //nk2
+    examplesList.add(new FactorizationCase("newExCart-no_diag.txt", 2)); //nk2
+//    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1)); //prime
+//    examplesList.add(new FactorizationCase("przyklad.txt", 1)); //prime
+//don't use    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
+//    examplesList.add(new FactorizationCase("simpleExample.txt", 1)); //prime
+//    examplesList.add(new FactorizationCase("example.txt", 1)); //prime
+//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2)); //k2
+//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3)); //k2
+//    examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 
   GraphReader graphReader = new GraphReader();
@@ -56,13 +57,15 @@ public class ReconstructionTest
     GraphPreparer graphPreparer = new GraphPreparer();
     for (FactorizationCase factorizationCase : examplesList)
     {
-      List<Vertex> tmpGraphVertices = graphReader.readGraph(factorizationCase.getFileName());
-      for (int i = 0; i < tmpGraphVertices.size(); i++)
+      List<Vertex> orgGraphVertices = graphReader.readGraph(factorizationCase.getFileName());
+      LinearFactorization orgLinearFactorization = new LinearFactorization(factorizationCase.getFileName());
+      Graph orgGraph = orgLinearFactorization.factorizeWithPreparation(orgGraphVertices, orgGraphVertices.get(6));
+      for (int i = 0; i < orgGraphVertices.size(); i++)
       {
         List<Vertex> graphVertices = graphReader.readGraph(factorizationCase.getFileName());
         graphPreparer.removeVertex(graphVertices, i);
         LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
-        Graph resultGraph = linearFactorization.factorizeWithPreparation(graphVertices, null);
+        Graph resultGraph = linearFactorization.factorizeWithPreparation(graphVertices, graphVertices.get(6));
         if (resultGraph != null)
         {
           int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
@@ -71,19 +74,27 @@ public class ReconstructionTest
 
         if (resultGraph != null)
         {
+          changeNumberingForModifiedGraph(resultGraph, i);
           analyze(factorizationCase.getFileName(), resultGraph.getGraphColoring().getOriginalColorsAmount(), resultGraph.getRoot().getVertexNo(), i, resultGraph.getAnalyzeData());
         }
       }
     }
   }
 
+  private void changeNumberingForModifiedGraph(Graph graph, int removedVertexNo)
+  {
+    for (Vertex vertex : graph.getVertices())
+    {
+      if (vertex.getVertexNo() >= removedVertexNo)
+      {
+        vertex.setVertexNo(vertex.getVertexNo() + 1);
+      }
+    }
+
+  }
 
   private void analyze(String fileName, int originalColorsAmount, int rootNo, int removedVertexNo, AnalyzeData analyzeData)
   {
-    if (rootNo >= removedVertexNo)
-    {
-      rootNo++;
-    }
     Graph bfsGraph = buildBfsGraphFromRoot(fileName, rootNo);
     Vertex removedVertex = bfsGraph.getVertices().get(removedVertexNo);
     clearBfsColors(bfsGraph);
@@ -123,7 +134,7 @@ public class ReconstructionTest
   private Vertex getCorrespondingVertex(Graph graph, Vertex v, int removedVertexNo)
   {
     int vertexNo = v.getVertexNo();
-    return graph.getVertices().get(vertexNo < removedVertexNo ? vertexNo : vertexNo + 1);
+    return graph.getVertices().get(vertexNo);
   }
 
   private Graph buildBfsGraphFromRoot(String fileName, int rootNo)
