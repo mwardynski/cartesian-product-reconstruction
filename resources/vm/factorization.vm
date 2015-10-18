@@ -1,0 +1,25 @@
+\documentclass{article}
+
+\usepackage{tikz}
+\usepackage{verbatim}
+
+\usetikzlibrary{arrows,shapes}
+
+\begin{document}
+
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+\tikzstyle{vertex}=[circle,fill=black!25,minimum size=20pt,inner sep=0pt]
+\tikzstyle{selected vertex} = [vertex, fill=red!24]
+\tikzstyle{edge} = [draw,thick,-]
+\tikzstyle{weight} = [font=\small]
+
+
+#foreach( $step in $steps )
+    $step
+    \newpage
+
+#end
+
+\end{document}

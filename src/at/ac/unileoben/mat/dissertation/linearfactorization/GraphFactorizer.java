@@ -3,6 +3,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.CrossEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
+import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 
 /**
@@ -19,6 +20,7 @@ public class GraphFactorizer
   CrossEdgesLabeler crossEdgesLabeler;
   UpEdgesLabeler upEdgesLabeler;
   ConsistencyChecker consistencyChecker;
+  GraphPrinter graphPrinter;
 
   public GraphFactorizer(Graph graph)
   {
@@ -26,10 +28,12 @@ public class GraphFactorizer
     this.crossEdgesLabeler = new CrossEdgesLabeler(graph);
     this.upEdgesLabeler = new UpEdgesLabeler(graph);
     this.consistencyChecker = new ConsistencyChecker(graph);
+    this.graphPrinter = new GraphPrinter();
   }
 
   public void factorize(Graph graph)
   {
+    graphPrinter.addStep(graph);
     int layersAmount = graph.getLayersAmount();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
@@ -37,6 +41,8 @@ public class GraphFactorizer
       crossEdgesLabeler.labelEdges(currentLayerNo);
       upEdgesLabeler.labelEdges(currentLayerNo);
       consistencyChecker.checkConsistency(currentLayerNo);
+      graphPrinter.addStep(graph);
     }
+    graphPrinter.printFactorization();
   }
 }
