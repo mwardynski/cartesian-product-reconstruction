@@ -20,8 +20,8 @@ public class AdjacencyVector
     }
   }
 
-  public Edge getEdgeToVertex(Vertex v)
+  public Edge[] getVector()
   {
-    return vector[v.getVertexNo()];
+    return vector;
   }
 }

@@ -42,15 +42,4 @@ public class FactorizationSteps
   {
     return labelVerticesPhase;
   }
-
-  public void initialVertexInsertForDownEdges(Vertex u, Vertex v, Vertex x)
-  {
-    findSquareFirstPhase.addVertex(x, u);
-    labelVerticesPhase.addVertex(v, u);
-  }
-
-  public void initialVertexInsertForCrossEdges(Vertex u, Vertex w)
-  {
-    findSquareFirstPhase.addVertex(w, u);
-  }
 }

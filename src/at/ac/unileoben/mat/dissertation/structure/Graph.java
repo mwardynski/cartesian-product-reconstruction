@@ -1,7 +1,7 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+
 import java.util.List;
 
 /**
@@ -13,6 +13,8 @@ import java.util.List;
  */
 public class Graph
 {
+  ColoringService coloringService = new ColoringService();
+
   private Vertex root;
   private List<Vertex> vertices;
   private GraphColoring graphColoring;
@@ -22,29 +24,14 @@ public class Graph
 
   private AnalyzeData analyzeData;
 
-  public Graph(List<Vertex> vertices, Vertex root)
+  public Graph(List<Vertex> vertices, Vertex root, List<List<Vertex>> layers)
   {
     this.vertices = vertices;
     this.root = root;
     graphColoring = new GraphColoring(root.getEdges().size());
-    layers = createLayersList();
+    this.layers = layers;
 
     analyzeData = new AnalyzeData();
-  }
-
-  private List<List<Vertex>> createLayersList()
-  {
-    int layersCount = vertices.get(vertices.size() - 1).getBfsLayer() + 1;
-    List<List<Vertex>> layers = new ArrayList<List<Vertex>>(layersCount);
-    for (int i = 0; i < layersCount; i++)
-    {
-      layers.add(new ArrayList<Vertex>());
-    }
-    for (Vertex v : vertices)
-    {
-      layers.get(v.getBfsLayer()).add(v);
-    }
-    return layers;
   }
 
   public List<Vertex> getVertices()
@@ -62,14 +49,14 @@ public class Graph
     return graphColoring;
   }
 
-  public List<Vertex> getLayer(int i)
-  {
-    return layers.get(i);
-  }
-
   public Vertex getRoot()
   {
     return root;
+  }
+
+  public List<List<Vertex>> getLayers()
+  {
+    return layers;
   }
 
   public int[] getReindexArray()
@@ -90,62 +77,5 @@ public class Graph
   public AnalyzeData getAnalyzeData()
   {
     return analyzeData;
-  }
-
-  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
-  {
-    v.setUnitLayer(true);
-    List<Edge> vDownEdges = v.getDownEdges().getEdges();
-    List<Edge> edgesToRelabel = new LinkedList<Edge>(vDownEdges);
-    if (mergeCrossEdges)
-    {
-      List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
-      edgesToRelabel.addAll(vCrossEdges);
-    }
-    boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
-    for (Edge vw : edgesToRelabel)
-    {
-      Vertex w = vw.getEndpoint();
-      w.setUnitLayer(true);
-    }
-    mergeColorsForEdges(edgesToRelabel, mergeTag);
-  }
-
-  public List<Integer> getColorsForEdges(List<Edge> edges)
-  {
-    boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
-    for (Edge e : edges)
-    {
-      Label label = e.getLabel();
-      if(label != null)
-      {
-        int currentLabelColor = graphColoring.getCurrentColorMapping(label.getColor());
-        colorPresence[currentLabelColor] = true;
-      }
-    }
-    List<Integer> colors = new ArrayList<Integer>(colorPresence.length);
-    for (int i = 0; i < colorPresence.length; i++)
-    {
-      if (colorPresence[i])
-      {
-        colors.add(i);
-      }
-    }
-    return colors;
-  }
-
-  public boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag)
-  {
-    List<Integer> colorsToMerge = getColorsForEdges(edges);
-    boolean colorsMerged = false;
-    if(colorsToMerge.size() > 0)
-    {
-      colorsMerged = graphColoring.mergeColors(colorsToMerge);
-    }
-    if(colorsMerged)
-    {
-      analyzeData.addMergeOperation(graphColoring.getActualColors().size(), edges, mergeTag);
-    }
-    return colorsMerged;
   }
 }

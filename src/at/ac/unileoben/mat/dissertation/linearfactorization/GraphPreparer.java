@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.*;
@@ -14,6 +16,8 @@ import java.util.*;
  */
 public class GraphPreparer
 {
+  ColoringService coloringService = new ColoringService();
+  VertexService vertexService = new VertexService();
 
   public Graph prepareToLinearFactorization(List<Vertex> vertices, Vertex root)
   {
@@ -27,7 +31,7 @@ public class GraphPreparer
     vertices = sortVertices(vertices);
     sortEdges(vertices);
     arrangeEdgesToThreeGroups(vertices);
-    Graph graph = new Graph(vertices, root);
+    Graph graph = new Graph(vertices, root, vertexService.createLayersList(vertices));
     graph.setReindexArray(reindexArray);
     arrangeFirstLayerEdges(graph);
     return graph;
@@ -227,7 +231,7 @@ public class GraphPreparer
     {
       colorLengths[i] = 1;
     }
-    edgesRef.setColorAmounts(colorLengths);
+    coloringService.setColorAmounts(edgesRef, colorLengths);
 
     upEdgesGroup.setEdgesRef(edgesRef);
 
@@ -260,7 +264,7 @@ public class GraphPreparer
         colorLengths[j] = 0;
       }
     }
-    downEdgesRef.setColorAmounts(colorLengths);
+    coloringService.setColorAmounts(downEdgesRef, colorLengths);
 
     Vertex endpointVertex = upEdge.getEndpoint();
     EdgesGroup downEdgesGroup = endpointVertex.getDownEdges();
@@ -287,14 +291,14 @@ public class GraphPreparer
 
     }
     EdgesRef crossEdgesRef = new EdgesRef(crossEdgesColorsAmount);
-    crossEdgesRef.setColorAmounts(crossEdgesAmounts);
+    coloringService.setColorAmounts(crossEdgesRef, crossEdgesAmounts);
     crossEdgesGroup.setEdgesRef(crossEdgesRef);
   }
 
   private int mergeCrossEdgesColors(Edge crossEdge, Edge proposedColorEdge, Graph graph)
   {
     Edge oppositeEdge = crossEdge.getOpposite();
-    graph.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.CONSISTENCY_CROSS);
+    coloringService.mergeColorsForEdges(graph, Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.CONSISTENCY_CROSS);
 
     int proposedColor = proposedColorEdge.getLabel().getColor();
     Label oppositeEdgeLabel = oppositeEdge.getLabel();

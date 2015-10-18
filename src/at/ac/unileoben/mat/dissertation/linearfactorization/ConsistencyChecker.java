@@ -1,5 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.EnumSet;
@@ -15,6 +18,11 @@ import java.util.List;
  */
 public class ConsistencyChecker
 {
+
+  EdgeService edgeService = new EdgeService();
+  ColoringService coloringService = new ColoringService();
+  VertexService vertexService = new VertexService();
+
   private Graph graph;
 
   public ConsistencyChecker(Graph graph)
@@ -24,8 +32,8 @@ public class ConsistencyChecker
 
   public void checkConsistency(int currentLayerNo)
   {
-    List<Vertex> currentLayer = graph.getLayer(currentLayerNo);
-    List<Vertex> previousLayer = graph.getLayer(currentLayerNo - 1);
+    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo);
+    List<Vertex> previousLayer = vertexService.getLayer(graph, currentLayerNo - 1);
     downAndCrossEdgesConsistencyCheck(currentLayer);
     upEdgesConsistencyCheck(previousLayer);
   }
@@ -37,15 +45,15 @@ public class ConsistencyChecker
       if (u.isUnitLayer())
       {
         List<Edge> unitLayerEdges = collectUnitLayerEdges(u);
-        graph.mergeColorsForEdges(unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
+        coloringService.mergeColorsForEdges(graph, unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
-      int uvMappedColor = graph.getGraphColoring().getCurrentColorMapping(uv.getLabel().getColor());
-      Edge uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());
+      int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
+      Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       if (uw == null)
       {
-        graph.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
+        vertexService.assignVertexToUnitLayerAndMergeColors(graph, u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
         continue;
       }
       EnumSet<EdgeType> edgeTypes = EnumSet.of(EdgeType.DOWN, EdgeType.CROSS);
@@ -54,7 +62,7 @@ public class ConsistencyChecker
         if (!checkPivotSquares(uv, edgeType).isEmpty() || !checkPivotSquares(uw, edgeType).isEmpty())
         {
           MergeTagEnum mergeTagEnum = edgeType == EdgeType.DOWN ? MergeTagEnum.CONSISTENCY_DOWN : MergeTagEnum.CONSISTENCY_CROSS;
-          graph.assignVertexToUnitLayerAndMergeColors(u, true, mergeTagEnum);
+          vertexService.assignVertexToUnitLayerAndMergeColors(graph, u, true, mergeTagEnum);
           break;
         }
       }
@@ -82,8 +90,8 @@ public class ConsistencyChecker
       Edge uw = null;
       if (!u.isUnitLayer())
       {
-        int uvMappedColor = graph.getGraphColoring().getCurrentColorMapping(uv.getLabel().getColor());
-        uw = u.getEdgeOfDifferentColor(uvMappedColor, graph.getGraphColoring());
+        int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
+        uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       }
       List<Edge> uvInconsistentEdges = checkPivotSquares(uv, EdgeType.UP);
       List<Edge> uwInconsistentEdges = null;
@@ -106,15 +114,15 @@ public class ConsistencyChecker
   {
     List<Edge> edgesToRelabel = new LinkedList<Edge>(inconsistentEdges);
     edgesToRelabel.add(uv);
-    List<Integer> colors = graph.getColorsForEdges(edgesToRelabel);
-    graph.mergeColorsForEdges(edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
+    List<Integer> colors = coloringService.getColorsForEdges(graph.getGraphColoring(), edgesToRelabel);
+    coloringService.mergeColorsForEdges(graph, edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
 
     Vertex u = uv.getOrigin();
-    List<Edge> allUpEdgesOfGivenColors = u.getAllEdgesOfColors(colors, EdgeType.UP);
+    List<Edge> allUpEdgesOfGivenColors = edgeService.getAllEdgesOfColors(u, colors, EdgeType.UP);
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {
       Vertex endpointVertex = edgeOfGivenColor.getEndpoint();
-      graph.assignVertexToUnitLayerAndMergeColors(endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
+      vertexService.assignVertexToUnitLayerAndMergeColors(graph, endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
     }
   }
 
@@ -123,8 +131,8 @@ public class ConsistencyChecker
     List<Edge> inconsistentEdges = new LinkedList<Edge>();
     Vertex u = uv.getOrigin();
     Vertex v = uv.getEndpoint();
-    List<List<Edge>> uDifferentThanUv = u.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
-    List<List<Edge>> vDifferentThanUv = v.getAllEdgesOfDifferentColor(uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
+    List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
+    List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
     inconsistentEdges.addAll(notCorrespondingEdges);
     for (List<Edge> uzForColor : uDifferentThanUv)
@@ -132,7 +140,7 @@ public class ConsistencyChecker
       for (Edge uz : uzForColor)
       {
         Label uzLabel = uz.getLabel();
-        Edge vzp = v.getEdgeByLabel(uzLabel, edgeType);
+        Edge vzp = edgeService.getEdgeByLabel(v, uzLabel, edgeType);
         if (vzp == null)
         {
           inconsistentEdges.add(uz);
@@ -140,7 +148,7 @@ public class ConsistencyChecker
         }
         Vertex z = uz.getEndpoint();
         Vertex zp = vzp.getEndpoint();
-        Edge zzp = z.getEdgeByLabel(uv.getLabel(), EdgeType.DOWN);
+        Edge zzp = edgeService.getEdgeByLabel(z, uv.getLabel(), EdgeType.DOWN);
         if (zzp == null || !zzp.getEndpoint().equals(zp))
         {
           inconsistentEdges.add(uz);//not invoked

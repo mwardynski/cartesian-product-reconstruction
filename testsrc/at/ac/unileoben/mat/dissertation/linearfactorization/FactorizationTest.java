@@ -35,7 +35,7 @@ public class FactorizationTest
     examplesList.add(new FactorizationCase("g3", 1));
 //    examplesList.add(new FactorizationCase("newEx.txt", -1));
     examplesList.add(new FactorizationCase("newExCart.txt", 2));
-    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));
+    examplesList.add(new FactorizationCase("newExCart-mod.txt", 2));
     examplesList.add(new FactorizationCase("przyklad.txt", 1));
 //    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
     examplesList.add(new FactorizationCase("simpleExample.txt", 1));

@@ -34,43 +34,14 @@ public class GraphColoring
     return originalColorsAmount;
   }
 
-  public int getCurrentColorMapping(int colorKey)
+  public List<Integer> getColorsMapping()
   {
-    return colorsMapping.get(colorKey);
+    return colorsMapping;
   }
 
   public List<Integer> getActualColors()
   {
     return actualColors;
-  }
-
-  public boolean mergeColors(List<Integer> colors)
-  {
-    int minColor = Integer.MAX_VALUE;
-    for (int color : colors)
-    {
-      if (colorsMapping.get(color) < minColor)
-      {
-        minColor = colorsMapping.get(color);
-      }
-    }
-    boolean colorsMerged = false;
-    for (int color : colors)
-    {
-      if (colorsMapping.get(color) != minColor)
-      {
-        colorsMerged = true;
-        actualColors.remove(colorsMapping.get(color));
-        for (int i = 0; i < colorsMapping.size(); i++)
-        {
-          if (colorsMapping.get(i) == colorsMapping.get(color))
-          {
-            colorsMapping.set(i, minColor);
-          }
-        }
-      }
-    }
-    return colorsMerged;
   }
 
   @Override

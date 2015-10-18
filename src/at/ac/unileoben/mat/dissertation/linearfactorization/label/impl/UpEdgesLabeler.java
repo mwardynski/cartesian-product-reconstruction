@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.List;
  */
 public class UpEdgesLabeler implements EdgesLabeler
 {
+  VertexService vertexService = new VertexService();
+
   private Graph graph;
 
   public UpEdgesLabeler(Graph graph)
@@ -25,7 +28,7 @@ public class UpEdgesLabeler implements EdgesLabeler
   @Override
   public void labelEdges(int currentLayerNo)
   {
-    List<Vertex> currentLayer = graph.getLayer(currentLayerNo - 1);
+    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo - 1);
     for (Vertex u : currentLayer)
     {
       List<Edge> uUpEdges = u.getUpEdges().getEdges();

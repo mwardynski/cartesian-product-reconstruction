@@ -2,6 +2,8 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.s
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
@@ -15,6 +17,10 @@ import java.util.List;
  */
 public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStrategy
 {
+
+  EdgeService edgeService = new EdgeService();
+  VertexService vertexService = new VertexService();
+
   @Override
   public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase, Graph graph)
   {
@@ -57,18 +63,18 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
     u.getCrossEdges().setEdges(sortedEdges);
     if (u.isUnitLayer())
     {
-      graph.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.LABEL_CROSS);
+      vertexService.assignVertexToUnitLayerAndMergeColors(graph, u, true, MergeTagEnum.LABEL_CROSS);
     }
   }
 
   private Label findLabelForParallelEdgeInSquare(Vertex v, Edge uw, AdjacencyVector wAdjacencyVector)
   {
-    Edge vx = v.getEdgeByLabel(uw.getLabel(), EdgeType.DOWN);
+    Edge vx = edgeService.getEdgeByLabel(v, uw.getLabel(), EdgeType.DOWN);
 
     if (vx != null)
     {
       Vertex x = vx.getEndpoint();
-      Edge wx = wAdjacencyVector.getEdgeToVertex(x);
+      Edge wx = vertexService.getEdgeToVertex(wAdjacencyVector, x);
       if (wx != null)
       {
         return wx.getLabel();

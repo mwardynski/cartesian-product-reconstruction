@@ -1,9 +1,10 @@
 package at.ac.unileoben.mat.dissertation.printout;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.printout.data.EdgeData;
 import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
 import at.ac.unileoben.mat.dissertation.structure.*;
-import at.ac.unileoben.mat.dissertation.structure.Label;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
@@ -28,6 +29,9 @@ public class GraphPrinter
 
   public static final double EDGE_LENGTH = 2.0;
 
+  ColoringService coloringService = new ColoringService();
+  VertexService vertexService = new VertexService();
+
   List<String> steps;
   String[] edgeColors = {"red", "green", "blue", "yellow"};
 
@@ -42,7 +46,7 @@ public class GraphPrinter
     VelocityContext context = new VelocityContext();
     context.put("steps", steps);
 
-    try  (PrintWriter printWriter = new PrintWriter("out/tex/factorization.tex", StandardCharsets.UTF_8.name()))
+    try (PrintWriter printWriter = new PrintWriter("out/tex/factorization.tex", StandardCharsets.UTF_8.name()))
     {
       Velocity.mergeTemplate("resources/vm/factorization.vm", StandardCharsets.UTF_8.name(), context, printWriter);
       printWriter.flush();
@@ -74,7 +78,7 @@ public class GraphPrinter
 
     for (int layerNo = 0; layerNo < graph.getLayersAmount(); layerNo++)
     {
-      List<Vertex> layer = graph.getLayer(layerNo);
+      List<Vertex> layer = vertexService.getLayer(graph, layerNo);
 
       for (int vertexInLayerNo = 0; vertexInLayerNo < layer.size(); vertexInLayerNo++)
       {
@@ -118,9 +122,9 @@ public class GraphPrinter
     edgeData.setEndpointNo(edge.getEndpoint().getVertexNo());
 
     Label label = edge.getLabel();
-    if (label != null)
+    if (label != null && label.getColor() < edgeColors.length)
     {
-      int colorNumber = graphColoring.getCurrentColorMapping(label.getColor());
+      int colorNumber = coloringService.getCurrentColorMapping(graphColoring, label.getColor());
       edgeData.setColor(edgeColors[colorNumber]);
     }
     return edgeData;

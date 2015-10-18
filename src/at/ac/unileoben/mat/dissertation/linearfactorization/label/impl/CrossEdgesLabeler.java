@@ -4,6 +4,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.impl.CrossEdgesPivotSquareFinderStrategy;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
@@ -17,6 +19,9 @@ import java.util.List;
  */
 public class CrossEdgesLabeler implements EdgesLabeler
 {
+  FactorizationStepService factorizationStepService = new FactorizationStepService();
+  VertexService vertexService = new VertexService();
+
   private Graph graph;
 
   public CrossEdgesLabeler(Graph graph)
@@ -27,8 +32,8 @@ public class CrossEdgesLabeler implements EdgesLabeler
   @Override
   public void labelEdges(int currentLayerNo)
   {
-    List<Vertex> currentLayer = graph.getLayer(currentLayerNo);
-    List<Vertex> previousLayer = graph.getLayer(currentLayerNo - 1);
+    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo);
+    List<Vertex> previousLayer = vertexService.getLayer(graph, currentLayerNo - 1);
 
 
     FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer);
@@ -40,7 +45,7 @@ public class CrossEdgesLabeler implements EdgesLabeler
       u.setFirstEdge(uw);
       u.setEdgeWithColorToLabel(uw);
       Vertex w = uw.getEndpoint();
-      factorizationSteps.initialVertexInsertForCrossEdges(u, w);
+      factorizationStepService.initialVertexInsertForCrossEdges(factorizationSteps, u, w);
     }
 
     PivotSquareFinderStrategy pivotSquareFinderStrategy = new CrossEdgesPivotSquareFinderStrategy();

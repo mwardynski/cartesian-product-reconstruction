@@ -28,24 +28,18 @@ public class FactorizationStep
     }
   }
 
-  public void addVertex(Vertex referenceVertex, Vertex vertexToAssign)
-  {
-    verticesInLayer[referenceVertex.getVertexNo() - firstVertexInLayerIndex] = referenceVertex;
-    layer.get(referenceVertex.getVertexNo() - firstVertexInLayerIndex).add(vertexToAssign);
-  }
-
-  public Vertex[] getReferenceVertices()
+  public Vertex[] getVerticesInLayer()
   {
     return verticesInLayer;
   }
 
-  public Vertex getReferenceVertex(int pos)
+  public List<List<Vertex>> getLayer()
   {
-    return verticesInLayer[pos];
+    return layer;
   }
 
-  public List<Vertex> getAssignedVertices(Vertex referenceVertex)
+  public int getFirstVertexInLayerIndex()
   {
-    return layer.get(referenceVertex.getVertexNo() - firstVertexInLayerIndex);
+    return firstVertexInLayerIndex;
   }
 }

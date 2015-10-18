@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.label;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.ArrayList;
@@ -17,6 +19,9 @@ import java.util.List;
  */
 public class LabelUtils
 {
+  static FactorizationStepService factorizationStepService = new FactorizationStepService();
+  static ColoringService coloringService = new ColoringService();
+
   public static final EdgesRef getEdgesRef(int[] colorsCounter)
   {
     int colorsAmount = 0;
@@ -28,7 +33,7 @@ public class LabelUtils
       }
     }
     EdgesRef edgesRef = new EdgesRef(colorsAmount);
-    edgesRef.setColorsOrderAndAmount(colorsCounter);
+    coloringService.setColorsOrderAndAmount(edgesRef, colorsCounter);
     return edgesRef;
   }
 
@@ -58,7 +63,7 @@ public class LabelUtils
 
   public static void singleFindPivotSquarePhase(Graph graph, PivotSquareFinderStrategy pivotSquareFinderStrategy, FactorizationStep thisPhase, FactorizationStep nextPhase)
   {
-    for (Vertex x : thisPhase.getReferenceVertices())
+    for (Vertex x : thisPhase.getVerticesInLayer())
     {
       if (x == null)
       {
@@ -71,7 +76,7 @@ public class LabelUtils
 
   public static void findPivotSquareForReferenceVertex(Graph graph, PivotSquareFinderStrategy pivotSquareFinderStrategy, Vertex x, AdjacencyVector xAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase)
   {
-    List<Vertex> assignedVertices = thisPhase.getAssignedVertices(x);
+    List<Vertex> assignedVertices = factorizationStepService.getAssignedVertices(thisPhase, x);
     Iterator<Vertex> assignedVerticesIterator = assignedVertices.iterator();
     while (assignedVerticesIterator.hasNext())
     {

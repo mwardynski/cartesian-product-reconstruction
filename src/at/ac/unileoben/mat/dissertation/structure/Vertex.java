@@ -1,7 +1,6 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -154,105 +153,6 @@ public class Vertex
   public void setEdgeWithColorToLabel(Edge edgeWithColorToLabel)
   {
     this.edgeWithColorToLabel = edgeWithColorToLabel;
-  }
-
-  public Edge getEdgeByLabel(Label label, EdgeType edgeType)
-  {
-    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
-
-    List<Edge> edges = edgeGroup.getEdges();
-    int positionForLabel = edgeGroup.getEdgesRef().getPositionForLabel(label);
-    if (positionForLabel != -1)
-    {
-      return edges.get(positionForLabel);
-    }
-    else
-    {
-      return null;
-    }
-  }
-
-  public Edge getEdgeOfDifferentColor(int color, GraphColoring graphColoring)
-  {
-    EdgesRef edgesRef = getDownEdges().getEdgesRef();
-    List<Edge> edges = getDownEdges().getEdges();
-    for (int i = 0; i < edgesRef.getAllColorsAmount(); i++)
-    {
-      if (edgesRef.getPositionsForColor(i).isEmpty())//FIXME optimize it!!!
-      {
-        continue;
-      }
-      if (graphColoring.getCurrentColorMapping(i) != graphColoring.getCurrentColorMapping(color))
-      {
-        int positionForLabel = edgesRef.getPositionForLabel(new Label(0, i));
-        if (positionForLabel != -1)
-        {
-          return edges.get(positionForLabel);
-        }
-      }
-    }
-    return null;
-  }
-
-  public List<List<Edge>> getAllEdgesOfDifferentColor(int color, GraphColoring graphColoring, EdgeType edgeType)
-  {
-    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
-    EdgesRef edgesRef = edgeGroup.getEdgesRef();
-    List<Edge> allDownEdges = edgeGroup.getEdges();
-
-    int originalColorsAmount = graphColoring.getOriginalColorsAmount();
-    List<List<Edge>> resultEdges = new ArrayList<List<Edge>>();
-    for (int i = 0; i < originalColorsAmount; i++)
-    {
-      resultEdges.add(new LinkedList<Edge>());
-    }
-
-    for (int i = 0; i < edgesRef.getAllColorsAmount(); i++)
-    {
-      if (graphColoring.getCurrentColorMapping(i) != graphColoring.getCurrentColorMapping(color))
-      {
-        List<Integer> positionsForColor = edgesRef.getPositionsForColor(i);
-        for (int edgePosition : positionsForColor)
-        {
-          Edge edge = allDownEdges.get(edgePosition);
-          resultEdges.get(edge.getLabel().getColor()).add(edge);
-        }
-      }
-    }
-    return resultEdges;
-  }
-
-  public List<Edge> getAllEdgesOfColors(List<Integer> colors, EdgeType edgeType)
-  {
-    List<Edge> edgesOfGivenColors = new LinkedList<Edge>();
-    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(edgeType);
-    EdgesRef edgesRef = edgeGroup.getEdgesRef();
-    List<Edge> allEdges = edgeGroup.getEdges();
-    for (Integer givenColor : colors)
-    {
-      List<Integer> positionsForColor = edgesRef.getPositionsForColor(givenColor);
-      for (int edgePosition : positionsForColor)
-      {
-        edgesOfGivenColors.add(allEdges.get(edgePosition));
-      }
-    }
-    return edgesOfGivenColors;
-  }
-
-  private EdgesGroup getEdgeGroupForEdgeType(EdgeType edgeType)
-  {
-    if (edgeType == EdgeType.DOWN)
-    {
-      return getDownEdges();
-    }
-    else if (edgeType == EdgeType.CROSS)
-    {
-      return getCrossEdges();
-    }
-    else
-    {
-      return getUpEdges();
-    }
   }
 
   @Override
