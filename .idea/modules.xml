@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/cartesianProduct.iml" filepath="$PROJECT_DIR$/cartesianProduct.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cartesian_product.iml" filepath="$PROJECT_DIR$/cartesian_product.iml" />
     </modules>
   </component>
 </project>

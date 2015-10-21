@@ -1,0 +1,26 @@
+def jdkHome = System.getenv("JAVA_HOME")
+
+apply plugin: 'java'
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+        resources {
+            srcDir 'resources'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile files("$jdkHome/lib/tools.jar")
+    compile 'org.springframework:spring-context:4.2.2.RELEASE'
+    compile 'org.apache.velocity:velocity:1.7'
+    testCompile 'org.hamcrest:hamcrest-core:1.2.1'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
