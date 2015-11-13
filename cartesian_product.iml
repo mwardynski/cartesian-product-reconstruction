@@ -25,6 +25,8 @@
     <orderEntry type="library" name="commons-collections-3.2.1" level="project" />
     <orderEntry type="library" scope="TEST" name="junit-4.12" level="project" />
     <orderEntry type="library" name="spring-test-4.2.2.RELEASE" level="project" />
+    <orderEntry type="library" name="aspectjrt-1.8.7" level="project" />
+    <orderEntry type="library" name="aspectjweaver-1.8.7" level="project" />
   </component>
 </module>
 

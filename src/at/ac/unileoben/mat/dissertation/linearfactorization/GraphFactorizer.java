@@ -3,7 +3,6 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.CrossEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
-import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,12 +32,8 @@ public class GraphFactorizer
   @Autowired
   ConsistencyChecker consistencyChecker;
 
-  @Autowired
-  GraphPrinter graphPrinter;
-
   public void factorize()
   {
-    graphPrinter.createGraphSnapshot();
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
@@ -46,8 +41,6 @@ public class GraphFactorizer
       crossEdgesLabeler.labelEdges(currentLayerNo);
       upEdgesLabeler.labelEdges(currentLayerNo);
       consistencyChecker.checkConsistency(currentLayerNo);
-      graphPrinter.createGraphSnapshot();
     }
-    graphPrinter.printFactorization();
   }
 }

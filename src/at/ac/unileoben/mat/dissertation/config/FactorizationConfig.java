@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan("at.ac.unileoben.mat.dissertation")
+@EnableAspectJAutoProxy
 public class FactorizationConfig
 {
 }
