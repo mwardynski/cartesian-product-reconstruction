@@ -6,6 +6,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -16,16 +18,26 @@ import java.util.List;
  * Time: 4:35 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class DownEdgesPivotSquareFinderStrategy implements PivotSquareFinderStrategy
 {
+  @Autowired
+  Graph graph;
 
-  EdgeService edgeService = new EdgeService();
-  ColoringService coloringService = new ColoringService();
-  FactorizationStepService factorizationStepService = new FactorizationStepService();
-  VertexService vertexService = new VertexService();
+  @Autowired
+  EdgeService edgeService;
+
+  @Autowired
+  ColoringService coloringService;
+
+  @Autowired
+  FactorizationStepService factorizationStepService;
+
+  @Autowired
+  VertexService vertexService;
 
   @Override
-  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep nextPhase, Graph graph)
+  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep nextPhase)
   {
     Edge uv = u.getFirstEdge();
     Edge vx = u.getSecondEdge();

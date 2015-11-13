@@ -2,7 +2,6 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.s
 
 import at.ac.unileoben.mat.dissertation.structure.AdjacencyVector;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationStep;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
 /**
@@ -15,5 +14,5 @@ import at.ac.unileoben.mat.dissertation.structure.Vertex;
 public interface PivotSquareFinderStrategy
 {
 
-  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep nextPhase, Graph graph);
+  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep nextPhase);
 }

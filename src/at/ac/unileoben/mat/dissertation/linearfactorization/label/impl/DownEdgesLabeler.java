@@ -3,12 +3,13 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
-import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.impl.DownEdgesPivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,35 +21,44 @@ import java.util.List;
  * Time: 8:26 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class DownEdgesLabeler implements EdgesLabeler
 {
-  EdgeService edgeService = new EdgeService();
-  FactorizationStepService factorizationStepService = new FactorizationStepService();
-  ColoringService coloringService = new ColoringService();
-  VertexService vertexService = new VertexService();
+  @Autowired
+  Graph graph;
 
-  private Graph graph;
+  @Autowired
+  EdgeService edgeService;
 
-  public DownEdgesLabeler(Graph graph)
-  {
-    this.graph = graph;
-  }
+  @Autowired
+  FactorizationStepService factorizationStepService;
+
+  @Autowired
+  ColoringService coloringService;
+
+  @Autowired
+  VertexService vertexService;
+
+  @Autowired
+  PivotSquareFinderStrategy downEdgesPivotSquareFinderStrategy;
+
+  @Autowired
+  LabelUtils labelUtils;
 
   @Override
   public void labelEdges(int currentLayerNo)
   {
-    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo);
-    List<Vertex> previousLayer = vertexService.getLayer(graph, currentLayerNo - 1);
-    List<Vertex> prePreviousLayer = vertexService.getLayer(graph, currentLayerNo - 2);
+    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
+    List<Vertex> prePreviousLayer = vertexService.getGraphLayer(currentLayerNo - 2);
     FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer, prePreviousLayer);
 
     assignVerticesToFactorizationSteps(currentLayer, factorizationSteps);
 
-    PivotSquareFinderStrategy pivotSquareFinderStrategy = new DownEdgesPivotSquareFinderStrategy();
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
     FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
-    LabelUtils.singleFindPivotSquarePhase(graph, pivotSquareFinderStrategy, findSquareFirstPhase, findSquareSecondPhase);
-    LabelUtils.singleFindPivotSquarePhase(graph, pivotSquareFinderStrategy, findSquareSecondPhase, null);
+    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategy, findSquareFirstPhase, findSquareSecondPhase);
+    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategy, findSquareSecondPhase, null);
 
     labelDownEdgesWithFoundPivotSquares(factorizationSteps);
   }
@@ -91,7 +101,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     u.setUnitLayer(true);
     if (!v.isUnitLayer())
     {
-      vertexService.assignVertexToUnitLayerAndMergeColors(graph, v, true, MergeTagEnum.LABEL_DOWN); //not invoked
+      vertexService.assignVertexToUnitLayerAndMergeColors(v, true, MergeTagEnum.LABEL_DOWN); //not invoked
     }
 
     int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
@@ -172,9 +182,9 @@ public class DownEdgesLabeler implements EdgesLabeler
       }
     }
 
-    EdgesRef downEdgesRef = LabelUtils.getEdgesRef(colorsCounter);
+    EdgesRef downEdgesRef = labelUtils.getEdgesRef(colorsCounter);
     u.getDownEdges().setEdgesRef(downEdgesRef);
-    List<Edge> sortedEdges = LabelUtils.sortEdgesAccordingToLabels(u.getDownEdges().getEdges(), graph.getGraphColoring());
+    List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(u.getDownEdges().getEdges(), graph.getGraphColoring());
     u.getDownEdges().setEdges(sortedEdges);
   }
 }

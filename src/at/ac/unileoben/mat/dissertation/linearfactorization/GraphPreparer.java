@@ -4,6 +4,8 @@ import at.ac.unileoben.mat.dissertation.common.GraphReader;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -14,12 +16,19 @@ import java.util.*;
  * Time: 16:47
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class GraphPreparer
 {
-  ColoringService coloringService = new ColoringService();
-  VertexService vertexService = new VertexService();
+  @Autowired
+  Graph graph;
 
-  public Graph prepareToLinearFactorization(List<Vertex> vertices, Vertex root)
+  @Autowired
+  ColoringService coloringService;
+
+  @Autowired
+  VertexService vertexService;
+
+  public void prepareToLinearFactorization(List<Vertex> vertices, Vertex root)
   {
     if (root == null)
     {
@@ -31,13 +40,21 @@ public class GraphPreparer
     vertices = sortVertices(vertices);
     sortEdges(vertices);
     arrangeEdgesToThreeGroups(vertices);
-    Graph graph = new Graph(vertices, root, vertexService.createLayersList(vertices));
-    graph.setReindexArray(reindexArray);
-    arrangeFirstLayerEdges(graph);
-    return graph;
+    createNewGraph(vertices, root, reindexArray);
+    arrangeFirstLayerEdges();
   }
 
-  public void finalizeFactorization(Graph graph)
+  private void createNewGraph(List<Vertex> vertices, Vertex root, int[] reindexArray)
+  {
+    graph.setRoot(root);
+    graph.setVertices(vertices);
+    graph.setLayers(vertexService.createLayersList(vertices));
+    graph.setReindexArray(reindexArray);
+    graph.setGraphColoring(new GraphColoring(root.getEdges().size()));
+    graph.setAnalyzeData(new AnalyzeData());
+  }
+
+  public void finalizeFactorization()
   {
     List<Vertex> vertices = graph.getVertices();
     int[] reindexArray = graph.getReindexArray();
@@ -219,7 +236,7 @@ public class GraphPreparer
     }
   }
 
-  private void arrangeFirstLayerEdges(Graph graph)
+  private void arrangeFirstLayerEdges()
   {
     Vertex root = graph.getRoot();
     EdgesGroup upEdgesGroup = root.getUpEdges();
@@ -243,7 +260,7 @@ public class GraphPreparer
       upEdge.getEndpoint().setUnitLayer(true);
 
       addLabelAndRefToDownEdgesL1(upEdge, i, graph.getGraphColoring().getOriginalColorsAmount());
-      addLabelAndRefToCrossEdgesL1(upEdge, graph);
+      addLabelAndRefToCrossEdgesL1(upEdge);
     }
 
   }
@@ -272,7 +289,7 @@ public class GraphPreparer
     upEdge.getOpposite().setLabel(new Label(0, i));
   }
 
-  private void addLabelAndRefToCrossEdgesL1(Edge upEdge, Graph graph)
+  private void addLabelAndRefToCrossEdgesL1(Edge upEdge)
   {
     EdgesGroup crossEdgesGroup = upEdge.getEndpoint().getCrossEdges();
     List<Edge> crossEdges = crossEdgesGroup.getEdges();
@@ -281,7 +298,7 @@ public class GraphPreparer
     for (int i = 0; i < crossEdges.size(); i++)
     {
       Edge crossEdge = crossEdges.get(i);
-      int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge, graph);
+      int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge);
       crossEdge.setLabel(new Label(i, mergedColor));
       if (crossEdgesAmounts[mergedColor] == 0)
       {
@@ -295,10 +312,10 @@ public class GraphPreparer
     crossEdgesGroup.setEdgesRef(crossEdgesRef);
   }
 
-  private int mergeCrossEdgesColors(Edge crossEdge, Edge proposedColorEdge, Graph graph)
+  private int mergeCrossEdgesColors(Edge crossEdge, Edge proposedColorEdge)
   {
     Edge oppositeEdge = crossEdge.getOpposite();
-    coloringService.mergeColorsForEdges(graph, Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.CONSISTENCY_CROSS);
+    coloringService.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.CONSISTENCY_CROSS);
 
     int proposedColor = proposedColorEdge.getLabel().getColor();
     Label oppositeEdgeLabel = oppositeEdge.getLabel();

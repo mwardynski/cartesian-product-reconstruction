@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services;
 
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,8 +15,12 @@ import java.util.List;
  * Time: 18:47
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class ColoringService
 {
+  @Autowired
+  Graph graph;
+
   public boolean mergeColors(GraphColoring graphColoring, List<Integer> colors)
   {
     int minColor = Integer.MAX_VALUE;
@@ -137,7 +143,7 @@ public class ColoringService
     return colors;
   }
 
-  public boolean mergeColorsForEdges(Graph graph, List<Edge> edges, MergeTagEnum mergeTag)
+  public boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag)
   {
     GraphColoring graphColoring = graph.getGraphColoring();
     List<Integer> colorsToMerge = getColorsForEdges(graphColoring, edges);

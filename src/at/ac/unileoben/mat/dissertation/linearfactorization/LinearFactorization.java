@@ -2,8 +2,13 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.common.GraphCorrectnessChecker;
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -14,22 +19,24 @@ import java.util.List;
  * Time: 15:17
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class LinearFactorization
 {
+  @Autowired
+  Graph graph;
 
-  private String graphFilePath;
-  private GraphReader graphReader;
-  private GraphCorrectnessChecker graphCorrectnessChecker;
-  private GraphPreparer graphPreparer;
+  @Autowired
+  GraphPreparer graphPreparer;
 
+  @Autowired
+  GraphFactorizer graphFactorizer;
 
-  LinearFactorization(String graphFilePath)
-  {
-    this.graphFilePath = graphFilePath;
-    graphReader = new GraphReader();
-    graphCorrectnessChecker = new GraphCorrectnessChecker();
-    graphPreparer = new GraphPreparer();
-  }
+  @Autowired
+  GraphReader graphReader;
+
+  @Autowired
+  GraphCorrectnessChecker graphCorrectnessChecker;
+
 
   public static void main(String... args)
   {
@@ -40,70 +47,55 @@ public class LinearFactorization
       System.exit(-1);
     }
 
-    LinearFactorization linearFactorization = new LinearFactorization(args[0]);
-    Graph resultGraph = linearFactorization.factorizeWithPreparation();
+    ApplicationContext applicationContext = new AnnotationConfigApplicationContext(FactorizationConfig.class);
+
+    LinearFactorization linearFactorization = applicationContext.getBean(LinearFactorization.class);
+    Graph resultGraph = linearFactorization.factorizeWithPreparation(args[0]);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
   }
 
 
-  Graph factorizeWithPreparation()
+  Graph factorizeWithPreparation(String graphFilePath)
   {
     List<Vertex> vertices = graphReader.readGraph(graphFilePath);
-    Graph preparedGraph = prepare(vertices, null);
-    if (preparedGraph == null)
-    {
-      return null;
-    }
-    return factorizeGivenGraph(preparedGraph);
-  }
-
-  Graph factorizeWithPreparation(List<Vertex> vertices, Vertex root)
-  {
-    Graph preparedGraph = prepare(vertices, root);
-    if (preparedGraph == null)
-    {
-      return null;
-    }
-    return factorizeGivenGraph(preparedGraph);
-  }
-
-  private Graph prepare(List<Vertex> vertices, Vertex root)
-  {
-    if (!checkGraphCorrectness(vertices))
-    {
-      return null;
-    }
-    Graph graph = graphPreparer.prepareToLinearFactorization(vertices, root);
-    if (graph.getLayersAmount() < 3)
-    {
-      return null;
-    }
+    prepare(vertices, null);
+    factorizeGraph();
     return graph;
   }
 
-  private Graph factorizeGivenGraph(Graph graph)
+  void factorizeWithPreparation(List<Vertex> vertices, Vertex root)
   {
+    prepare(vertices, root);
+    factorizeGraph();
+  }
 
-    GraphFactorizer graphFactorizer = new GraphFactorizer(graph);
-    graphFactorizer.factorize(graph);
-    graphPreparer.finalizeFactorization(graph);
-    return graph;
+  private void prepare(List<Vertex> vertices, Vertex root)
+  {
+    checkGraphCorrectness(vertices);
+    graphPreparer.prepareToLinearFactorization(vertices, root);
+    if (graph.getLayers().size() < 3)
+    {
+      throw new IllegalStateException(graphCorrectnessChecker.NOT_HIGH_ENOUGH);
+    }
+  }
+
+  private void factorizeGraph()
+  {
+    graphFactorizer.factorize();
+    graphPreparer.finalizeFactorization();
   }
 
 
-  private boolean checkGraphCorrectness(List<Vertex> graph)
+  private void checkGraphCorrectness(List<Vertex> vertices)
   {
-    if (!graphCorrectnessChecker.isSimple(graph))
+    if (!graphCorrectnessChecker.isSimple(vertices))
     {
-      System.out.println(graphCorrectnessChecker.NOT_SIMPLE);
-      return false;
+      throw new IllegalArgumentException(graphCorrectnessChecker.NOT_SIMPLE);
     }
-    else if (!graphCorrectnessChecker.isConnected(graph))
+    else if (!graphCorrectnessChecker.isConnected(vertices))
     {
-      System.out.println(graphCorrectnessChecker.NOT_CONNECTED);
-      return false;
+      throw new IllegalArgumentException(graphCorrectnessChecker.NOT_CONNECTED);
     }
-    return true;
   }
 }

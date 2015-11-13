@@ -7,6 +7,8 @@ import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -24,13 +26,19 @@ import java.util.stream.Collectors;
  * Time: 12:40
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class GraphPrinter
 {
-
   public static final double EDGE_LENGTH = 2.0;
 
-  ColoringService coloringService = new ColoringService();
-  VertexService vertexService = new VertexService();
+  @Autowired
+  Graph graph;
+
+  @Autowired
+  ColoringService coloringService;
+
+  @Autowired
+  VertexService vertexService;
 
   List<String> steps;
   String[] edgeColors = {"red", "green", "blue", "yellow"};
@@ -57,12 +65,12 @@ public class GraphPrinter
     }
   }
 
-  public void addStep(Graph graph)
+  public void createGraphSnapshot()
   {
     VelocityContext context = new VelocityContext();
 
-    List<VertexData> vertices = prepareVertices(graph);
-    List<EdgeData> edges = prepareEdges(graph);
+    List<VertexData> vertices = prepareVertices();
+    List<EdgeData> edges = prepareEdges();
     context.put("vertices", vertices);
     context.put("edges", edges);
 
@@ -72,13 +80,13 @@ public class GraphPrinter
     steps.add(stringWriter.toString());
   }
 
-  private List<VertexData> prepareVertices(Graph graph)
+  private List<VertexData> prepareVertices()
   {
     List<VertexData> vertices = new LinkedList<>();
 
-    for (int layerNo = 0; layerNo < graph.getLayersAmount(); layerNo++)
+    for (int layerNo = 0; layerNo < graph.getLayers().size(); layerNo++)
     {
-      List<Vertex> layer = vertexService.getLayer(graph, layerNo);
+      List<Vertex> layer = vertexService.getGraphLayer(layerNo);
 
       for (int vertexInLayerNo = 0; vertexInLayerNo < layer.size(); vertexInLayerNo++)
       {
@@ -96,7 +104,7 @@ public class GraphPrinter
     return vertices;
   }
 
-  private List<EdgeData> prepareEdges(Graph graph)
+  private List<EdgeData> prepareEdges()
   {
     List<EdgeData> edges = new LinkedList<>();
 

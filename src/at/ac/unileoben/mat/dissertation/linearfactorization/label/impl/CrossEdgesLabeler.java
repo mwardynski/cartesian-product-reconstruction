@@ -3,10 +3,11 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
-import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.impl.CrossEdgesPivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -17,23 +18,29 @@ import java.util.List;
  * Time: 9:03 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class CrossEdgesLabeler implements EdgesLabeler
 {
-  FactorizationStepService factorizationStepService = new FactorizationStepService();
+  @Autowired
+  Graph graph;
+
+  @Autowired
+  FactorizationStepService factorizationStepService;
+
+  @Autowired
   VertexService vertexService = new VertexService();
 
-  private Graph graph;
+  @Autowired
+  PivotSquareFinderStrategy crossEdgesPivotSquareFinderStrategy;
 
-  public CrossEdgesLabeler(Graph graph)
-  {
-    this.graph = graph;
-  }
+  @Autowired
+  LabelUtils labelUtils;
 
   @Override
   public void labelEdges(int currentLayerNo)
   {
-    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo);
-    List<Vertex> previousLayer = vertexService.getLayer(graph, currentLayerNo - 1);
+    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
 
 
     FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer);
@@ -48,8 +55,7 @@ public class CrossEdgesLabeler implements EdgesLabeler
       factorizationStepService.initialVertexInsertForCrossEdges(factorizationSteps, u, w);
     }
 
-    PivotSquareFinderStrategy pivotSquareFinderStrategy = new CrossEdgesPivotSquareFinderStrategy();
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
-    LabelUtils.singleFindPivotSquarePhase(graph, pivotSquareFinderStrategy, findSquareFirstPhase, null);
+    labelUtils.singleFindPivotSquarePhase(crossEdgesPivotSquareFinderStrategy, findSquareFirstPhase, null);
   }
 }

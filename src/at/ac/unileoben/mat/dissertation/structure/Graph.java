@@ -1,6 +1,6 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -11,10 +11,9 @@ import java.util.List;
  * Time: 11:54
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class Graph
 {
-  ColoringService coloringService = new ColoringService();
-
   private Vertex root;
   private List<Vertex> vertices;
   private GraphColoring graphColoring;
@@ -24,14 +23,14 @@ public class Graph
 
   private AnalyzeData analyzeData;
 
-  public Graph(List<Vertex> vertices, Vertex root, List<List<Vertex>> layers)
+  public Vertex getRoot()
   {
-    this.vertices = vertices;
-    this.root = root;
-    graphColoring = new GraphColoring(root.getEdges().size());
-    this.layers = layers;
+    return root;
+  }
 
-    analyzeData = new AnalyzeData();
+  public void setRoot(Vertex root)
+  {
+    this.root = root;
   }
 
   public List<Vertex> getVertices()
@@ -49,14 +48,19 @@ public class Graph
     return graphColoring;
   }
 
-  public Vertex getRoot()
+  public void setGraphColoring(GraphColoring graphColoring)
   {
-    return root;
+    this.graphColoring = graphColoring;
   }
 
   public List<List<Vertex>> getLayers()
   {
     return layers;
+  }
+
+  public void setLayers(List<List<Vertex>> layers)
+  {
+    this.layers = layers;
   }
 
   public int[] getReindexArray()
@@ -69,13 +73,13 @@ public class Graph
     this.reindexArray = reindexArray;
   }
 
-  public int getLayersAmount()
-  {
-    return layers.size();
-  }
-
   public AnalyzeData getAnalyzeData()
   {
     return analyzeData;
+  }
+
+  public void setAnalyzeData(AnalyzeData analyzeData)
+  {
+    this.analyzeData = analyzeData;
   }
 }

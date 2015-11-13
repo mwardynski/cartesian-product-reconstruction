@@ -4,6 +4,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringSer
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -16,24 +18,25 @@ import java.util.List;
  * Time: 8:18 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class ConsistencyChecker
 {
+  @Autowired
+  Graph graph;
 
-  EdgeService edgeService = new EdgeService();
-  ColoringService coloringService = new ColoringService();
-  VertexService vertexService = new VertexService();
+  @Autowired
+  EdgeService edgeService;
 
-  private Graph graph;
+  @Autowired
+  ColoringService coloringService;
 
-  public ConsistencyChecker(Graph graph)
-  {
-    this.graph = graph;
-  }
+  @Autowired
+  VertexService vertexService;
 
   public void checkConsistency(int currentLayerNo)
   {
-    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo);
-    List<Vertex> previousLayer = vertexService.getLayer(graph, currentLayerNo - 1);
+    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     downAndCrossEdgesConsistencyCheck(currentLayer);
     upEdgesConsistencyCheck(previousLayer);
   }
@@ -45,7 +48,7 @@ public class ConsistencyChecker
       if (u.isUnitLayer())
       {
         List<Edge> unitLayerEdges = collectUnitLayerEdges(u);
-        coloringService.mergeColorsForEdges(graph, unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
+        coloringService.mergeColorsForEdges(unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
@@ -53,7 +56,7 @@ public class ConsistencyChecker
       Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       if (uw == null)
       {
-        vertexService.assignVertexToUnitLayerAndMergeColors(graph, u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
+        vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
         continue;
       }
       EnumSet<EdgeType> edgeTypes = EnumSet.of(EdgeType.DOWN, EdgeType.CROSS);
@@ -62,7 +65,7 @@ public class ConsistencyChecker
         if (!checkPivotSquares(uv, edgeType).isEmpty() || !checkPivotSquares(uw, edgeType).isEmpty())
         {
           MergeTagEnum mergeTagEnum = edgeType == EdgeType.DOWN ? MergeTagEnum.CONSISTENCY_DOWN : MergeTagEnum.CONSISTENCY_CROSS;
-          vertexService.assignVertexToUnitLayerAndMergeColors(graph, u, true, mergeTagEnum);
+          vertexService.assignVertexToUnitLayerAndMergeColors(u, true, mergeTagEnum);
           break;
         }
       }
@@ -115,14 +118,14 @@ public class ConsistencyChecker
     List<Edge> edgesToRelabel = new LinkedList<Edge>(inconsistentEdges);
     edgesToRelabel.add(uv);
     List<Integer> colors = coloringService.getColorsForEdges(graph.getGraphColoring(), edgesToRelabel);
-    coloringService.mergeColorsForEdges(graph, edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
+    coloringService.mergeColorsForEdges(edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
 
     Vertex u = uv.getOrigin();
     List<Edge> allUpEdgesOfGivenColors = edgeService.getAllEdgesOfColors(u, colors, EdgeType.UP);
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {
       Vertex endpointVertex = edgeOfGivenColor.getEndpoint();
-      vertexService.assignVertexToUnitLayerAndMergeColors(graph, endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
+      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
     }
   }
 

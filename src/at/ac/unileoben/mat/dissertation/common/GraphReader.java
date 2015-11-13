@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.common;
 
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
  * Time: 15:23
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class GraphReader
 {
   public static int MIN_NEIGHBOURS_ACCOUNT = Integer.MAX_VALUE;

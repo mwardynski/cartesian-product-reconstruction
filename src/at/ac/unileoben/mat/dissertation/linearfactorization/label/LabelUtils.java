@@ -4,6 +4,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.st
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,12 +19,19 @@ import java.util.List;
  * Time: 7:44 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class LabelUtils
 {
-  static FactorizationStepService factorizationStepService = new FactorizationStepService();
-  static ColoringService coloringService = new ColoringService();
+  @Autowired
+  Graph graph;
 
-  public static final EdgesRef getEdgesRef(int[] colorsCounter)
+  @Autowired
+  FactorizationStepService factorizationStepService;
+
+  @Autowired
+  ColoringService coloringService;
+
+  public EdgesRef getEdgesRef(int[] colorsCounter)
   {
     int colorsAmount = 0;
     for (int singleColorCounter : colorsCounter)
@@ -37,7 +46,7 @@ public class LabelUtils
     return edgesRef;
   }
 
-  public static final List<Edge> sortEdgesAccordingToLabels(List<Edge> edgesToSort, GraphColoring graphColoring)
+  public List<Edge> sortEdgesAccordingToLabels(List<Edge> edgesToSort, GraphColoring graphColoring)
   {
     List<Edge> sortedEdges = new ArrayList<Edge>(edgesToSort.size());
     List<Edge>[] colorOccurrence = (List<Edge>[]) new LinkedList<?>[graphColoring.getOriginalColorsAmount()];
@@ -61,7 +70,7 @@ public class LabelUtils
     return sortedEdges;
   }
 
-  public static void singleFindPivotSquarePhase(Graph graph, PivotSquareFinderStrategy pivotSquareFinderStrategy, FactorizationStep thisPhase, FactorizationStep nextPhase)
+  public void singleFindPivotSquarePhase(PivotSquareFinderStrategy pivotSquareFinderStrategy, FactorizationStep thisPhase, FactorizationStep nextPhase)
   {
     for (Vertex x : thisPhase.getVerticesInLayer())
     {
@@ -70,21 +79,21 @@ public class LabelUtils
         continue;
       }
       AdjacencyVector xAdjacencyVector = new AdjacencyVector(graph.getVertices().size(), x);
-      findPivotSquareForReferenceVertex(graph, pivotSquareFinderStrategy, x, xAdjacencyVector, thisPhase, nextPhase);
+      findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, thisPhase, nextPhase);
     }
   }
 
-  public static void findPivotSquareForReferenceVertex(Graph graph, PivotSquareFinderStrategy pivotSquareFinderStrategy, Vertex x, AdjacencyVector xAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase)
+  public void findPivotSquareForReferenceVertex(PivotSquareFinderStrategy pivotSquareFinderStrategy, Vertex x, AdjacencyVector xAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase)
   {
     List<Vertex> assignedVertices = factorizationStepService.getAssignedVertices(thisPhase, x);
     Iterator<Vertex> assignedVerticesIterator = assignedVertices.iterator();
     while (assignedVerticesIterator.hasNext())
     {
       Vertex u = assignedVerticesIterator.next();
-      pivotSquareFinderStrategy.findPivotSquare(u, xAdjacencyVector, nextPhase, graph);
+      pivotSquareFinderStrategy.findPivotSquare(u, xAdjacencyVector, nextPhase);
       if (nextPhase != null)
       {
-        findPivotSquareForReferenceVertex(graph, pivotSquareFinderStrategy, x, xAdjacencyVector, nextPhase, null);
+        findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, nextPhase, null);
       }
       assignedVerticesIterator.remove();
     }

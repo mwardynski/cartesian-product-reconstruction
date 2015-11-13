@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services;
 
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -13,17 +15,18 @@ import java.util.List;
  * Time: 18:35
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class EdgeService
 {
-  ColoringService coloringService = new ColoringService();
-  ColoringService coloringService1 = new ColoringService();
+  @Autowired
+  ColoringService coloringService;
 
   public Edge getEdgeByLabel(Vertex v, Label label, EdgeType edgeType)
   {
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
 
     List<Edge> edges = edgeGroup.getEdges();
-    int positionForLabel = coloringService1.getPositionForLabel(edgeGroup.getEdgesRef(), label);
+    int positionForLabel = coloringService.getPositionForLabel(edgeGroup.getEdgesRef(), label);
     if (positionForLabel != -1)
     {
       return edges.get(positionForLabel);
@@ -40,14 +43,14 @@ public class EdgeService
     List<Edge> edges = v.getDownEdges().getEdges();
     for (int i = 0; i < edgesRef.getColorPositions().size(); i++)
     {
-      if (coloringService1.getPositionsForColor(edgesRef, i).isEmpty())//FIXME optimize it!!!
+      if (coloringService.getPositionsForColor(edgesRef, i).isEmpty())//FIXME optimize it!!!
       {
         continue;
       }
 
       if (coloringService.getCurrentColorMapping(graphColoring, i) != coloringService.getCurrentColorMapping(graphColoring, color))
       {
-        int positionForLabel = coloringService1.getPositionForLabel(edgesRef, new Label(0, i));
+        int positionForLabel = coloringService.getPositionForLabel(edgesRef, new Label(0, i));
         if (positionForLabel != -1)
         {
           return edges.get(positionForLabel);
@@ -74,7 +77,7 @@ public class EdgeService
     {
       if (coloringService.getCurrentColorMapping(graphColoring, i) != coloringService.getCurrentColorMapping(graphColoring, color))
       {
-        List<Integer> positionsForColor = coloringService1.getPositionsForColor(edgesRef, i);
+        List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, i);
         for (int edgePosition : positionsForColor)
         {
           Edge edge = allDownEdges.get(edgePosition);
@@ -93,7 +96,7 @@ public class EdgeService
     List<Edge> allEdges = edgeGroup.getEdges();
     for (Integer givenColor : colors)
     {
-      List<Integer> positionsForColor = coloringService1.getPositionsForColor(edgesRef, givenColor);
+      List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, givenColor);
       for (int edgePosition : positionsForColor)
       {
         edgesOfGivenColors.add(allEdges.get(edgePosition));

@@ -3,6 +3,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.services;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationStep;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationSteps;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,9 +14,9 @@ import java.util.List;
  * Time: 18:58
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class FactorizationStepService
 {
-
   public void addVertex(FactorizationStep factorizationStep, Vertex referenceVertex, Vertex vertexToAssign)
   {
     factorizationStep.getVerticesInLayer()[referenceVertex.getVertexNo() - factorizationStep.getFirstVertexInLayerIndex()] = referenceVertex;

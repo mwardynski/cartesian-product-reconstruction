@@ -4,6 +4,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -14,21 +16,22 @@ import java.util.List;
  * Time: 9:04 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class UpEdgesLabeler implements EdgesLabeler
 {
+  @Autowired
+  Graph graph;
+
+  @Autowired
   VertexService vertexService = new VertexService();
 
-  private Graph graph;
-
-  public UpEdgesLabeler(Graph graph)
-  {
-    this.graph = graph;
-  }
+  @Autowired
+  LabelUtils labelUtils;
 
   @Override
   public void labelEdges(int currentLayerNo)
   {
-    List<Vertex> currentLayer = vertexService.getLayer(graph, currentLayerNo - 1);
+    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     for (Vertex u : currentLayer)
     {
       List<Edge> uUpEdges = u.getUpEdges().getEdges();
@@ -40,9 +43,9 @@ public class UpEdgesLabeler implements EdgesLabeler
         uv.setLabel(new Label(colorsCounter[oppositeEdgeColor], oppositeEdgeColor));
         colorsCounter[oppositeEdgeColor]++;
       }
-      EdgesRef upEdgesRef = LabelUtils.getEdgesRef(colorsCounter);
+      EdgesRef upEdgesRef = labelUtils.getEdgesRef(colorsCounter);
       u.getUpEdges().setEdgesRef(upEdgesRef);
-      List<Edge> sortedEdges = LabelUtils.sortEdgesAccordingToLabels(u.getUpEdges().getEdges(), graph.getGraphColoring());
+      List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(u.getUpEdges().getEdges(), graph.getGraphColoring());
       u.getUpEdges().setEdges(sortedEdges);
     }
   }

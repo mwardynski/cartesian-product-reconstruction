@@ -1,7 +1,12 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
+import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -16,8 +21,12 @@ import static org.junit.Assert.assertThat;
  * Time: 18:07
  * To change this template use File | Settings | File Templates.
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = {FactorizationConfig.class})
 public class FactorizationTest
 {
+  @Autowired
+  LinearFactorization linearFactorization;
 
   private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
 
@@ -50,12 +59,14 @@ public class FactorizationTest
   {
     for (FactorizationCase factorizationCase : examplesList)
     {
-      LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
-      Graph resultGraph = linearFactorization.factorizeWithPreparation();
-      if (resultGraph != null)
+      try
       {
+        Graph resultGraph = linearFactorization.factorizeWithPreparation(factorizationCase.getFileName());
         int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
         assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+      }
+      catch (IllegalArgumentException | IllegalStateException e)
+      {
       }
     }
   }

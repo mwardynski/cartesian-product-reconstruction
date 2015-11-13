@@ -5,6 +5,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.st
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -15,14 +17,23 @@ import java.util.List;
  * Time: 4:41 PM
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStrategy
 {
+  @Autowired
+  Graph graph;
 
-  EdgeService edgeService = new EdgeService();
-  VertexService vertexService = new VertexService();
+  @Autowired
+  EdgeService edgeService;
+
+  @Autowired
+  VertexService vertexService;
+
+  @Autowired
+  LabelUtils labelUtils;
 
   @Override
-  public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase, Graph graph)
+  public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase)
   {
     List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
     int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
@@ -57,13 +68,13 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
         uv.setLabel(new Label(colorsCounter[uwColor]++, uwColor));
       }
     }
-    EdgesRef crossEdgesRef = LabelUtils.getEdgesRef(colorsCounter);
+    EdgesRef crossEdgesRef = labelUtils.getEdgesRef(colorsCounter);
     u.getCrossEdges().setEdgesRef(crossEdgesRef);
-    List<Edge> sortedEdges = LabelUtils.sortEdgesAccordingToLabels(uCrossEdges, graph.getGraphColoring());
+    List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(uCrossEdges, graph.getGraphColoring());
     u.getCrossEdges().setEdges(sortedEdges);
     if (u.isUnitLayer())
     {
-      vertexService.assignVertexToUnitLayerAndMergeColors(graph, u, true, MergeTagEnum.LABEL_CROSS);
+      vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.LABEL_CROSS);
     }
   }
 

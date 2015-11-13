@@ -5,6 +5,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdges
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,35 +15,38 @@ import at.ac.unileoben.mat.dissertation.structure.Graph;
  * Time: 20:15
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class GraphFactorizer
 {
+  @Autowired
+  Graph graph;
 
+  @Autowired
   DownEdgesLabeler downEdgesLabeler;
+
+  @Autowired
   CrossEdgesLabeler crossEdgesLabeler;
+
+  @Autowired
   UpEdgesLabeler upEdgesLabeler;
+
+  @Autowired
   ConsistencyChecker consistencyChecker;
+
+  @Autowired
   GraphPrinter graphPrinter;
 
-  public GraphFactorizer(Graph graph)
+  public void factorize()
   {
-    this.downEdgesLabeler = new DownEdgesLabeler(graph);
-    this.crossEdgesLabeler = new CrossEdgesLabeler(graph);
-    this.upEdgesLabeler = new UpEdgesLabeler(graph);
-    this.consistencyChecker = new ConsistencyChecker(graph);
-    this.graphPrinter = new GraphPrinter();
-  }
-
-  public void factorize(Graph graph)
-  {
-    graphPrinter.addStep(graph);
-    int layersAmount = graph.getLayersAmount();
+    graphPrinter.createGraphSnapshot();
+    int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
       downEdgesLabeler.labelEdges(currentLayerNo);
       crossEdgesLabeler.labelEdges(currentLayerNo);
       upEdgesLabeler.labelEdges(currentLayerNo);
       consistencyChecker.checkConsistency(currentLayerNo);
-      graphPrinter.addStep(graph);
+      graphPrinter.createGraphSnapshot();
     }
     graphPrinter.printFactorization();
   }

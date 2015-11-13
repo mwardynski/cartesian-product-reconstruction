@@ -4,14 +4,17 @@ import at.ac.unileoben.mat.dissertation.structure.BipartiteColor;
 import at.ac.unileoben.mat.dissertation.structure.Color;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+@Component
 public class GraphCorrectnessChecker
 {
 
+  public final static String NOT_HIGH_ENOUGH = "The input graph has not at least 3 layers";
   public final static String NOT_SIMPLE = "The input graph is not a simple graph";
   public final static String NOT_CONNECTED = "The input graph is not a connected graph";
   public final static String NOT_THIN = "The input graph is not a thin graph";

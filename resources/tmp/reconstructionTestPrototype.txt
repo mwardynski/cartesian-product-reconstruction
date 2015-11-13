@@ -58,13 +58,15 @@ public class ReconstructionTest
     for (FactorizationCase factorizationCase : examplesList)
     {
       List<Vertex> orgGraphVertices = graphReader.readGraph(factorizationCase.getFileName());
-      LinearFactorization orgLinearFactorization = new LinearFactorization(factorizationCase.getFileName());
+      LinearFactorization orgLinearFactorization = new LinearFactorization();
+//      orgLinearFactorization.setGraphFilePath(factorizationCase.getFileName());
       Graph orgGraph = orgLinearFactorization.factorizeWithPreparation(orgGraphVertices, orgGraphVertices.get(6));
       for (int i = 0; i < orgGraphVertices.size(); i++)
       {
         List<Vertex> graphVertices = graphReader.readGraph(factorizationCase.getFileName());
         graphPreparer.removeVertex(graphVertices, i);
-        LinearFactorization linearFactorization = new LinearFactorization(factorizationCase.getFileName());
+        LinearFactorization linearFactorization = new LinearFactorization();
+//        linearFactorization.setGraphFilePath(factorizationCase.getFileName());
         Graph resultGraph = linearFactorization.factorizeWithPreparation(graphVertices, graphVertices.get(6));
         if (resultGraph != null)
         {

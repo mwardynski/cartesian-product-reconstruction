@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services;
 
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -13,11 +15,16 @@ import java.util.List;
  * Time: 19:29
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class VertexService
 {
-  ColoringService coloringService = new ColoringService();
+  @Autowired
+  Graph graph;
 
-  public List<Vertex> getLayer(Graph graph, int i)
+  @Autowired
+  ColoringService coloringService;
+
+  public List<Vertex> getGraphLayer(int i)
   {
     return graph.getLayers().get(i);
   }
@@ -42,7 +49,7 @@ public class VertexService
     return vector.getVector()[v.getVertexNo()];
   }
 
-  public void assignVertexToUnitLayerAndMergeColors(Graph graph, Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
   {
     v.setUnitLayer(true);
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
@@ -58,7 +65,7 @@ public class VertexService
       Vertex w = vw.getEndpoint();
       w.setUnitLayer(true);
     }
-    coloringService.mergeColorsForEdges(graph, edgesToRelabel, mergeTag);
+    coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
   }
 
 }
