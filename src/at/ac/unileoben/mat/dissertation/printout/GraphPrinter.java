@@ -135,7 +135,7 @@ public class GraphPrinter
         Vertex vertex = layer.get(vertexInLayerNo);
         VertexData vertexData = new VertexData();
         vertexData.setVertexNo(vertex.getVertexNo());
-        vertexData.setOrigVertexNo(graph.getReindexArray()[vertex.getVertexNo()]);
+        vertexData.setOrigVertexNo(graph.getReverseReindexArray()[vertex.getVertexNo()]);
         if (vertex.isUnitLayer())
         {
           vertexData.setColor(VertexColorEnum.ORANGE.toString());

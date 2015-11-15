@@ -19,7 +19,7 @@ public class Graph
   private GraphColoring graphColoring;
   private List<List<Vertex>> layers;
 
-  private int[] reindexArray;
+  private int[] reverseReindexArray;
 
   private AnalyzeData analyzeData;
 
@@ -63,14 +63,14 @@ public class Graph
     this.layers = layers;
   }
 
-  public int[] getReindexArray()
+  public int[] getReverseReindexArray()
   {
-    return reindexArray;
+    return reverseReindexArray;
   }
 
-  public void setReindexArray(int[] reindexArray)
+  public void setReverseReindexArray(int[] reverseReindexArray)
   {
-    this.reindexArray = reindexArray;
+    this.reverseReindexArray = reverseReindexArray;
   }
 
   public AnalyzeData getAnalyzeData()

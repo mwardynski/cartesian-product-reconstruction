@@ -53,7 +53,7 @@ public class GraphPreparer
     graph.setRoot(root);
     graph.setVertices(vertices);
     graph.setLayers(vertexService.createLayersList(vertices));
-    graph.setReindexArray(reindexArray);
+    graph.setReverseReindexArray(createReverseReindexArray(reindexArray));
     graph.setGraphColoring(new GraphColoring(root.getEdges().size()));
     graph.setAnalyzeData(new AnalyzeData());
   }
@@ -61,8 +61,7 @@ public class GraphPreparer
   public void finalizeFactorization()
   {
     List<Vertex> vertices = graph.getVertices();
-    int[] reindexArray = graph.getReindexArray();
-    int[] reverseReindexArray = createReverseReindexArray(reindexArray);
+    int[] reverseReindexArray = graph.getReverseReindexArray();
     reindex(vertices, reverseReindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);
