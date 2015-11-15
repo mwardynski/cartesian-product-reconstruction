@@ -47,25 +47,30 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
       if (oppositeEdgeLabel != null)
       {
         int oppositeEdgeColor = oppositeEdgeLabel.getColor();
-        edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++);
+        edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
         continue;
       }
       Vertex v = uv.getEndpoint();
       Edge uw = u.getFirstEdge();
-
-      Label wxLabel = findLabelForParallelEdgeInSquare(v, uw, wAdjacencyVector);
-
-      if (wxLabel != null)
+      Edge vx = edgeService.getEdgeByLabel(v, uw.getLabel(), EdgeType.DOWN);
+      Edge wx = null;
+      if (vx != null)
       {
+        Vertex x = vx.getEndpoint();
+        wx = vertexService.getEdgeToVertex(wAdjacencyVector, x);
+      }
+      if (wx != null && wx.getLabel() != null)
+      {
+        Label wxLabel = wx.getLabel();
         int wxColor = wxLabel.getColor();
-        edgeService.addLabel(uv, wxColor, colorsCounter[wxColor]++);
+        edgeService.addLabel(uv, wxColor, colorsCounter[wxColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
         continue;
       }
       else
       {
         Label uwLabel = uw.getLabel();
         int uwColor = uwLabel.getColor();
-        edgeService.addLabel(uv, uwColor, colorsCounter[uwColor]++);
+        edgeService.addLabel(uv, uwColor, colorsCounter[uwColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uw).build());
       }
     }
     EdgesRef crossEdgesRef = labelUtils.getEdgesRef(colorsCounter);
@@ -76,21 +81,5 @@ public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStr
     {
       vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.LABEL_CROSS);
     }
-  }
-
-  private Label findLabelForParallelEdgeInSquare(Vertex v, Edge uw, AdjacencyVector wAdjacencyVector)
-  {
-    Edge vx = edgeService.getEdgeByLabel(v, uw.getLabel(), EdgeType.DOWN);
-
-    if (vx != null)
-    {
-      Vertex x = vx.getEndpoint();
-      Edge wx = vertexService.getEdgeToVertex(wAdjacencyVector, x);
-      if (wx != null)
-      {
-        return wx.getLabel();
-      }
-    }
-    return null;
   }
 }

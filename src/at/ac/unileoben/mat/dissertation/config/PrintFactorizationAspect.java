@@ -1,9 +1,7 @@
 package at.ac.unileoben.mat.dissertation.config;
 
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.MergeTagEnum;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
@@ -49,7 +47,7 @@ public class PrintFactorizationAspect
   }
 
   @Around("mergeColorsOperation(edges,mergeTag)")
-  public Object addColorsMegeSnapshot(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeTagEnum mergeTag) throws Throwable
+  public Object addColorsMergeSnapshot(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeTagEnum mergeTag) throws Throwable
   {
     int prevGraphColorsAmount = graph.getGraphColoring().getActualColors().size();
     Object result = proceedingJoinPoint.proceed();
@@ -58,9 +56,22 @@ public class PrintFactorizationAspect
     {
       graphPrinter.createMergeSnapshot(edges, mergeTag);
     }
-
     return result;
 
+  }
+
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService.addLabel(..)) && args(edge,color,name,labelOperationDetail)")
+  private void labelEdgeOperation(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  {
+  }
+
+  @Before("labelEdgeOperation(edge,color,name,labelOperationDetail)")
+  public void addEdgeLabelSnapshot(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  {
+    if (labelOperationDetail.getType() != LabelOperationEnum.PREPARE && labelOperationDetail.getType() != LabelOperationEnum.OPPOSITE)
+    {
+      graphPrinter.createLabelSnapshot(edge, color, name, labelOperationDetail);
+    }
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer.factorize(..))")

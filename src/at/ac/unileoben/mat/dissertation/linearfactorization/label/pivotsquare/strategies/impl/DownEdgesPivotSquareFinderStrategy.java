@@ -56,7 +56,7 @@ public class DownEdgesPivotSquareFinderStrategy implements PivotSquareFinderStra
         int wxMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), wxColor);
         if (vxMappedColor != wxMappedColor)
         {
-          edgeService.addLabel(uv, wxColor, 0);
+          edgeService.addLabel(uv, wxColor, 0, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FIRST).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
           break;
         }
       }

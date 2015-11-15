@@ -21,7 +21,7 @@ public class EdgeService
   @Autowired
   ColoringService coloringService;
 
-  public void addLabel(Edge edge, int color, int name)
+  public void addLabel(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
   {
     Label label = new Label(color, name);
     edge.setLabel(label);

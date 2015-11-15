@@ -260,7 +260,8 @@ public class GraphPreparer
     for (int i = 0; i < upEdges.size(); i++)
     {
       Edge upEdge = upEdges.get(i);
-      edgeService.addLabel(upEdge, i, 0);
+
+      edgeService.addLabel(upEdge, i, 0, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
       upEdge.getEndpoint().setUnitLayer(true);
 
       addLabelAndRefToDownEdgesL1(upEdge, i, graph.getGraphColoring().getOriginalColorsAmount());
@@ -290,7 +291,7 @@ public class GraphPreparer
     Vertex endpointVertex = upEdge.getEndpoint();
     EdgesGroup downEdgesGroup = endpointVertex.getDownEdges();
     downEdgesGroup.setEdgesRef(downEdgesRef);
-    edgeService.addLabel(upEdge.getOpposite(), i, 0);
+    edgeService.addLabel(upEdge.getOpposite(), i, 0, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
   }
 
   private void addLabelAndRefToCrossEdgesL1(Edge upEdge)
@@ -303,7 +304,7 @@ public class GraphPreparer
     {
       Edge crossEdge = crossEdges.get(i);
       int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge);
-      edgeService.addLabel(crossEdge, mergedColor, i);
+      edgeService.addLabel(crossEdge, mergedColor, i, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
       if (crossEdgesAmounts[mergedColor] == 0)
       {
         crossEdgesColorsAmount++;

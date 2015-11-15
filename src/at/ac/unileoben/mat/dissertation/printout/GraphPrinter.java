@@ -3,12 +3,12 @@ package at.ac.unileoben.mat.dissertation.printout;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.printout.data.EdgeData;
+import at.ac.unileoben.mat.dissertation.printout.data.EdgeStyleDefinition;
 import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeColorEnum;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeStyleEnum;
 import at.ac.unileoben.mat.dissertation.printout.utils.VertexColorEnum;
 import at.ac.unileoben.mat.dissertation.structure.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 public class GraphPrinter
 {
   public static final double EDGE_LENGTH = 2.0;
+  public static final String LAYER_DONE = "LAYER - DONE";
+  public static final String LABEL_PREFIX = "LABEL - ";
   public static final String MERGE_PREFIX = "MERGE - ";
 
   @Autowired
@@ -74,12 +76,33 @@ public class GraphPrinter
 
   public void createLayerSnapshot()
   {
-    createSnapshot(StringUtils.EMPTY, () -> prepareEdges(Collections.emptyList(), EdgeStyleEnum.SOLID.toString()));
+    createSnapshot(LAYER_DONE, () -> prepareEdges(Collections.emptyList()));
   }
 
   public void createMergeSnapshot(List<Edge> edges, MergeTagEnum mergeTag)
   {
-    createSnapshot(MERGE_PREFIX + mergeTag.name(), () -> prepareEdges(edges, EdgeStyleEnum.DASHED.toString()));
+    EdgeStyleDefinition edgeStyleDefinition = new EdgeStyleDefinition(edges, EdgeStyleEnum.DASHED.toString());
+    createSnapshot(MERGE_PREFIX + mergeTag.toString(), () -> prepareEdges(Collections.singletonList(edgeStyleDefinition)));
+  }
+
+  public void createLabelSnapshot(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  {
+    List<EdgeStyleDefinition> edgeStyleDefinitions = new LinkedList<>();
+    if (labelOperationDetail.getSameColorEdge() != null)
+    {
+      edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(labelOperationDetail.getSameColorEdge()), EdgeStyleEnum.DOUBLE.toString()));
+    }
+    if (labelOperationDetail.getPivotSquareFirstEdge() != null)
+    {
+      edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(labelOperationDetail.getPivotSquareFirstEdge()), EdgeStyleEnum.DASHDOTTED.toString()));
+    }
+    if (labelOperationDetail.getPivotSquareFirstEdgeCounterpart() != null)
+    {
+      edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(labelOperationDetail.getPivotSquareFirstEdgeCounterpart()), EdgeStyleEnum.LOOSELY_DOTTED.toString()));
+    }
+    edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(edge), EdgeStyleEnum.DOUBLE.toString()));
+    createSnapshot(LABEL_PREFIX + labelOperationDetail.getType().toString(), () -> prepareEdges(edgeStyleDefinitions));
+
   }
 
   private void createSnapshot(String figureTItle, Supplier<List<EdgeData>> edgesSupplier)
@@ -127,26 +150,24 @@ public class GraphPrinter
     return vertices;
   }
 
-  private List<EdgeData> prepareEdges(List<Edge> specialEdges, String style)
+  private List<EdgeData> prepareEdges(List<EdgeStyleDefinition> edgeStyleDefinitions)
   {
     List<EdgeData> edges = new LinkedList<>();
 
     for (Vertex vertex : graph.getVertices())
     {
-
-
-      List<EdgeData> downEdges = vertex.getDownEdges().getEdges().stream().map(edge -> mapSingleEdge(edge, specialEdges, style)).collect(Collectors.toList());
+      List<EdgeData> downEdges = vertex.getDownEdges().getEdges().stream().map(edge -> mapSingleEdge(edge, edgeStyleDefinitions)).collect(Collectors.toList());
       edges.addAll(downEdges);
 
       List<EdgeData> crossEdges = vertex.getCrossEdges().getEdges().stream()
               .filter(edge -> edge.getOrigin().getVertexNo() < edge.getEndpoint().getVertexNo())
-              .map(edge -> mapSingleEdge(edge, specialEdges, style)).collect(Collectors.toList());
+              .map(edge -> mapSingleEdge(edge, edgeStyleDefinitions)).collect(Collectors.toList());
       edges.addAll(crossEdges);
     }
     return edges;
   }
 
-  private EdgeData mapSingleEdge(Edge edge, List<Edge> specialEdges, String style)
+  private EdgeData mapSingleEdge(Edge edge, List<EdgeStyleDefinition> edgeStyleDefinitions)
   {
     EdgeData edgeData = new EdgeData();
     edgeData.setOriginNo(edge.getOrigin().getVertexNo());
@@ -158,9 +179,14 @@ public class GraphPrinter
       int colorNumber = coloringService.getCurrentColorMapping(graph.getGraphColoring(), label.getColor());
       edgeData.setColor(edgeColors[colorNumber]);
     }
-    if (specialEdges.contains(edge) || specialEdges.contains(edge.getOpposite()))
+
+    for (EdgeStyleDefinition edgeStyleDefinition : edgeStyleDefinitions)
     {
-      edgeData.setStyle(style);
+      List<Edge> styledEdges = edgeStyleDefinition.getEdges();
+      if (styledEdges.contains(edge) || styledEdges.contains(edge.getOpposite()))
+      {
+        edgeData.setStyle(edgeStyleDefinition.getStyle());
+      }
     }
     return edgeData;
   }

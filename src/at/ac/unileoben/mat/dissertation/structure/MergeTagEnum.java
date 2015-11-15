@@ -9,5 +9,18 @@ package at.ac.unileoben.mat.dissertation.structure;
  */
 public enum MergeTagEnum
 {
-  PREPARE, LABEL_DOWN, LABEL_CROSS, CONSISTENCY_DOWN, CONSISTENCY_CROSS, CONSISTENCY_UP
+  PREPARE("Prepare"), LABEL_DOWN("Label: Down-edges"), LABEL_CROSS("Label: Cross-edges"), CONSISTENCY_DOWN("Consistency Check: Down-edges"), CONSISTENCY_CROSS("Consistency Check: Cross-edges"), CONSISTENCY_UP("Consistency Check: Up-edges");
+
+  private String name;
+
+  private MergeTagEnum(String name)
+  {
+    this.name = name;
+  }
+
+  @Override
+  public String toString()
+  {
+    return name;
+  }
 }

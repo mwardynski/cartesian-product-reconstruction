@@ -4,10 +4,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.EdgesRef;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +44,7 @@ public class UpEdgesLabeler implements EdgesLabeler
       {
         Edge uv = uUpEdges.get(i);
         int oppositeEdgeColor = uv.getOpposite().getLabel().getColor();
-        edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++);
+        edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
       }
       EdgesRef upEdgesRef = labelUtils.getEdgesRef(colorsCounter);
       u.getUpEdges().setEdgesRef(upEdgesRef);
