@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class GraphPreparer
 
   @Autowired
   VertexService vertexService;
+
+  @Autowired
+  EdgeService edgeService;
 
   public void prepareToLinearFactorization(List<Vertex> vertices, Vertex root)
   {
@@ -255,9 +259,8 @@ public class GraphPreparer
 
     for (int i = 0; i < upEdges.size(); i++)
     {
-      Label upLabel = new Label(0, i);
       Edge upEdge = upEdges.get(i);
-      upEdge.setLabel(upLabel);
+      edgeService.addLabel(upEdge, i, 0);
       upEdge.getEndpoint().setUnitLayer(true);
 
       addLabelAndRefToDownEdgesL1(upEdge, i, graph.getGraphColoring().getOriginalColorsAmount());
@@ -287,7 +290,7 @@ public class GraphPreparer
     Vertex endpointVertex = upEdge.getEndpoint();
     EdgesGroup downEdgesGroup = endpointVertex.getDownEdges();
     downEdgesGroup.setEdgesRef(downEdgesRef);
-    upEdge.getOpposite().setLabel(new Label(0, i));
+    edgeService.addLabel(upEdge.getOpposite(), i, 0);
   }
 
   private void addLabelAndRefToCrossEdgesL1(Edge upEdge)
@@ -300,7 +303,7 @@ public class GraphPreparer
     {
       Edge crossEdge = crossEdges.get(i);
       int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge);
-      crossEdge.setLabel(new Label(i, mergedColor));
+      edgeService.addLabel(crossEdge, mergedColor, i);
       if (crossEdgesAmounts[mergedColor] == 0)
       {
         crossEdgesColorsAmount++;

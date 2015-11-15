@@ -95,7 +95,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     Vertex v = uv.getEndpoint();
     Edge vx = v.getDownEdges().getEdges().iterator().next();
     int vxColor = vx.getLabel().getColor();
-    uv.setLabel(new Label(0, vxColor));
+    edgeService.addLabel(uv, vxColor, 0);
     colorsCounter[vxColor]++;
 
     u.setUnitLayer(true);
@@ -143,7 +143,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     {
       noPivotSquare = true;
       u.setUnitLayer(true);
-      uv.setLabel(new Label(0, colorToLabel));
+      edgeService.addLabel(uv, colorToLabel, 0);
     }
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     for (Edge uy : uDownEdges)
@@ -155,8 +155,7 @@ public class DownEdgesLabeler implements EdgesLabeler
       }
       if (noPivotSquare)
       {
-        uy.setLabel(new Label(colorsCounter[colorToLabel], colorToLabel));
-        colorsCounter[colorToLabel]++;
+        edgeService.addLabel(uy, colorToLabel, colorsCounter[colorToLabel]++);
       }
       else
       {
@@ -169,15 +168,13 @@ public class DownEdgesLabeler implements EdgesLabeler
           if (vz != null)
           {
             int vzColor = vz.getLabel().getColor();
-            uy.setLabel(new Label(colorsCounter[vzColor], vzColor));
-            colorsCounter[vzColor]++;
+            edgeService.addLabel(uy, vzColor, colorsCounter[vzColor]++);
           }
         }
         if (uy.getLabel() == null)
         {
           int uvColor = uv.getLabel().getColor();
-          uy.setLabel(new Label(colorsCounter[uvColor], uvColor));
-          colorsCounter[uvColor]++;
+          edgeService.addLabel(uy, uvColor, colorsCounter[uvColor]++);
         }
       }
     }

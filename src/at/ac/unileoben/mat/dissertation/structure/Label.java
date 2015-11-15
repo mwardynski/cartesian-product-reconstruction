@@ -9,13 +9,13 @@ package at.ac.unileoben.mat.dissertation.structure;
  */
 public class Label
 {
-  private int name;
   private int color;
+  private int name;
 
-  public Label(int name, int color)
+  public Label(int color, int name)
   {
-    this.name = name;
     this.color = color;
+    this.name = name;
   }
 
   public int getName()

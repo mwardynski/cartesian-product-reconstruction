@@ -21,6 +21,12 @@ public class EdgeService
   @Autowired
   ColoringService coloringService;
 
+  public void addLabel(Edge edge, int color, int name)
+  {
+    Label label = new Label(color, name);
+    edge.setLabel(label);
+  }
+
   public Edge getEdgeByLabel(Vertex v, Label label, EdgeType edgeType)
   {
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
@@ -50,7 +56,7 @@ public class EdgeService
 
       if (coloringService.getCurrentColorMapping(graphColoring, i) != coloringService.getCurrentColorMapping(graphColoring, color))
       {
-        int positionForLabel = coloringService.getPositionForLabel(edgesRef, new Label(0, i));
+        int positionForLabel = coloringService.getPositionForLabel(edgesRef, new Label(i, 0));
         if (positionForLabel != -1)
         {
           return edges.get(positionForLabel);
