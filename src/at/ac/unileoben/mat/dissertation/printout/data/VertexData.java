@@ -1,5 +1,7 @@
 package at.ac.unileoben.mat.dissertation.printout.data;
 
+import at.ac.unileoben.mat.dissertation.printout.utils.VertexColorEnum;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Marcin
@@ -13,6 +15,7 @@ public class VertexData
   long origVertexNo;
   double posX;
   double posY;
+  String color = VertexColorEnum.BLACK.toString();
 
   public long getVertexNo()
   {
@@ -52,5 +55,15 @@ public class VertexData
   public void setPosY(double posY)
   {
     this.posY = posY;
+  }
+
+  public String getColor()
+  {
+    return color;
+  }
+
+  public void setColor(String color)
+  {
+    this.color = color;
   }
 }

@@ -1,5 +1,8 @@
 package at.ac.unileoben.mat.dissertation.printout.data;
 
+import at.ac.unileoben.mat.dissertation.printout.utils.EdgeColorEnum;
+import at.ac.unileoben.mat.dissertation.printout.utils.EdgeStyleEnum;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Marcin
@@ -11,8 +14,8 @@ public class EdgeData
 {
   long originNo;
   long endpointNo;
-  String color = "black";
-  String style = "solid";
+  String color = EdgeColorEnum.BLACK.toString();
+  String style = EdgeStyleEnum.SOLID.toString();
 
   public long getOriginNo()
   {

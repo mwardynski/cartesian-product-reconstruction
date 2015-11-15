@@ -4,16 +4,16 @@ package at.ac.unileoben.mat.dissertation.printout.utils;
  * Created with IntelliJ IDEA.
  * User: Marcin
  * Date: 15.11.15
- * Time: 15:22
+ * Time: 16:59
  * To change this template use File | Settings | File Templates.
  */
-public enum EdgeColorEnum
+public enum VertexColorEnum
 {
-  BLACK("black"), RED("red"), GREEN("green"), BLUE("blue"), YELLOW("yellow");
+  BLACK("black/25"), ORANGE("orange/75");
 
   String definition;
 
-  EdgeColorEnum(String definition)
+  VertexColorEnum(String definition)
   {
     this.definition = definition;
   }

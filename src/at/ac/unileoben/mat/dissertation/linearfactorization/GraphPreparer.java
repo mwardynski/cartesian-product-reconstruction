@@ -239,6 +239,7 @@ public class GraphPreparer
   private void arrangeFirstLayerEdges()
   {
     Vertex root = graph.getRoot();
+    root.setUnitLayer(true);
     EdgesGroup upEdgesGroup = root.getUpEdges();
     List<Edge> upEdges = upEdgesGroup.getEdges();
 

@@ -6,6 +6,7 @@ import at.ac.unileoben.mat.dissertation.printout.data.EdgeData;
 import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeColorEnum;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeStyleEnum;
+import at.ac.unileoben.mat.dissertation.printout.utils.VertexColorEnum;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -112,6 +113,10 @@ public class GraphPrinter
         VertexData vertexData = new VertexData();
         vertexData.setVertexNo(vertex.getVertexNo());
         vertexData.setOrigVertexNo(graph.getReindexArray()[vertex.getVertexNo()]);
+        if (vertex.isUnitLayer())
+        {
+          vertexData.setColor(VertexColorEnum.ORANGE.toString());
+        }
 
         double posX = -layer.size() / (2.0 / EDGE_LENGTH) + (0.5 * EDGE_LENGTH) + (vertexInLayerNo * EDGE_LENGTH);
         vertexData.setPosX(posX);
