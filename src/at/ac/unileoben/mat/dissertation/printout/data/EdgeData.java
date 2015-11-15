@@ -1,7 +1,5 @@
 package at.ac.unileoben.mat.dissertation.printout.data;
 
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Marcin
@@ -14,6 +12,7 @@ public class EdgeData
   long originNo;
   long endpointNo;
   String color = "black";
+  String style = "solid";
 
   public long getOriginNo()
   {
@@ -43,5 +42,15 @@ public class EdgeData
   public void setColor(String color)
   {
     this.color = color;
+  }
+
+  public String getStyle()
+  {
+    return style;
+  }
+
+  public void setStyle(String style)
+  {
+    this.style = style;
   }
 }

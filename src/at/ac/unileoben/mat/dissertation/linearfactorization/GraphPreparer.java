@@ -315,7 +315,7 @@ public class GraphPreparer
   private int mergeCrossEdgesColors(Edge crossEdge, Edge proposedColorEdge)
   {
     Edge oppositeEdge = crossEdge.getOpposite();
-    coloringService.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.CONSISTENCY_CROSS);
+    coloringService.mergeColorsForEdges(Arrays.asList(proposedColorEdge, oppositeEdge), MergeTagEnum.PREPARE);
 
     int proposedColor = proposedColorEdge.getLabel().getColor();
     Label oppositeEdgeLabel = oppositeEdge.getLabel();

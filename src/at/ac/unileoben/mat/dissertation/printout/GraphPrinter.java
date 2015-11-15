@@ -4,7 +4,10 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringSer
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.printout.data.EdgeData;
 import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
+import at.ac.unileoben.mat.dissertation.printout.utils.EdgeColorEnum;
+import at.ac.unileoben.mat.dissertation.printout.utils.EdgeStyleEnum;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +18,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +35,7 @@ import java.util.stream.Collectors;
 public class GraphPrinter
 {
   public static final double EDGE_LENGTH = 2.0;
+  public static final String MERGE_PREFIX = "MERGE - ";
 
   @Autowired
   Graph graph;
@@ -41,7 +47,7 @@ public class GraphPrinter
   VertexService vertexService;
 
   List<String> steps;
-  String[] edgeColors = {"red", "green", "blue", "yellow"};
+  String[] edgeColors = {EdgeColorEnum.RED.toString(), EdgeColorEnum.GREEN.toString(), EdgeColorEnum.BLUE.toString(), EdgeColorEnum.YELLOW.toString()};
 
   public GraphPrinter()
   {
@@ -65,12 +71,24 @@ public class GraphPrinter
     }
   }
 
-  public void createGraphSnapshot()
+  public void createLayerSnapshot()
+  {
+    createSnapshot(StringUtils.EMPTY, () -> prepareEdges(Collections.emptyList(), EdgeStyleEnum.SOLID.toString()));
+  }
+
+  public void createMergeSnapshot(List<Edge> edges, MergeTagEnum mergeTag)
+  {
+    createSnapshot(MERGE_PREFIX + mergeTag.name(), () -> prepareEdges(edges, EdgeStyleEnum.DASHED.toString()));
+  }
+
+  private void createSnapshot(String figureTItle, Supplier<List<EdgeData>> edgesSupplier)
   {
     VelocityContext context = new VelocityContext();
 
+    context.put("figureTitle", figureTItle);
+
     List<VertexData> vertices = prepareVertices();
-    List<EdgeData> edges = prepareEdges();
+    List<EdgeData> edges = edgesSupplier.get();
     context.put("vertices", vertices);
     context.put("edges", edges);
 
@@ -104,26 +122,26 @@ public class GraphPrinter
     return vertices;
   }
 
-  private List<EdgeData> prepareEdges()
+  private List<EdgeData> prepareEdges(List<Edge> specialEdges, String style)
   {
     List<EdgeData> edges = new LinkedList<>();
 
     for (Vertex vertex : graph.getVertices())
     {
-      GraphColoring graphColoring = graph.getGraphColoring();
 
-      List<EdgeData> downEdges = vertex.getDownEdges().getEdges().stream().map(edge -> mapSingleEdge(edge, graphColoring)).collect(Collectors.toList());
+
+      List<EdgeData> downEdges = vertex.getDownEdges().getEdges().stream().map(edge -> mapSingleEdge(edge, specialEdges, style)).collect(Collectors.toList());
       edges.addAll(downEdges);
 
       List<EdgeData> crossEdges = vertex.getCrossEdges().getEdges().stream()
               .filter(edge -> edge.getOrigin().getVertexNo() < edge.getEndpoint().getVertexNo())
-              .map(edge -> mapSingleEdge(edge, graphColoring)).collect(Collectors.toList());
+              .map(edge -> mapSingleEdge(edge, specialEdges, style)).collect(Collectors.toList());
       edges.addAll(crossEdges);
     }
     return edges;
   }
 
-  private EdgeData mapSingleEdge(Edge edge, GraphColoring graphColoring)
+  private EdgeData mapSingleEdge(Edge edge, List<Edge> specialEdges, String style)
   {
     EdgeData edgeData = new EdgeData();
     edgeData.setOriginNo(edge.getOrigin().getVertexNo());
@@ -132,8 +150,12 @@ public class GraphPrinter
     Label label = edge.getLabel();
     if (label != null && label.getColor() < edgeColors.length)
     {
-      int colorNumber = coloringService.getCurrentColorMapping(graphColoring, label.getColor());
+      int colorNumber = coloringService.getCurrentColorMapping(graph.getGraphColoring(), label.getColor());
       edgeData.setColor(edgeColors[colorNumber]);
+    }
+    if (specialEdges.contains(edge) || specialEdges.contains(edge.getOpposite()))
+    {
+      edgeData.setStyle(style);
     }
     return edgeData;
   }

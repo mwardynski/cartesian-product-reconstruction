@@ -1,12 +1,16 @@
 package at.ac.unileoben.mat.dissertation.config;
 
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.MergeTagEnum;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,18 +25,42 @@ public class PrintFactorizationAspect
 {
 
   @Autowired
+  Graph graph;
+
+  @Autowired
   GraphPrinter graphPrinter;
 
   @Before("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer.factorize(..))")
   public void addGraphInitialSnapshot(JoinPoint joinPoint)
   {
-    graphPrinter.createGraphSnapshot();
+    graphPrinter.createLayerSnapshot();
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..))")
-  public void addGraphSnapshot(JoinPoint joinPoint)
+  public void addGraphLayerSnapshot(JoinPoint joinPoint)
   {
-    graphPrinter.createGraphSnapshot();
+    graphPrinter.createLayerSnapshot();
+  }
+
+
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService.mergeColorsForEdges(..)) && args(edges,mergeTag)")
+  private void mergeColorsOperation(List<Edge> edges, MergeTagEnum mergeTag)
+  {
+  }
+
+  @Around("mergeColorsOperation(edges,mergeTag)")
+  public Object addColorsMegeSnapshot(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeTagEnum mergeTag) throws Throwable
+  {
+    int prevGraphColorsAmount = graph.getGraphColoring().getActualColors().size();
+    Object result = proceedingJoinPoint.proceed();
+    int actGraphColorsAmount = graph.getGraphColoring().getActualColors().size();
+    if (prevGraphColorsAmount != actGraphColorsAmount)
+    {
+      graphPrinter.createMergeSnapshot(edges, mergeTag);
+    }
+
+    return result;
+
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer.factorize(..))")

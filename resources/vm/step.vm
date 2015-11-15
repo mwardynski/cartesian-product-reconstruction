@@ -1,21 +1,20 @@
-
-
 \begin{figure}
+\textbf{$figureTitle}\par\medskip
 \begin{tikzpicture}[scale=1.8, auto,swap]
 
 \foreach \pos/\name/\label in {
 #foreach( $vertex in $vertices )
     #set($separator = "#if($foreach.hasNext),#{else}}#end")
-    {($vertex.posX,$vertex.posY)/${vertex.vertexNo}/${vertex.vertexNo}_{$vertex.origVertexNo}}$separator
+{($vertex.posX,$vertex.posY)/${vertex.vertexNo}/${vertex.vertexNo}_{$vertex.origVertexNo}}$separator
 #end
 \node[vertex] (\name) at \pos {$\label$};
 
-\foreach \source/ \dest/ \col in {
+\foreach \source/ \dest/ \col/ \style in {
 #foreach( $edge in $edges )
     #set($separator = "#if($foreach.hasNext),#{else}}#end")
-$edge.originNo/$edge.endpointNo/$edge.color$separator
+    $edge.originNo/$edge.endpointNo/$edge.color/$edge.style$separator
 #end
-\path[edge,\col] (\source) -- (\dest);
+\path[edge,\col,\style] (\source) -- (\dest);
 
 \end{tikzpicture}
 \end{figure}
