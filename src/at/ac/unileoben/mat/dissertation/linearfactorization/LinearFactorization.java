@@ -40,34 +40,58 @@ public class LinearFactorization
 
   public static void main(String... args)
   {
-    if (args.length != 1)
+    if (args.length < 1)
     {
       System.err.println("Wrong number of arguments.\n"
-              + "Please put only one argument with a path to the input file");
+              + "Please put argument with a path to the input file");
       System.exit(-1);
     }
 
     ApplicationContext applicationContext = new AnnotationConfigApplicationContext(FactorizationConfig.class);
 
     LinearFactorization linearFactorization = applicationContext.getBean(LinearFactorization.class);
-    Graph resultGraph = linearFactorization.factorizeWithPreparation(args[0]);
+    List<Vertex> vertices = linearFactorization.parseGraph(args[0]);
+    Graph resultGraph;
+    if (args.length == 1)
+    {
+      resultGraph = linearFactorization.factorize(vertices);
+    }
+    else if (args.length == 2)
+    {
+      resultGraph = linearFactorization.factorizeIncompleteGraph(vertices, Integer.parseInt(args[1]), null);
+    }
+    else
+    {
+      resultGraph = linearFactorization.factorizeIncompleteGraph(vertices, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+    }
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
   }
 
 
-  Graph factorizeWithPreparation(String graphFilePath)
+  List<Vertex> parseGraph(String graphFilePath)
   {
-    List<Vertex> vertices = graphReader.readGraph(graphFilePath);
+    return graphReader.readGraph(graphFilePath);
+  }
+
+  Graph factorize(List<Vertex> vertices)
+  {
     prepare(vertices, null);
     factorizeGraph();
     return graph;
   }
 
-  void factorizeWithPreparation(List<Vertex> vertices, Vertex root)
+  Graph factorizeIncompleteGraph(List<Vertex> vertices, Integer vertexNumberToRemove, Integer rootNumber)
   {
+    Vertex root = null;
+    if (rootNumber != null)
+    {
+      root = vertices.get(rootNumber);
+    }
+    graphPreparer.removeVertex(vertices, vertexNumberToRemove);
     prepare(vertices, root);
     factorizeGraph();
+    return graph;
   }
 
   private void prepare(List<Vertex> vertices, Vertex root)

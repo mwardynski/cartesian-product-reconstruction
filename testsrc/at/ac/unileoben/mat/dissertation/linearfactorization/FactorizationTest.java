@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,8 @@ public class FactorizationTest
     {
       try
       {
-        Graph resultGraph = linearFactorization.factorizeWithPreparation(factorizationCase.getFileName());
+        List<Vertex> vertices = linearFactorization.parseGraph(factorizationCase.getFileName());
+        Graph resultGraph = linearFactorization.factorize(vertices);
         int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
         assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
       }
