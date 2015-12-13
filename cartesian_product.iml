@@ -12,21 +12,21 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="tools" level="project" />
-    <orderEntry type="library" name="spring-core-4.2.2.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-context-4.2.2.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-expression-4.2.2.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-beans-4.2.2.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="hamcrest-core-1.3" level="project" />
     <orderEntry type="library" name="commons-logging-1.2" level="project" />
     <orderEntry type="library" name="commons-lang-2.4" level="project" />
     <orderEntry type="library" name="velocity-1.7" level="project" />
-    <orderEntry type="library" name="spring-aop-4.2.2.RELEASE" level="project" />
     <orderEntry type="library" name="aopalliance-1.0" level="project" />
     <orderEntry type="library" name="commons-collections-3.2.1" level="project" />
     <orderEntry type="library" scope="TEST" name="junit-4.12" level="project" />
-    <orderEntry type="library" name="spring-test-4.2.2.RELEASE" level="project" />
     <orderEntry type="library" name="aspectjrt-1.8.7" level="project" />
     <orderEntry type="library" name="aspectjweaver-1.8.7" level="project" />
+    <orderEntry type="library" name="spring-beans-4.2.3.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-core-4.2.3.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-aop-4.2.3.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-context-4.2.3.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-test-4.2.3.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-expression-4.2.3.RELEASE" level="project" />
   </component>
 </module>
 
