@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class FactorizationTest
 
   static
   {
+    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
     examplesList.add(new FactorizationCase("breakExample.txt", 2));
     examplesList.add(new FactorizationCase("breakExample2.txt", 2));
     examplesList.add(new FactorizationCase("breakExample3.txt", 3));
@@ -44,14 +46,14 @@ public class FactorizationTest
     examplesList.add(new FactorizationCase("g3", 1));
 //    examplesList.add(new FactorizationCase("newEx.txt", -1));
     examplesList.add(new FactorizationCase("newExCart.txt", 2));
-    examplesList.add(new FactorizationCase("newExCart-mod.txt", 2));
+    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));
     examplesList.add(new FactorizationCase("przyklad.txt", 1));
 //    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
     examplesList.add(new FactorizationCase("simpleExample.txt", 1));
     examplesList.add(new FactorizationCase("example.txt", 1));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-    examplesList.add(new FactorizationCase("victory.txt", 3));
+//    examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 
   @Test
@@ -61,7 +63,8 @@ public class FactorizationTest
     {
       try
       {
-        Graph resultGraph = linearFactorization.factorizeWithPreparation(factorizationCase.getFileName());
+        List<Vertex> vertices = linearFactorization.parseGraph(factorizationCase.getFileName());
+        Graph resultGraph = linearFactorization.factorize(vertices, null);
         int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
         assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
       }

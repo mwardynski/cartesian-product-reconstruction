@@ -37,11 +37,11 @@ public class ConsistencyChecker
   {
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
-    downAndCrossEdgesConsistencyCheck(currentLayer);
-    upEdgesConsistencyCheck(previousLayer);
+    checkPreviousLayerUpEdgesConsistency(previousLayer);
+    checkCurrentLayerAllEdgesConsistency(currentLayer);
   }
 
-  private void downAndCrossEdgesConsistencyCheck(List<Vertex> layer)
+  private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
   {
     for (Vertex u : layer)
     {
@@ -69,6 +69,11 @@ public class ConsistencyChecker
           break;
         }
       }
+      if (isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
+      {
+        vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP);
+        break;
+      }
     }
   }
 
@@ -85,7 +90,27 @@ public class ConsistencyChecker
     return unitLayerEdges;
   }
 
-  private void upEdgesConsistencyCheck(List<Vertex> layer)
+
+  private boolean isUpEdgesAmountNotAppropriateBetweenLayers(Vertex u, Edge uv, Edge uw)
+  {
+    Vertex v = uv.getEndpoint();
+    List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
+    Vertex w = uw.getEndpoint();
+    List<List<Edge>> wDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(w, uw.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
+    int upEdgesTotalSize = 0;
+    for (int i = 0; i < vDifferentThanUv.size(); i++)
+    {
+      int upEdgesSize = vDifferentThanUv.get(i).size();
+      if (upEdgesSize == 0)
+      {
+        upEdgesSize = wDifferentThanUv.get(i).size();
+      }
+      upEdgesTotalSize += upEdgesSize;
+    }
+    return u.getUpEdges().getEdges().size() != upEdgesTotalSize;
+  }
+
+  private void checkPreviousLayerUpEdgesConsistency(List<Vertex> layer)
   {
     for (Vertex u : layer)
     {

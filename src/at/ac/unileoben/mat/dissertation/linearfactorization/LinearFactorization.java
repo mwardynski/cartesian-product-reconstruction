@@ -40,34 +40,39 @@ public class LinearFactorization
 
   public static void main(String... args)
   {
-    if (args.length != 1)
+    if (args.length < 1)
     {
       System.err.println("Wrong number of arguments.\n"
-              + "Please put only one argument with a path to the input file");
+              + "Please put at least one argument with a path to the input file");
       System.exit(-1);
     }
 
     ApplicationContext applicationContext = new AnnotationConfigApplicationContext(FactorizationConfig.class);
 
     LinearFactorization linearFactorization = applicationContext.getBean(LinearFactorization.class);
-    Graph resultGraph = linearFactorization.factorizeWithPreparation(args[0]);
+    List<Vertex> vertices = linearFactorization.parseGraph(args[0]);
+
+    Vertex root = null;
+    if (args.length > 1)
+    {
+      root = vertices.get(Integer.parseInt(args[1]));
+    }
+
+    Graph resultGraph = linearFactorization.factorize(vertices, root);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
   }
 
-
-  Graph factorizeWithPreparation(String graphFilePath)
+  List<Vertex> parseGraph(String graphFilePath)
   {
-    List<Vertex> vertices = graphReader.readGraph(graphFilePath);
-    prepare(vertices, null);
-    factorizeGraph();
-    return graph;
+    return graphReader.readGraph(graphFilePath);
   }
 
-  void factorizeWithPreparation(List<Vertex> vertices, Vertex root)
+  Graph factorize(List<Vertex> vertices, Vertex root)
   {
     prepare(vertices, root);
     factorizeGraph();
+    return graph;
   }
 
   private void prepare(List<Vertex> vertices, Vertex root)
