@@ -21,12 +21,12 @@
     <orderEntry type="library" scope="TEST" name="junit-4.12" level="project" />
     <orderEntry type="library" name="aspectjrt-1.8.7" level="project" />
     <orderEntry type="library" name="aspectjweaver-1.8.7" level="project" />
-    <orderEntry type="library" name="spring-beans-4.2.3.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-core-4.2.3.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-aop-4.2.3.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-context-4.2.3.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-test-4.2.3.RELEASE" level="project" />
-    <orderEntry type="library" name="spring-expression-4.2.3.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-test-4.2.4.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-core-4.2.4.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-context-4.2.4.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-expression-4.2.4.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-beans-4.2.4.RELEASE" level="project" />
+    <orderEntry type="library" name="spring-aop-4.2.4.RELEASE" level="project" />
   </component>
 </module>
 
