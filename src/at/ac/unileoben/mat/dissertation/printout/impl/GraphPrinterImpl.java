@@ -51,7 +51,7 @@ public class GraphPrinterImpl implements GraphPrinter
   VertexService vertexService;
 
   List<String> steps;
-  String[] edgeColors = {EdgeColorEnum.RED.toString(), EdgeColorEnum.GREEN.toString(), EdgeColorEnum.BLUE.toString(), EdgeColorEnum.YELLOW.toString()};
+  String[] edgeColors = {EdgeColorEnum.RED.toString(), EdgeColorEnum.GREEN.toString(), EdgeColorEnum.BLUE.toString(), EdgeColorEnum.YELLOW.toString(), EdgeColorEnum.ORAGNE.toString()};
 
   public GraphPrinterImpl()
   {

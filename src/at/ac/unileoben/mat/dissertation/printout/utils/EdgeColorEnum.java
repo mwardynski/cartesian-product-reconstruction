@@ -9,7 +9,7 @@ package at.ac.unileoben.mat.dissertation.printout.utils;
  */
 public enum EdgeColorEnum
 {
-  BLACK("black"), RED("red"), GREEN("green"), BLUE("blue"), YELLOW("yellow");
+  BLACK("black"), RED("red"), GREEN("green"), BLUE("blue"), YELLOW("yellow"), ORAGNE("orange");
 
   String definition;
 

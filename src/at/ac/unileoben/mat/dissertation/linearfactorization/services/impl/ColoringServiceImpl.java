@@ -41,7 +41,7 @@ public class ColoringServiceImpl implements ColoringService
       {
         colorsMerged = true;
         graphColoring.getActualColors().remove(colorsMapping.get(color));
-        for (int i = 0; i < colorsMapping.size(); i++)
+        for (int i = colorsMapping.size() - 1; i >= 0; i--)
         {
           if (colorsMapping.get(i) == colorsMapping.get(color))
           {
