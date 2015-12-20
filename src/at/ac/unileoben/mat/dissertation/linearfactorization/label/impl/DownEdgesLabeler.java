@@ -40,7 +40,7 @@ public class DownEdgesLabeler implements EdgesLabeler
   VertexService vertexService;
 
   @Autowired
-  PivotSquareFinderStrategy downEdgesPivotSquareFinderStrategy;
+  PivotSquareFinderStrategy downEdgesPivotSquareFinderStrategyImpl;
 
   @Autowired
   LabelUtils labelUtils;
@@ -57,8 +57,8 @@ public class DownEdgesLabeler implements EdgesLabeler
 
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
     FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
-    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategy, findSquareFirstPhase, findSquareSecondPhase);
-    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategy, findSquareSecondPhase, null);
+    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase);
+    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null);
 
     labelDownEdgesWithFoundPivotSquares(factorizationSteps);
   }

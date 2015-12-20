@@ -5,7 +5,10 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
-import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.FactorizationStep;
+import at.ac.unileoben.mat.dissertation.structure.FactorizationSteps;
+import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,16 +25,13 @@ import java.util.List;
 public class CrossEdgesLabeler implements EdgesLabeler
 {
   @Autowired
-  Graph graph;
-
-  @Autowired
   FactorizationStepService factorizationStepService;
 
   @Autowired
-  VertexService vertexService = new VertexService();
+  VertexService vertexService;
 
   @Autowired
-  PivotSquareFinderStrategy crossEdgesPivotSquareFinderStrategy;
+  PivotSquareFinderStrategy crossEdgesPivotSquareFinderStrategyImpl;
 
   @Autowired
   LabelUtils labelUtils;
@@ -56,6 +56,6 @@ public class CrossEdgesLabeler implements EdgesLabeler
     }
 
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
-    labelUtils.singleFindPivotSquarePhase(crossEdgesPivotSquareFinderStrategy, findSquareFirstPhase, null);
+    labelUtils.singleFindPivotSquarePhase(crossEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, null);
   }
 }

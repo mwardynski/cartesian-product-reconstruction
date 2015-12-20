@@ -1,6 +1,7 @@
-package at.ac.unileoben.mat.dissertation.linearfactorization;
+package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
+import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.junit.Test;

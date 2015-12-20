@@ -18,7 +18,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class CrossEdgesPivotSquareFinderStrategy implements PivotSquareFinderStrategy
+public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinderStrategy
 {
   @Autowired
   Graph graph;

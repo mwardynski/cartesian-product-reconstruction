@@ -1,12 +1,12 @@
-package at.ac.unileoben.mat.dissertation.linearfactorization;
+package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
 /**
-* Created with IntelliJ IDEA.
-* User: marcin
-* Date: 14-11-02
-* Time: 16:58
-* To change this template use File | Settings | File Templates.
-*/
+ * Created with IntelliJ IDEA.
+ * User: marcin
+ * Date: 14-11-02
+ * Time: 16:58
+ * To change this template use File | Settings | File Templates.
+ */
 public class FactorizationCase
 {
   String fileName;

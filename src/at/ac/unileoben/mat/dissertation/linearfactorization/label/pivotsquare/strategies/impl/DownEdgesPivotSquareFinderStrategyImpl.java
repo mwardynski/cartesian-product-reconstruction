@@ -19,7 +19,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class DownEdgesPivotSquareFinderStrategy implements PivotSquareFinderStrategy
+public class DownEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinderStrategy
 {
   @Autowired
   Graph graph;
