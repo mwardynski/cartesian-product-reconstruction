@@ -1,10 +1,11 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphCorrectnessChecker;
-import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.common.GraphPreparer;
+import at.ac.unileoben.mat.dissertation.common.impl.GraphPreparerImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
+import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
-import at.ac.unileoben.mat.dissertation.linearfactorization.GraphPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
@@ -29,13 +30,10 @@ public class LinearFactorizationImpl implements LinearFactorization
   Graph graph;
 
   @Autowired
-  GraphPreparer graphPreparer;
+  GraphFactorizationPreparer graphFactorizationPreparer;
 
   @Autowired
   GraphFactorizer graphFactorizer;
-
-  @Autowired
-  GraphReader graphReader;
 
   @Autowired
   GraphCorrectnessChecker graphCorrectnessChecker;
@@ -52,8 +50,8 @@ public class LinearFactorizationImpl implements LinearFactorization
 
     ApplicationContext applicationContext = new AnnotationConfigApplicationContext(FactorizationConfig.class);
 
-    LinearFactorizationImpl linearFactorization = applicationContext.getBean(LinearFactorizationImpl.class);
-    List<Vertex> vertices = linearFactorization.parseGraph(args[0]);
+    GraphPreparer graphPreparer = applicationContext.getBean(GraphPreparerImpl.class);
+    List<Vertex> vertices = graphPreparer.parseGraph(args[0]);
 
     Vertex root = null;
     if (args.length > 1)
@@ -61,16 +59,12 @@ public class LinearFactorizationImpl implements LinearFactorization
       root = vertices.get(Integer.parseInt(args[1]));
     }
 
+    LinearFactorization linearFactorization = applicationContext.getBean(LinearFactorizationImpl.class);
     Graph resultGraph = linearFactorization.factorize(vertices, root);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
   }
 
-  @Override
-  public List<Vertex> parseGraph(String graphFilePath)
-  {
-    return graphReader.readGraph(graphFilePath);
-  }
 
   @Override
   public Graph factorize(List<Vertex> vertices, Vertex root)
@@ -83,7 +77,7 @@ public class LinearFactorizationImpl implements LinearFactorization
   private void prepare(List<Vertex> vertices, Vertex root)
   {
     checkGraphCorrectness(vertices);
-    graphPreparer.prepareToLinearFactorization(vertices, root);
+    graphFactorizationPreparer.prepareToLinearFactorization(vertices, root);
     if (graph.getLayers().size() < 3)
     {
       throw new IllegalStateException(graphCorrectnessChecker.NOT_HIGH_ENOUGH);
@@ -93,7 +87,7 @@ public class LinearFactorizationImpl implements LinearFactorization
   private void factorizeGraph()
   {
     graphFactorizer.factorize();
-    graphPreparer.finalizeFactorization();
+    graphFactorizationPreparer.finalizeFactorization();
   }
 
 

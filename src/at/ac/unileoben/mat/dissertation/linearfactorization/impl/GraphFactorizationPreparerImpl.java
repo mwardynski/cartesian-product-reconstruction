@@ -1,7 +1,7 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphReader;
-import at.ac.unileoben.mat.dissertation.linearfactorization.GraphPreparer;
+import at.ac.unileoben.mat.dissertation.common.impl.GraphReaderImpl;
+import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
@@ -19,7 +19,7 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class GraphPreparerImpl implements GraphPreparer
+public class GraphFactorizationPreparerImpl implements GraphFactorizationPreparer
 {
   @Autowired
   Graph graph;
@@ -194,7 +194,7 @@ public class GraphPreparerImpl implements GraphPreparer
     List<List<Edge>> tmpEdges = new ArrayList<List<Edge>>(vertices.size());
     for (int i = 0; i < vertices.size(); i++)
     {
-      tmpEdges.add(new ArrayList<Edge>(GraphReader.MAX_NEIGHBOURS_ACCOUNT));
+      tmpEdges.add(new ArrayList<Edge>(GraphReaderImpl.MAX_NEIGHBOURS_ACCOUNT));
     }
     for (Vertex v : vertices)
     {

@@ -11,7 +11,7 @@ import java.util.List;
  * Time: 19:27
  * To change this template use File | Settings | File Templates.
  */
-public interface GraphPreparer
+public interface GraphFactorizationPreparer
 {
   void prepareToLinearFactorization(List<Vertex> vertices, Vertex root);
 

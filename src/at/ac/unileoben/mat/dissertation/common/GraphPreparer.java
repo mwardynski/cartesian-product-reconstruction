@@ -6,12 +6,14 @@ import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
- * User: marcin
- * Date: 13-11-29
- * Time: 15:23
+ * User: Marcin
+ * Date: 23.01.16
+ * Time: 11:47
  * To change this template use File | Settings | File Templates.
  */
-public interface GraphReader
+public interface GraphPreparer
 {
-  List<Vertex> readGraph(String fileName);
+  List<Vertex> parseGraph(String graphFilePath);
+
+  void addVertex(List<Vertex> allVertices, List<Vertex> neighbors);
 }
