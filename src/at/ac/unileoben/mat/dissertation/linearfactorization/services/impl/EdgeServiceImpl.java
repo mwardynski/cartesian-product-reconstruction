@@ -3,10 +3,12 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.services.impl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,13 +108,16 @@ public class EdgeServiceImpl implements EdgeService
     List<Edge> edgesOfGivenColors = new LinkedList<Edge>();
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
     EdgesRef edgesRef = edgeGroup.getEdgesRef();
-    List<Edge> allEdges = edgeGroup.getEdges();
-    for (Integer givenColor : colors)
+    List<Edge> allEdgesOfGroup = edgeGroup.getEdges();
+    if (CollectionUtils.isNotEmpty(allEdgesOfGroup))
     {
-      List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, givenColor);
-      for (int edgePosition : positionsForColor)
+      for (Integer givenColor : colors)
       {
-        edgesOfGivenColors.add(allEdges.get(edgePosition));
+        List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, givenColor);
+        for (int edgePosition : positionsForColor)
+        {
+          edgesOfGivenColors.add(allEdgesOfGroup.get(edgePosition));
+        }
       }
     }
     return edgesOfGivenColors;
@@ -132,5 +137,15 @@ public class EdgeServiceImpl implements EdgeService
     {
       return v.getUpEdges();
     }
+  }
+
+  @Override
+  public List<Edge> getAllEdgesOfColor(Vertex v, int color)
+  {
+    LinkedList<Edge> allEdges = new LinkedList<>();
+    allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.DOWN));
+    allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.CROSS));
+    allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.UP));
+    return allEdges;
   }
 }

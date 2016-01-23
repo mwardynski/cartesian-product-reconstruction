@@ -15,5 +15,11 @@ public interface GraphPreparer
 {
   List<Vertex> parseGraph(String graphFilePath);
 
+  List<Vertex> orderBFS(Vertex root, Integer[] reindexArray);
+
   void addVertex(List<Vertex> allVertices, List<Vertex> neighbors);
+
+  List<Vertex> copySubgraph(List<Vertex> allVertices, Vertex vertexToRemove);
+
+  List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices);
 }

@@ -25,27 +25,26 @@ public class GraphCorrectnessCheckerImpl implements GraphCorrectnessChecker
   @Override
   public boolean isSimple(List<Vertex> graph)
   {
-    int[] counter = new int[graph.size()];
     for (Vertex v : graph)
     {
       for (Edge e : v.getEdges())
       {
-        counter[e.getEndpoint().getVertexNo()]++;
-      }
-      if (counter[v.getVertexNo()] != 0)
-      {
-        return false;
-      }
-      for (int i = 0; i < counter.length; i++)
-      {
-        if (counter[i] > 1)
+        if (e.getEndpoint().getColor() == Color.WHITE)
         {
-          return false;
+          e.getEndpoint().setColor(Color.BLACK);
         }
         else
         {
-          counter[i] = 0;
+          return false;
         }
+      }
+      if (v.getColor() != Color.WHITE)
+      {
+        return false;
+      }
+      for (Edge e : v.getEdges())
+      {
+        e.getEndpoint().setColor(Color.WHITE);
       }
     }
     return true;

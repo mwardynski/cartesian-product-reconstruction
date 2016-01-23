@@ -22,4 +22,6 @@ public interface EdgeService
   List<List<Edge>> getAllEdgesOfDifferentColor(Vertex v, int color, GraphColoring graphColoring, EdgeType edgeType);
 
   List<Edge> getAllEdgesOfColors(Vertex v, List<Integer> colors, EdgeType edgeType);
+
+  List<Edge> getAllEdgesOfColor(Vertex v, int color);
 }

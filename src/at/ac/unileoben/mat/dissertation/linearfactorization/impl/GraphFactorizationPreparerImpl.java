@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphPreparer;
 import at.ac.unileoben.mat.dissertation.common.impl.GraphReaderImpl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
@@ -25,6 +26,9 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   Graph graph;
 
   @Autowired
+  GraphPreparer graphPreparer;
+
+  @Autowired
   ColoringService coloringService;
 
   @Autowired
@@ -40,8 +44,8 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     {
       root = findVertexWithMinDegree(vertices);
     }
-    int[] reindexArray = new int[vertices.size()];
-    bfs(root, reindexArray);
+    Integer[] reindexArray = new Integer[findMaxVertexNo(vertices) + 1];
+    graphPreparer.orderBFS(root, reindexArray);
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);
@@ -50,7 +54,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     arrangeFirstLayerEdges();
   }
 
-  private void createNewGraph(List<Vertex> vertices, Vertex root, int[] reindexArray)
+  private void createNewGraph(List<Vertex> vertices, Vertex root, Integer[] reindexArray)
   {
     graph.setRoot(root);
     graph.setVertices(vertices);
@@ -64,10 +68,10 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   public void finalizeFactorization()
   {
     List<Vertex> vertices = graph.getVertices();
-    int[] reverseReindexArray = graph.getReverseReindexArray();
+    Integer[] reverseReindexArray = graph.getReverseReindexArray();
     reindex(vertices, reverseReindexArray);
-    vertices = sortVertices(vertices);
-    sortEdges(vertices);
+//    vertices = sortVertices(vertices);
+//    sortEdges(vertices);
     graph.setVertices(vertices);
   }
 
@@ -101,12 +105,16 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     }
   }
 
-  private int[] createReverseReindexArray(int[] reindexArray)
+  private Integer[] createReverseReindexArray(Integer[] reindexArray)
   {
-    int[] reverseReindexArray = new int[reindexArray.length];
+    Integer[] reverseReindexArray = new Integer[reindexArray.length];
     for (int i = 0; i < reindexArray.length; i++)
     {
-      reverseReindexArray[reindexArray[i]] = i;
+      Integer reverseCell = reindexArray[i];
+      if (reverseCell != null)
+      {
+        reverseReindexArray[reverseCell] = i;
+      }
     }
     return reverseReindexArray;
   }
@@ -128,33 +136,21 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     return result;
   }
 
-  private void bfs(Vertex root, int[] reindexArray)
+  private int findMaxVertexNo(List<Vertex> vertices)
   {
-    int counter = 0;
-    root.setColor(Color.GRAY);
-    root.setBfsLayer(0);
-    reindexArray[root.getVertexNo()] = counter++;
-    Queue<Vertex> queue = new LinkedList<Vertex>();
-    queue.add(root);
-    while (!queue.isEmpty())
+    int max = Integer.MIN_VALUE;
+    for (Vertex v : vertices)
     {
-      Vertex u = queue.poll();
-      for (Edge e : u.getEdges())
+      int number = v.getVertexNo();
+      if (max < number)
       {
-        Vertex v = e.getEndpoint();
-        if (v.getColor() == Color.WHITE)
-        {
-          v.setColor(Color.GRAY);
-          v.setBfsLayer(u.getBfsLayer() + 1);
-          reindexArray[v.getVertexNo()] = counter++;
-          queue.add(v);
-        }
+        max = number;
       }
-      u.setColor(Color.BLACK);
     }
+    return max;
   }
 
-  private void reindex(List<Vertex> vertices, int[] reindexArray)
+  private void reindex(List<Vertex> vertices, Integer[] reindexArray)
   {
     for (Vertex v : vertices)
     {

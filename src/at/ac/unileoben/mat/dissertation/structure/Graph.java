@@ -19,9 +19,24 @@ public class Graph
   private GraphColoring graphColoring;
   private List<List<Vertex>> layers;
 
-  private int[] reverseReindexArray;
+  private Integer[] reverseReindexArray;
 
   private AnalyzeData analyzeData;
+
+//  public Graph()
+//  {
+//  }
+//
+//  public Graph(Graph graph)
+//  {
+//    Graph newGraph = new Graph();
+//    newGraph.setRoot(graph.getRoot());
+//    newGraph.setVertices(graph.getVertices());
+//    newGraph.setGraphColoring(graph.getGraphColoring());
+//    newGraph.setLayers(graph.getLayers());
+//    newGraph.setReverseReindexArray(graph.getReverseReindexArray());
+//    newGraph.setAnalyzeData(graph.getAnalyzeData());
+//  }
 
   public Vertex getRoot()
   {
@@ -63,12 +78,12 @@ public class Graph
     this.layers = layers;
   }
 
-  public int[] getReverseReindexArray()
+  public Integer[] getReverseReindexArray()
   {
     return reverseReindexArray;
   }
 
-  public void setReverseReindexArray(int[] reverseReindexArray)
+  public void setReverseReindexArray(Integer[] reverseReindexArray)
   {
     this.reverseReindexArray = reverseReindexArray;
   }
