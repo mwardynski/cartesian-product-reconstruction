@@ -1,4 +1,4 @@
-package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
+package at.ac.unileoben.mat.dissertation.common;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,7 +12,7 @@ public class FactorizationCase
   String fileName;
   int amountOfFactors;
 
-  FactorizationCase(String fileName, int amountOfFactors)
+  public FactorizationCase(String fileName, int amountOfFactors)
   {
     this.fileName = fileName;
     this.amountOfFactors = amountOfFactors;

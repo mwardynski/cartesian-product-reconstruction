@@ -116,7 +116,10 @@ public class GeneralReconstructionStrategyImpl implements GeneralReconstructionS
   {
     IntervalData[] intervalDataArray = new IntervalData[localGraph.getVertices().size()];
     populateIntervalDataArrayForFirstLayer(u, v, intervalDataArray, localGraph);
-    populateIntervalDataArrayForSecondLayer(intervalDataArray, localGraph);
+    if (localGraph.getLayers().size() > 2)
+    {
+      populateIntervalDataArrayForSecondLayer(intervalDataArray, localGraph);
+    }
     if (localGraph.getLayers().size() > 3)
     {
       List<Vertex> singleDownNeighborVertices = new LinkedList<>();

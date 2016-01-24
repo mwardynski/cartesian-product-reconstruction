@@ -103,6 +103,6 @@ public class ProductReconstructorImpl implements ProductReconstructor
         }
       }
     }
-    return null;
+    return graph;
   }
 }

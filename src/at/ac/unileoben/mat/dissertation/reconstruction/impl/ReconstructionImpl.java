@@ -50,9 +50,9 @@ public class ReconstructionImpl implements Reconstruction
 
     Reconstruction reconstruction = applicationContext.getBean(ReconstructionImpl.class);
     Graph resultGraph = reconstruction.reconstruct(vertices);
-    if (resultGraph != null)
+    int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
+    if (amountOfFactors != 1)
     {
-      int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
       System.out.println("Reconstructed cartesian product with following number of factors: " + amountOfFactors);
     }
     else
