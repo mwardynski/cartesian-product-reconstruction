@@ -1,8 +1,8 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphCorrectnessChecker;
-import at.ac.unileoben.mat.dissertation.common.GraphPreparer;
-import at.ac.unileoben.mat.dissertation.common.impl.GraphPreparerImpl;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.common.impl.GraphHelperImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
@@ -50,8 +50,8 @@ public class LinearFactorizationImpl implements LinearFactorization
 
     ApplicationContext applicationContext = new AnnotationConfigApplicationContext(FactorizationConfig.class);
 
-    GraphPreparer graphPreparer = applicationContext.getBean(GraphPreparerImpl.class);
-    List<Vertex> vertices = graphPreparer.parseGraph(args[0]);
+    GraphHelper graphHelper = applicationContext.getBean(GraphHelperImpl.class);
+    List<Vertex> vertices = graphHelper.parseGraph(args[0]);
 
     Vertex root = null;
     if (args.length > 1)

@@ -1,6 +1,6 @@
 package at.ac.unileoben.mat.dissertation.common.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphPreparer;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
 import at.ac.unileoben.mat.dissertation.structure.Color;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
@@ -8,10 +8,7 @@ import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,7 +18,7 @@ import java.util.Queue;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class GraphPreparerImpl implements GraphPreparer
+public class GraphHelperImpl implements GraphHelper
 {
 
   @Autowired
@@ -40,20 +37,20 @@ public class GraphPreparerImpl implements GraphPreparer
 
     for (Vertex neighborVertex : neighbors)
     {
-      addEdgeBetweenVertices(newVertex, neighborVertex);
+      addEdge(newVertex, neighborVertex);
     }
 
     allVertices.add(newVertex);
   }
 
-  public List<Vertex> copySubgraph(List<Vertex> allVertices, Vertex vertexToRemove)
+  public List<Vertex> copySubgraph(List<Vertex> allVertices, Optional<Vertex> vertexToRemoveOptional)
   {
     Vertex[] newVerticesArray = new Vertex[allVertices.size()];
     List<Vertex> newVertices = new ArrayList<>(allVertices.size() - 1);
 
     for (int i = 0; i < allVertices.size(); i++)
     {
-      if (i != vertexToRemove.getVertexNo())
+      if (!vertexToRemoveOptional.isPresent() || i != vertexToRemoveOptional.get().getVertexNo())
       {
         Vertex newVertex = new Vertex(i, new ArrayList<Edge>(allVertices.size()));
         newVerticesArray[i] = newVertex;
@@ -63,9 +60,9 @@ public class GraphPreparerImpl implements GraphPreparer
         for (Edge e : origVertex.getEdges())
         {
           int edgeEndpointVertexNo = e.getEndpoint().getVertexNo();
-          if (edgeEndpointVertexNo != vertexToRemove.getVertexNo() && edgeEndpointVertexNo < i)
+          if ((!vertexToRemoveOptional.isPresent() || edgeEndpointVertexNo != vertexToRemoveOptional.get().getVertexNo()) && edgeEndpointVertexNo < i)
           {
-            addEdgeBetweenVertices(newVertex, newVerticesArray[edgeEndpointVertexNo]);
+            addEdge(newVertex, newVerticesArray[edgeEndpointVertexNo]);
           }
         }
       }
@@ -73,7 +70,7 @@ public class GraphPreparerImpl implements GraphPreparer
     return newVertices;
   }
 
-  private void addEdgeBetweenVertices(Vertex newVertex, Vertex neighborVertex)
+  private void addEdge(Vertex newVertex, Vertex neighborVertex)
   {
     Edge e1 = new Edge(newVertex, neighborVertex);
     Edge e2 = new Edge(neighborVertex, newVertex);
@@ -100,6 +97,7 @@ public class GraphPreparerImpl implements GraphPreparer
     return connectedComponents;
   }
 
+  @Override
   public List<Vertex> orderBFS(Vertex root, Integer[] reindexArray)
   {
     List<Vertex> visitedVertices = new ArrayList<>(reindexArray.length);
@@ -127,5 +125,39 @@ public class GraphPreparerImpl implements GraphPreparer
       visitedVertices.add(u);
     }
     return visitedVertices;
+  }
+
+  @Override
+  public boolean isGraphK1(List<Vertex> vertices)
+  {
+    return vertices.size() == 1;
+  }
+
+  @Override
+  public boolean isGraphK2(List<Vertex> vertices)
+  {
+    return vertices.size() == 2;
+  }
+
+  @Override
+  public boolean isGraphC8(List<Vertex> vertices)
+  {
+    boolean isC8 = true;
+    if (vertices.size() == 8)
+    {
+      for (Vertex v : vertices)
+      {
+        if (v.getEdges().size() != 2)
+        {
+          isC8 = false;
+        }
+      }
+    }
+    else
+    {
+      isC8 = false;
+    }
+
+    return isC8;
   }
 }

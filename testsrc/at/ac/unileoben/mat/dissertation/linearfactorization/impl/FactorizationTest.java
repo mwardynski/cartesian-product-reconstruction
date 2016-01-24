@@ -1,6 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphPreparer;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertThat;
 public class FactorizationTest
 {
   @Autowired
-  GraphPreparer graphPreparer;
+  GraphHelper graphHelper;
 
   @Autowired
   LinearFactorization linearFactorization;
@@ -68,7 +68,7 @@ public class FactorizationTest
     {
       try
       {
-        List<Vertex> vertices = graphPreparer.parseGraph(factorizationCase.getFileName());
+        List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
         Graph resultGraph = linearFactorization.factorize(vertices, null);
         int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
         assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));

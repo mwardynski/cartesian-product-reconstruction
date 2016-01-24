@@ -1,6 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphPreparer;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.common.impl.GraphReaderImpl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
@@ -26,7 +26,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   Graph graph;
 
   @Autowired
-  GraphPreparer graphPreparer;
+  GraphHelper graphHelper;
 
   @Autowired
   ColoringService coloringService;
@@ -45,7 +45,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
       root = findVertexWithMinDegree(vertices);
     }
     Integer[] reindexArray = new Integer[findMaxVertexNo(vertices) + 1];
-    graphPreparer.orderBFS(root, reindexArray);
+    graphHelper.orderBFS(root, reindexArray);
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);

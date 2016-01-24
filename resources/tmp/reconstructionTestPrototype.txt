@@ -54,7 +54,7 @@ public class ReconstructionTest
   public void singleFactorFactorizationAfterVertexRemoval()
   {
 
-    GraphPreparer graphPreparer = new GraphPreparer();
+    GraphPreparer graphHelper = new GraphPreparer();
     for (FactorizationCase factorizationCase : examplesList)
     {
       List<Vertex> orgGraphVertices = graphReader.readGraph(factorizationCase.getFileName());
@@ -64,7 +64,7 @@ public class ReconstructionTest
       for (int i = 0; i < orgGraphVertices.size(); i++)
       {
         List<Vertex> graphVertices = graphReader.readGraph(factorizationCase.getFileName());
-        graphPreparer.removeVertex(graphVertices, i);
+        graphHelper.removeVertex(graphVertices, i);
         LinearFactorization linearFactorization = new LinearFactorization();
 //        linearFactorization.setGraphFilePath(factorizationCase.getFileName());
         Graph resultGraph = linearFactorization.factorizeWithPreparation(graphVertices, graphVertices.get(6));
@@ -143,9 +143,9 @@ public class ReconstructionTest
   {
     List<Vertex> graphVertices = graphReader.readGraph(fileName);
     Vertex root = graphVertices.get(rootNo);
-    GraphPreparer graphPreparer = new GraphPreparer();
-    Graph bfsGraph = graphPreparer.prepareToLinearFactorization(graphVertices, root);
-    graphPreparer.finalizeFactorization(bfsGraph);
+    GraphPreparer graphHelper = new GraphPreparer();
+    Graph bfsGraph = graphHelper.prepareToLinearFactorization(graphVertices, root);
+    graphHelper.finalizeFactorization(bfsGraph);
     return bfsGraph;
   }
 
