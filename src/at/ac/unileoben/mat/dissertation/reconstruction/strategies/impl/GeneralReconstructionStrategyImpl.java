@@ -37,47 +37,38 @@ public class GeneralReconstructionStrategyImpl implements GeneralReconstructionS
   LinearFactorization linearFactorization;
 
   @Override
-  public Graph reconstruct(List<Vertex> vertices)
+  public Graph reconstruct(List<Vertex> vertices, Vertex u, Vertex v, Graph localGraph)
   {
-    for (Vertex s : vertices)
+    List<Vertex> removedVertexNeighbors = new LinkedList<>();
+
+    removedVertexNeighbors.add(u);
+    removedVertexNeighbors.add(v);
+    findRemovedVertexAllCrossNeighbors(u, v, removedVertexNeighbors);
+    findRemovedVertexAllUpNeighbors(u, v, removedVertexNeighbors, localGraph);
+
+    return reconstructAndFactorizeProduct(vertices, removedVertexNeighbors, localGraph);
+  }
+
+  private Graph reconstructAndFactorizeProduct(List<Vertex> vertices, List<Vertex> removedVertexNeighbors, Graph localGraph)
+  {
+    Graph reconstructedAndFactorizedGraph = null;
+    if (CollectionUtils.isNotEmpty(removedVertexNeighbors))
     {
-      List<Vertex> copiedVertices = graphHelper.copySubgraph(vertices, Optional.empty());
-      graphHelper.prepareGraphBfsStructure(copiedVertices, copiedVertices.get(s.getVertexNo()));
-      Graph localGraph = new Graph(graph);
-      List<Vertex> firstLayer = localGraph.getLayers().get(1);
-      for (int uIndex = 0; uIndex < firstLayer.size(); uIndex++)
+      List<Vertex> verticesToFactorize = graphHelper.copySubgraph(vertices, Optional.empty());
+      List<Vertex> removedVertexNeighborsToFactorize = new LinkedList<>();
+      for (Vertex removedVertexNeighbor : removedVertexNeighbors)
       {
-        for (int vIndex = uIndex + 1; vIndex < firstLayer.size(); vIndex++)
-        {
-          Vertex u = firstLayer.get(uIndex);
-          Vertex v = firstLayer.get(vIndex);
-          List<Vertex> removedVertexNeighbors = new LinkedList<>();
-
-          removedVertexNeighbors.add(u);
-          removedVertexNeighbors.add(v);
-          findRemovedVertexAllCrossNeighbors(u, v, removedVertexNeighbors);
-          findRemovedVertexAllUpNeighbors(u, v, removedVertexNeighbors, localGraph);
-
-          if (CollectionUtils.isNotEmpty(removedVertexNeighbors))
-          {
-            List<Vertex> verticesToFactorize = graphHelper.copySubgraph(vertices, Optional.empty());
-            List<Vertex> removedVertexNeighborsToFactorize = new LinkedList<>();
-            for (Vertex removedVertexNeighbor : removedVertexNeighbors)
-            {
-              Vertex removedVertexNeighborToFactorize = verticesToFactorize.get(localGraph.getReverseReindexArray()[removedVertexNeighbor.getVertexNo()]);
-              removedVertexNeighborsToFactorize.add(removedVertexNeighborToFactorize);
-            }
-            graphHelper.addVertex(verticesToFactorize, removedVertexNeighborsToFactorize);
-            Graph factorizedGraph = linearFactorization.factorize(verticesToFactorize, null);
-            if (factorizedGraph.getGraphColoring().getActualColors().size() != 1)
-            {
-              return factorizedGraph;
-            }
-          }
-        }
+        Vertex removedVertexNeighborToFactorize = verticesToFactorize.get(localGraph.getReverseReindexArray()[removedVertexNeighbor.getVertexNo()]);
+        removedVertexNeighborsToFactorize.add(removedVertexNeighborToFactorize);
+      }
+      graphHelper.addVertex(verticesToFactorize, removedVertexNeighborsToFactorize);
+      Graph factorizedGraph = linearFactorization.factorize(verticesToFactorize, null);
+      if (factorizedGraph.getGraphColoring().getActualColors().size() != 1)
+      {
+        reconstructedAndFactorizedGraph = factorizedGraph;
       }
     }
-    return null;
+    return reconstructedAndFactorizedGraph;
   }
 
   private void findRemovedVertexAllCrossNeighbors(Vertex u, Vertex v, List<Vertex> removedVertexNeighbors)

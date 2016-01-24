@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,6 +23,9 @@ import java.util.List;
 @Component
 public class ProductReconstructorImpl implements ProductReconstructor
 {
+
+  @Autowired
+  Graph graph;
 
   @Autowired
   GraphHelper graphHelper;
@@ -47,11 +51,6 @@ public class ProductReconstructorImpl implements ProductReconstructor
     }
   }
 
-  private Graph reconstructWithoutSpecialConditions(List<Vertex> vertices)
-  {
-    return generalReconstructionStrategy.reconstruct(vertices);
-  }
-
   private Graph reconstructBasingOnSpecialConditions(List<Vertex> vertices)
   {
     Graph reconstructedAndFactorizedGraph;
@@ -66,7 +65,6 @@ public class ProductReconstructorImpl implements ProductReconstructor
     return reconstructedAndFactorizedGraph;
   }
 
-
   private Graph reconstructBasingOnK2Factor(List<Vertex> vertices)
   {
     Graph factorizedGraph = null;
@@ -79,5 +77,31 @@ public class ProductReconstructorImpl implements ProductReconstructor
       }
     }
     return factorizedGraph;
+  }
+
+
+  private Graph reconstructWithoutSpecialConditions(List<Vertex> vertices)
+  {
+    for (Vertex s : vertices)
+    {
+      List<Vertex> copiedVertices = graphHelper.copySubgraph(vertices, Optional.empty());
+      graphHelper.prepareGraphBfsStructure(copiedVertices, copiedVertices.get(s.getVertexNo()));
+      Graph localGraph = new Graph(graph);
+      List<Vertex> firstLayer = localGraph.getLayers().get(1);
+      for (int uIndex = 0; uIndex < firstLayer.size(); uIndex++)
+      {
+        for (int vIndex = uIndex + 1; vIndex < firstLayer.size(); vIndex++)
+        {
+          Vertex u = firstLayer.get(uIndex);
+          Vertex v = firstLayer.get(vIndex);
+          Graph reconstructedAndFactorizedGraph = generalReconstructionStrategy.reconstruct(vertices, u, v, localGraph);
+          if (reconstructedAndFactorizedGraph != null)
+          {
+            return reconstructedAndFactorizedGraph;
+          }
+        }
+      }
+    }
+    return null;
   }
 }

@@ -14,5 +14,5 @@ import java.util.List;
  */
 public interface GeneralReconstructionStrategy
 {
-  Graph reconstruct(List<Vertex> vertices);
+  Graph reconstruct(List<Vertex> vertices, Vertex u, Vertex v, Graph localGraph);
 }
