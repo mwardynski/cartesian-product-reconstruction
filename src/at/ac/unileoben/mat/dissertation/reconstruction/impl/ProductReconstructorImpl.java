@@ -1,9 +1,9 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
-import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.reconstruction.ProductReconstructor;
 import at.ac.unileoben.mat.dissertation.reconstruction.strategies.C8BasedReconstructionStrategy;
+import at.ac.unileoben.mat.dissertation.reconstruction.strategies.GeneralReconstructionStrategy;
 import at.ac.unileoben.mat.dissertation.reconstruction.strategies.K2BasedReconstructionStrategy;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created with IntelliJ IDEA.
@@ -28,29 +27,29 @@ public class ProductReconstructorImpl implements ProductReconstructor
   GraphHelper graphHelper;
 
   @Autowired
-  LinearFactorization linearFactorization;
-
-  @Autowired
   C8BasedReconstructionStrategy c8BasedReconstructionStrategy;
 
   @Autowired
   K2BasedReconstructionStrategy k2BasedReconstructionStrategy;
 
+  @Autowired
+  GeneralReconstructionStrategy generalReconstructionStrategy;
+
 
   @Override
   public void reconstructProduct(List<Vertex> vertices)
   {
-    Graph reconstructedAndFactorizedGraph = null;
-    reconstructedAndFactorizedGraph = reconstructBasingOnSpecialConditions(vertices);
+    Graph reconstructedAndFactorizedGraph = reconstructBasingOnSpecialConditions(vertices);
 
     if (reconstructedAndFactorizedGraph == null)
     {
-      List<Vertex> copiedVertices = graphHelper.copySubgraph(vertices, Optional.empty());
-      for (Vertex s : copiedVertices)
-      {
-
-      }
+      reconstructedAndFactorizedGraph = reconstructWithoutSpecialConditions(vertices);
     }
+  }
+
+  private Graph reconstructWithoutSpecialConditions(List<Vertex> vertices)
+  {
+    return generalReconstructionStrategy.reconstruct(vertices);
   }
 
   private Graph reconstructBasingOnSpecialConditions(List<Vertex> vertices)
@@ -81,5 +80,4 @@ public class ProductReconstructorImpl implements ProductReconstructor
     }
     return factorizedGraph;
   }
-
 }

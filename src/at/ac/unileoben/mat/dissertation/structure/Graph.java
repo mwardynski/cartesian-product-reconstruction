@@ -23,20 +23,19 @@ public class Graph
 
   private AnalyzeData analyzeData;
 
-//  public Graph()
-//  {
-//  }
-//
-//  public Graph(Graph graph)
-//  {
-//    Graph newGraph = new Graph();
-//    newGraph.setRoot(graph.getRoot());
-//    newGraph.setVertices(graph.getVertices());
-//    newGraph.setGraphColoring(graph.getGraphColoring());
-//    newGraph.setLayers(graph.getLayers());
-//    newGraph.setReverseReindexArray(graph.getReverseReindexArray());
-//    newGraph.setAnalyzeData(graph.getAnalyzeData());
-//  }
+  public Graph()
+  {
+  }
+
+  public Graph(Graph graph)
+  {
+    setRoot(graph.getRoot());
+    setVertices(graph.getVertices());
+    setGraphColoring(graph.getGraphColoring());
+    setLayers(graph.getLayers());
+    setReverseReindexArray(graph.getReverseReindexArray());
+    setAnalyzeData(graph.getAnalyzeData());
+  }
 
   public Vertex getRoot()
   {

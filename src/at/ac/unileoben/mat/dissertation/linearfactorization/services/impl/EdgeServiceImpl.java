@@ -148,4 +148,22 @@ public class EdgeServiceImpl implements EdgeService
     allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.UP));
     return allEdges;
   }
+
+  @Override
+  public List<Edge> getFurtherEdgesOfGivenTypeAndDifferentEndpoint(Edge e, Vertex endPoint, EdgeType edgeType)
+  {
+    List<Edge> furtherEdges = new LinkedList<>();
+    EdgesGroup edgesGroup = getEdgeGroupForEdgeType(e.getEndpoint(), edgeType);
+    if (edgesGroup != null && CollectionUtils.isNotEmpty(edgesGroup.getEdges()))
+    {
+      for (Edge furtherEdge : edgesGroup.getEdges())
+      {
+        if (furtherEdge.getEndpoint() != e.getOrigin() && furtherEdge.getEndpoint() != endPoint)
+        {
+          furtherEdges.add(furtherEdge);
+        }
+      }
+    }
+    return furtherEdges;
+  }
 }

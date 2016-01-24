@@ -40,11 +40,15 @@ public class GraphHelperImpl implements GraphHelper
   {
     Vertex newVertex = new Vertex(allVertices.size(), new ArrayList<Edge>(allVertices.size()));
 
+    boolean[] addedNeighbors = new boolean[allVertices.size()];
     for (Vertex neighborVertex : neighbors)
     {
-      addEdge(newVertex, neighborVertex);
+      if (!addedNeighbors[neighborVertex.getVertexNo()])
+      {
+        addEdge(newVertex, neighborVertex);
+        addedNeighbors[neighborVertex.getVertexNo()] = true;
+      }
     }
-
     allVertices.add(newVertex);
   }
 
