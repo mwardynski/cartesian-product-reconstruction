@@ -41,7 +41,7 @@ public class ProductReconstructorImpl implements ProductReconstructor
 
 
   @Override
-  public void reconstructProduct(List<Vertex> vertices)
+  public Graph reconstructProduct(List<Vertex> vertices)
   {
     Graph reconstructedAndFactorizedGraph = reconstructBasingOnSpecialConditions(vertices);
 
@@ -49,6 +49,7 @@ public class ProductReconstructorImpl implements ProductReconstructor
     {
       reconstructedAndFactorizedGraph = reconstructWithoutSpecialConditions(vertices);
     }
+    return reconstructedAndFactorizedGraph;
   }
 
   private Graph reconstructBasingOnSpecialConditions(List<Vertex> vertices)

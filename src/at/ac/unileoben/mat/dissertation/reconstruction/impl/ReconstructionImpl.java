@@ -50,16 +50,22 @@ public class ReconstructionImpl implements Reconstruction
 
     Reconstruction reconstruction = applicationContext.getBean(ReconstructionImpl.class);
     Graph resultGraph = reconstruction.reconstruct(vertices);
-    int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
-    System.out.println(amountOfFactors);
+    if (resultGraph != null)
+    {
+      int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
+      System.out.println("Reconstructed cartesian product with following number of factors: " + amountOfFactors);
+    }
+    else
+    {
+      System.out.println("Couldn't reproduce cartesian product for given graph");
+    }
   }
 
   @Override
   public Graph reconstruct(List<Vertex> vertices)
   {
     checkGraphCorrectness(vertices);
-    productReconstructor.reconstructProduct(vertices);
-    return graph;
+    return productReconstructor.reconstructProduct(vertices);
   }
 
   private void checkGraphCorrectness(List<Vertex> vertices)

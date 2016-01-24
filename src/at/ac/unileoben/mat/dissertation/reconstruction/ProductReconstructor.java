@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction;
 
+import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
 import java.util.List;
@@ -13,5 +14,5 @@ import java.util.List;
  */
 public interface ProductReconstructor
 {
-  void reconstructProduct(List<Vertex> vertices);
+  Graph reconstructProduct(List<Vertex> vertices);
 }
