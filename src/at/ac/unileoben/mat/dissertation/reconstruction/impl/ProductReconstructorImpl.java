@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created with IntelliJ IDEA.
@@ -44,7 +45,11 @@ public class ProductReconstructorImpl implements ProductReconstructor
 
     if (reconstructedAndFactorizedGraph == null)
     {
+      List<Vertex> copiedVertices = graphHelper.copySubgraph(vertices, Optional.empty());
+      for (Vertex s : copiedVertices)
+      {
 
+      }
     }
   }
 

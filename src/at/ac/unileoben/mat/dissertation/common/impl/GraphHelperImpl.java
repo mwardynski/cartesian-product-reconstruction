@@ -2,9 +2,8 @@ package at.ac.unileoben.mat.dissertation.common.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
-import at.ac.unileoben.mat.dissertation.structure.Color;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,13 @@ public class GraphHelperImpl implements GraphHelper
 {
 
   @Autowired
+  Graph graph;
+
+  @Autowired
   GraphReader graphReader;
+
+  @Autowired
+  VertexService vertexService;
 
   @Override
   public List<Vertex> parseGraph(String graphFilePath)
@@ -159,5 +164,175 @@ public class GraphHelperImpl implements GraphHelper
     }
 
     return isC8;
+  }
+
+  @Override
+  public void prepareGraphBfsStructure(List<Vertex> vertices, Vertex root)
+  {
+    if (root == null)
+    {
+      root = findVertexWithMinDegree(vertices);
+    }
+    Integer[] reindexArray = new Integer[findMaxVertexNo(vertices) + 1];
+    orderBFS(root, reindexArray);
+    reindex(vertices, reindexArray);
+    vertices = sortVertices(vertices);
+    sortEdges(vertices);
+    arrangeEdgesToThreeGroups(vertices);
+    createNewGraph(vertices, root, reindexArray);
+  }
+
+  @Override
+  public void revertGraphBfsStructure()
+  {
+    List<Vertex> vertices = graph.getVertices();
+    Integer[] reverseReindexArray = graph.getReverseReindexArray();
+    reindex(vertices, reverseReindexArray);
+//    vertices = sortVertices(vertices);
+//    sortEdges(vertices);
+    graph.setVertices(vertices);
+  }
+
+  private Vertex findVertexWithMinDegree(List<Vertex> vertices)
+  {
+    int min = Integer.MAX_VALUE;
+    Vertex result = null;
+    for (Vertex v : vertices)
+    {
+      int size = v.getEdges().size();
+      if (min > size)
+      {
+        min = size;
+        result = v;
+      }
+    }
+    return result;
+  }
+
+  private int findMaxVertexNo(List<Vertex> vertices)
+  {
+    int max = Integer.MIN_VALUE;
+    for (Vertex v : vertices)
+    {
+      int number = v.getVertexNo();
+      if (max < number)
+      {
+        max = number;
+      }
+    }
+    return max;
+  }
+
+  private void reindex(List<Vertex> vertices, Integer[] reindexArray)
+  {
+    for (Vertex v : vertices)
+    {
+      v.setVertexNo(reindexArray[v.getVertexNo()]);
+    }
+  }
+
+  private List<Vertex> sortVertices(List<Vertex> vertices)
+  {
+    int min = 0;
+    int max = vertices.size() - 1;
+
+    int[] frequencyArray = new int[max - min + 1];
+
+    for (Vertex v : vertices)
+    {
+      frequencyArray[v.getVertexNo() - min]++;
+    }
+
+    for (int i = 1; i < frequencyArray.length; i++)
+    {
+      frequencyArray[i] += frequencyArray[i - 1];
+    }
+
+    Vertex[] result = new Vertex[vertices.size()];
+    ListIterator<Vertex> lit = vertices.listIterator(vertices.size());
+    while (lit.hasPrevious())
+    {
+      Vertex v = lit.previous();
+      result[--frequencyArray[v.getVertexNo()]] = v;
+    }
+    return Arrays.asList(result);
+  }
+
+  private void sortEdges(List<Vertex> vertices)
+  {
+    List<List<Edge>> tmpEdges = new ArrayList<List<Edge>>(vertices.size());
+    for (int i = 0; i < vertices.size(); i++)
+    {
+      tmpEdges.add(new ArrayList<Edge>(GraphReaderImpl.MAX_NEIGHBOURS_ACCOUNT));
+    }
+    for (Vertex v : vertices)
+    {
+      for (Edge e : v.getEdges())
+      {
+        Edge oppositeEdge = e.getOpposite();
+        int endpointVertexNo = e.getEndpoint().getVertexNo();
+        tmpEdges.get(endpointVertexNo).add(oppositeEdge);
+      }
+    }
+    for (int i = 0; i < vertices.size(); i++)
+    {
+      vertices.get(i).setEdges(tmpEdges.get(i));
+    }
+  }
+
+  private void arrangeEdgesToThreeGroups(List<Vertex> vertices)
+  {
+    for (Vertex v : vertices)
+    {
+      List<Edge> downEdges = new ArrayList<Edge>();
+      List<Edge> crossEdges = new ArrayList<Edge>();
+      List<Edge> upEdges = new ArrayList<Edge>();
+
+      for (Edge e : v.getEdges())
+      {
+        if (v.getBfsLayer() > e.getEndpoint().getBfsLayer())
+        {
+          e.setEdgeType(EdgeType.DOWN);
+          downEdges.add(e);
+        }
+        else if (v.getBfsLayer() == e.getEndpoint().getBfsLayer())
+        {
+          e.setEdgeType(EdgeType.CROSS);
+          crossEdges.add(e);
+        }
+        else
+        {
+          e.setEdgeType(EdgeType.UP);
+          upEdges.add(e);
+        }
+      }
+      v.setDownEdges(new EdgesGroup(downEdges));
+      v.setCrossEdges(new EdgesGroup(crossEdges));
+      v.setUpEdges(new EdgesGroup(upEdges));
+    }
+  }
+
+  private void createNewGraph(List<Vertex> vertices, Vertex root, Integer[] reindexArray)
+  {
+    graph.setRoot(root);
+    graph.setVertices(vertices);
+    graph.setLayers(vertexService.createLayersList(vertices));
+    graph.setReverseReindexArray(createReverseReindexArray(reindexArray));
+    graph.setGraphColoring(new GraphColoring(root.getEdges().size()));
+    graph.setAnalyzeData(new AnalyzeData());
+  }
+
+  private Integer[] createReverseReindexArray(Integer[] reindexArray)
+  {
+    Integer[] reverseReindexArray = new Integer[reindexArray.length];
+    for (int i = 0; i < reindexArray.length; i++)
+    {
+      Integer reverseCell = reindexArray[i];
+      if (reverseCell != null)
+      {
+        reverseReindexArray[reverseCell] = i;
+      }
+    }
+    return reverseReindexArray;
   }
 }

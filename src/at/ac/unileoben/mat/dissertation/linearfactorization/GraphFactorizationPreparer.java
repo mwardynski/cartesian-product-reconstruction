@@ -13,9 +13,7 @@ import java.util.List;
  */
 public interface GraphFactorizationPreparer
 {
-  void prepareToLinearFactorization(List<Vertex> vertices, Vertex root);
-
-  void finalizeFactorization();
-
   void removeVertex(List<Vertex> vertices, int vertexIndex);
+
+  void arrangeFirstLayerEdges();
 }

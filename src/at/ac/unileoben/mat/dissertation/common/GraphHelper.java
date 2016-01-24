@@ -29,4 +29,8 @@ public interface GraphHelper
   boolean isGraphK2(List<Vertex> vertices);
 
   boolean isGraphC8(List<Vertex> vertices);
+
+  void prepareGraphBfsStructure(List<Vertex> vertices, Vertex root);
+
+  void revertGraphBfsStructure();
 }

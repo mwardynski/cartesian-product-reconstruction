@@ -30,6 +30,9 @@ public class LinearFactorizationImpl implements LinearFactorization
   Graph graph;
 
   @Autowired
+  GraphHelper graphHelper;
+
+  @Autowired
   GraphFactorizationPreparer graphFactorizationPreparer;
 
   @Autowired
@@ -77,7 +80,8 @@ public class LinearFactorizationImpl implements LinearFactorization
   private void prepare(List<Vertex> vertices, Vertex root)
   {
     checkGraphCorrectness(vertices);
-    graphFactorizationPreparer.prepareToLinearFactorization(vertices, root);
+    graphHelper.prepareGraphBfsStructure(vertices, root);
+    graphFactorizationPreparer.arrangeFirstLayerEdges();
     if (graph.getLayers().size() < 3)
     {
       throw new IllegalStateException(graphCorrectnessChecker.NOT_HIGH_ENOUGH);
@@ -87,7 +91,7 @@ public class LinearFactorizationImpl implements LinearFactorization
   private void factorizeGraph()
   {
     graphFactorizer.factorize();
-    graphFactorizationPreparer.finalizeFactorization();
+    graphHelper.revertGraphBfsStructure();
   }
 
 
