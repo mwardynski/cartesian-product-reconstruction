@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
@@ -33,7 +34,7 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
   LabelUtils labelUtils;
 
   @Override
-  public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase)
+  public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
   {
     List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
     int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];

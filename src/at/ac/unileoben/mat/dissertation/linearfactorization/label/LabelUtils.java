@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.label;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
@@ -80,7 +81,7 @@ public class LabelUtils
     return sortedEdges;
   }
 
-  public void singleFindPivotSquarePhase(PivotSquareFinderStrategy pivotSquareFinderStrategy, FactorizationStep thisPhase, FactorizationStep nextPhase)
+  public void singleFindPivotSquarePhase(PivotSquareFinderStrategy pivotSquareFinderStrategy, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
   {
     for (Vertex x : thisPhase.getVerticesInLayer())
     {
@@ -89,21 +90,21 @@ public class LabelUtils
         continue;
       }
       AdjacencyVector xAdjacencyVector = new AdjacencyVector(graph.getVertices().size(), x);
-      findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, thisPhase, nextPhase);
+      findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, thisPhase, nextPhase, layerLabelingData);
     }
   }
 
-  public void findPivotSquareForReferenceVertex(PivotSquareFinderStrategy pivotSquareFinderStrategy, Vertex x, AdjacencyVector xAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase)
+  public void findPivotSquareForReferenceVertex(PivotSquareFinderStrategy pivotSquareFinderStrategy, Vertex x, AdjacencyVector xAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
   {
     List<Vertex> assignedVertices = factorizationStepService.getAssignedVertices(thisPhase, x);
     Iterator<Vertex> assignedVerticesIterator = assignedVertices.iterator();
     while (assignedVerticesIterator.hasNext())
     {
       Vertex u = assignedVerticesIterator.next();
-      pivotSquareFinderStrategy.findPivotSquare(u, xAdjacencyVector, nextPhase);
+      pivotSquareFinderStrategy.findPivotSquare(u, xAdjacencyVector, nextPhase, layerLabelingData);
       if (nextPhase != null)
       {
-        findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, nextPhase, null);
+        findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, nextPhase, null, layerLabelingData);
       }
       assignedVerticesIterator.remove();
     }

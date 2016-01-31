@@ -2,17 +2,20 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.*;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+
+import static at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData.EdgeLabelingGroup;
+import static at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData.EdgeLabelingGroup.EdgeLabelingSubgroup;
 
 /**
  * Created with IntelliJ IDEA.
@@ -45,6 +48,9 @@ public class DownEdgesLabeler implements EdgesLabeler
   @Autowired
   LabelUtils labelUtils;
 
+  @Autowired
+  EdgeLabelingService edgeLabelingService;
+
   @Override
   public void labelEdges(int currentLayerNo)
   {
@@ -57,10 +63,15 @@ public class DownEdgesLabeler implements EdgesLabeler
 
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
     FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
-    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase);
-    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null);
 
-    labelDownEdgesWithFoundPivotSquares(factorizationSteps);
+    LayerLabelingData layerLabelingData = new LayerLabelingData(previousLayer);
+
+    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase, layerLabelingData);
+
+    //TODO is this needed?
+    labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, layerLabelingData);
+
+    labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);
   }
 
   private void assignVerticesToFactorizationSteps(List<Vertex> currentLayer, FactorizationSteps factorizationSteps)
@@ -111,7 +122,90 @@ public class DownEdgesLabeler implements EdgesLabeler
     downEdgesGroup.setEdgesRef(downEdgesRef);
   }
 
-  private void labelDownEdgesWithFoundPivotSquares(FactorizationSteps factorizationSteps)
+  private void labelDownEdgesWithFoundPivotSquares(LayerLabelingData layerLabelingData, List<Vertex> currentLayer)
+  {
+    List<Vertex> noPivotSquareVerties = layerLabelingData.getNoPivotSquareVerties();
+    if (CollectionUtils.isNotEmpty(noPivotSquareVerties))
+    {
+      for (Vertex v : noPivotSquareVerties)
+      {
+        int colorToLabel = v.getEdgeWithColorToLabel().getLabel().getColor();
+        List<Edge> vDownEdges = v.getDownEdges().getEdges();
+        int colorsCounter = 0;
+        for (Edge e : vDownEdges)
+        {
+          edgeService.addLabel(e, colorToLabel, colorsCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
+        }
+
+      }
+    }
+    EdgeLabelingGroup[] edgeLabelingGroups = layerLabelingData.getEdgeLabelingGroups();
+    for (EdgeLabelingGroup group : edgeLabelingGroups)
+    {
+      if (group != null)
+      {
+        Vertex groupVertex = group.getGroupCommonVertex();
+        AdjacencyVector adjacencyVector = new AdjacencyVector(graph.getVertices().size(), groupVertex);
+        List<EdgeLabelingSubgroup> edgeLabelingSubgroups = group.getEdgeLabelingSubgroups();
+        for (EdgeLabelingSubgroup subgroup : edgeLabelingSubgroups)
+        {
+          List<Edge> notLabeledEdges = labelDownEdgesForGivenLabelingBaseEdge(subgroup.getOtherEdges(), subgroup.getFirstLabelingBaseEdge(), adjacencyVector);
+          if (CollectionUtils.isNotEmpty(notLabeledEdges) && subgroup.getSecondLabelingBaseEdge() != null)
+          {
+            EdgeLabelingSubgroup edgeLabelingSubgroup = new EdgeLabelingSubgroup(subgroup.getSecondLabelingBaseEdge(), null, notLabeledEdges);
+            edgeLabelingService.addEdgeLabelingSubgroup(edgeLabelingSubgroup, layerLabelingData);
+          }
+        }
+      }
+    }
+    for (Vertex v : currentLayer)
+    {
+
+      List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(v.getDownEdges().getEdges(), graph.getGraphColoring());
+      v.getDownEdges().setEdges(sortedEdges);
+      int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
+      for (Edge e : v.getDownEdges().getEdges())
+      {
+        colorsCounter[e.getLabel().getColor()]++;
+      }
+      EdgesRef downEdgesRef = labelUtils.getEdgesRef(colorsCounter);
+      v.getDownEdges().setEdgesRef(downEdgesRef);
+    }
+  }
+
+  private List<Edge> labelDownEdgesForGivenLabelingBaseEdge(List<Edge> edges, Edge uv, AdjacencyVector adjacencyVector)
+  {
+    List<Edge> notLabeledEdges = new LinkedList<>();
+
+    for (Edge uy : edges)
+    {
+      Vertex y = uy.getEndpoint();
+      Edge yz = edgeService.getEdgeByLabel(y, uv.getLabel(), EdgeType.DOWN);
+      if (yz != null)
+      {
+        Vertex z = yz.getEndpoint();
+        Edge vz = vertexService.getEdgeToVertex(adjacencyVector, z);
+        if (vz != null)
+        {
+          Label vzLabel = vz.getLabel();
+          int vzMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), vz.getLabel().getColor());
+          int yzMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), yz.getLabel().getColor());
+          if (vzMappedColor != yzMappedColor)
+          {
+            edgeService.addLabel(uy, vzLabel.getColor(), vzLabel.getName(), vz, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
+          }
+        }
+      }
+      if (uy.getLabel() == null)
+      {
+        notLabeledEdges.add(uy);
+      }
+    }
+    return notLabeledEdges;
+  }
+
+
+  private void labelDownEdgesWithFoundPivotSquares2(FactorizationSteps factorizationSteps)
   {
     FactorizationStep labelVerticesPhase = factorizationSteps.getLabelVerticesPhase();
     for (Vertex v : labelVerticesPhase.getVerticesInLayer())
@@ -126,13 +220,13 @@ public class DownEdgesLabeler implements EdgesLabeler
       while (assignedVerticesIterator.hasNext())
       {
         Vertex u = assignedVerticesIterator.next();
-        labelDownEdgesOfGivenVertex(u, vAdjacencyVector);
+        labelDownEdgesOfGivenVertex2(u, vAdjacencyVector);
         assignedVerticesIterator.remove();
       }
     }
   }
 
-  private void labelDownEdgesOfGivenVertex(Vertex u, AdjacencyVector vAdjacencyVector)
+  private void labelDownEdgesOfGivenVertex2(Vertex u, AdjacencyVector vAdjacencyVector)
   {
     int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     Edge uv = u.getFirstEdge();
