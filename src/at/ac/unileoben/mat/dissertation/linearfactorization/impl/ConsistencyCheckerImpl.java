@@ -181,7 +181,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge zzp = edgeService.getEdgeByLabel(z, uv.getLabel(), EdgeType.DOWN);
         if (zzp == null || !zzp.getEndpoint().equals(zp))
         {
-          inconsistentEdges.add(uz);//not invoked
+          inconsistentEdges.add(uz);
         }
       }
     }

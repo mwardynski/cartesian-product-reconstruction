@@ -46,8 +46,20 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
       Label oppositeEdgeLabel = uv.getOpposite().getLabel();
       if (oppositeEdgeLabel != null)
       {
-        int oppositeEdgeColor = oppositeEdgeLabel.getColor();
-        edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
+        Edge oppositeSquareMatchingEdge = uv.getOpposite().getSquareMatchingEdge();
+        if (oppositeSquareMatchingEdge != null)
+        {
+          Edge squareMatchingEdge = oppositeSquareMatchingEdge.getOpposite();
+          Label squareMatchingEdgeLabel = squareMatchingEdge.getLabel();
+          edgeService.addLabel(uv, squareMatchingEdgeLabel.getColor(), squareMatchingEdgeLabel.getName(), squareMatchingEdge, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
+          colorsCounter[squareMatchingEdgeLabel.getColor()]++; //FIXME probably not needed
+        }
+        else
+        {
+          int oppositeEdgeColor = oppositeEdgeLabel.getColor();
+          edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++, null, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
+        }
+
         continue;
       }
       Vertex v = uv.getEndpoint();
@@ -63,14 +75,14 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
       {
         Label wxLabel = wx.getLabel();
         int wxColor = wxLabel.getColor();
-        edgeService.addLabel(uv, wxColor, colorsCounter[wxColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
+        edgeService.addLabel(uv, wxColor, colorsCounter[wxColor]++, wx, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
         continue;
       }
       else
       {
         Label uwLabel = uw.getLabel();
         int uwColor = uwLabel.getColor();
-        edgeService.addLabel(uv, uwColor, colorsCounter[uwColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uw).build());
+        edgeService.addLabel(uv, uwColor, colorsCounter[uwColor]++, null, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uw).build());
       }
     }
     EdgesRef crossEdgesRef = labelUtils.getEdgesRef(colorsCounter);

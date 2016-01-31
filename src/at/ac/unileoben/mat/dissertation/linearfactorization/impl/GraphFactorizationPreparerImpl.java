@@ -82,7 +82,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     {
       Edge upEdge = upEdges.get(i);
 
-      edgeService.addLabel(upEdge, i, 0, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
+      edgeService.addLabel(upEdge, i, 0, null, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
       upEdge.getEndpoint().setUnitLayer(true);
 
       addLabelAndRefToDownEdgesL1(upEdge, i, graph.getGraphColoring().getOriginalColorsAmount());
@@ -112,7 +112,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     Vertex endpointVertex = upEdge.getEndpoint();
     EdgesGroup downEdgesGroup = endpointVertex.getDownEdges();
     downEdgesGroup.setEdgesRef(downEdgesRef);
-    edgeService.addLabel(upEdge.getOpposite(), i, 0, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
+    edgeService.addLabel(upEdge.getOpposite(), i, 0, null, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
   }
 
   private void addLabelAndRefToCrossEdgesL1(Edge upEdge)
@@ -125,7 +125,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     {
       Edge crossEdge = crossEdges.get(i);
       int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge);
-      edgeService.addLabel(crossEdge, mergedColor, i, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
+      edgeService.addLabel(crossEdge, mergedColor, i, null, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
       if (crossEdgesAmounts[mergedColor] == 0)
       {
         crossEdgesColorsAmount++;

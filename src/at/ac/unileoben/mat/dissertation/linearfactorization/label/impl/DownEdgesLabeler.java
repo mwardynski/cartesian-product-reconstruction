@@ -95,7 +95,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     Vertex v = uv.getEndpoint();
     Edge vx = v.getDownEdges().getEdges().iterator().next();
     int vxColor = vx.getLabel().getColor();
-    edgeService.addLabel(uv, vxColor, 0, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_GENERAL).sameColorEdge(vx).build());
+    edgeService.addLabel(uv, vxColor, 0, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_GENERAL).sameColorEdge(vx).build());
     colorsCounter[vxColor]++;
 
     u.setUnitLayer(true);
@@ -143,7 +143,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     {
       noPivotSquare = true;
       u.setUnitLayer(true);
-      edgeService.addLabel(uv, colorToLabel, 0, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FIRST).sameColorEdge(edgeWithColorToLabel).build());
+      edgeService.addLabel(uv, colorToLabel, 0, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FIRST).sameColorEdge(edgeWithColorToLabel).build());
     }
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     for (Edge uy : uDownEdges)
@@ -155,7 +155,7 @@ public class DownEdgesLabeler implements EdgesLabeler
       }
       if (noPivotSquare)
       {
-        edgeService.addLabel(uy, colorToLabel, colorsCounter[colorToLabel]++, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).sameColorEdge(uv).build());
+        edgeService.addLabel(uy, colorToLabel, colorsCounter[colorToLabel]++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).sameColorEdge(uv).build());
       }
       else
       {
@@ -168,14 +168,14 @@ public class DownEdgesLabeler implements EdgesLabeler
           if (vz != null)
           {
             int vzColor = vz.getLabel().getColor();
-            edgeService.addLabel(uy, vzColor, colorsCounter[vzColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
+            edgeService.addLabel(uy, vzColor, colorsCounter[vzColor]++, vz, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
           }
         }
         if (uy.getLabel() == null)
         {
           int uvColor = uv.getLabel().getColor();
 
-          edgeService.addLabel(uy, uvColor, colorsCounter[uvColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uv).build());
+          edgeService.addLabel(uy, uvColor, colorsCounter[uvColor]++, null, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uv).build());
         }
       }
     }

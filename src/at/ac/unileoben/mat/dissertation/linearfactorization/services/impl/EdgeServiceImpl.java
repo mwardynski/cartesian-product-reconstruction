@@ -26,10 +26,11 @@ public class EdgeServiceImpl implements EdgeService
   ColoringService coloringService;
 
   @Override
-  public void addLabel(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  public void addLabel(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail)
   {
     Label label = new Label(color, name);
     edge.setLabel(label);
+    edge.setSquareMatchingEdge(squareMatchingEdge);
   }
 
   @Override

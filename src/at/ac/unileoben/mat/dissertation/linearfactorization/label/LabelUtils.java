@@ -64,7 +64,17 @@ public class LabelUtils
     {
       if (edges != null)
       {
-        sortedEdges.addAll(edges);
+        Label previousLabel = null;
+        for (Edge edge : edges)
+        {
+          Label currentLabel = edge.getLabel();
+          if (currentLabel.equals(previousLabel))
+          {
+            currentLabel.setName(currentLabel.getName() + 1);
+          }
+          previousLabel = currentLabel;
+          sortedEdges.add(edge);
+        }
       }
     }
     return sortedEdges;

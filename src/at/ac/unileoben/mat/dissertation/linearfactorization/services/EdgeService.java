@@ -13,7 +13,7 @@ import java.util.List;
  */
 public interface EdgeService
 {
-  void addLabel(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail);
+  void addLabel(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail);
 
   Edge getEdgeByLabel(Vertex v, Label label, EdgeType edgeType);
 
