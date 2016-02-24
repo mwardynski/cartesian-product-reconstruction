@@ -125,7 +125,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     {
       Edge crossEdge = crossEdges.get(i);
       int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge);
-      edgeService.addLabel(crossEdge, mergedColor, i, null, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
+      edgeService.addLabel(crossEdge, mergedColor, crossEdgesAmounts[mergedColor], null, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
       if (crossEdgesAmounts[mergedColor] == 0)
       {
         crossEdgesColorsAmount++;
