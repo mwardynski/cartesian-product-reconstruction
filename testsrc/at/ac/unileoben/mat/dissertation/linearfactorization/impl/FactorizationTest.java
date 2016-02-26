@@ -59,6 +59,7 @@ public class FactorizationTest
     examplesList.add(new FactorizationCase("example.txt", 1));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
+    examplesList.add(new FactorizationCase("failing-exampleOfCartesianProduct-v2.txt", 2));
     examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 

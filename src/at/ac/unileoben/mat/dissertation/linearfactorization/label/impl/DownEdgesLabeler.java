@@ -67,8 +67,6 @@ public class DownEdgesLabeler implements EdgesLabeler
     LayerLabelingData layerLabelingData = new LayerLabelingData(previousLayer);
 
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase, layerLabelingData);
-
-    //TODO is this needed?
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, layerLabelingData);
 
     labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);

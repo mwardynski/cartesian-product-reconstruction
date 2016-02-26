@@ -5,6 +5,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.st
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -85,7 +86,7 @@ public class LabelUtils
   {
     for (Vertex x : thisPhase.getVerticesInLayer())
     {
-      if (x == null)
+      if (x == null || CollectionUtils.isEmpty(factorizationStepService.getAssignedVertices(thisPhase, x)))
       {
         continue;
       }
