@@ -127,13 +127,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     {
       for (Vertex v : noPivotSquareVerties)
       {
-        int colorToLabel = v.getEdgeWithColorToLabel().getLabel().getColor();
-        List<Edge> vDownEdges = v.getDownEdges().getEdges();
-        int colorsCounter = 0;
-        for (Edge e : vDownEdges)
-        {
-          edgeService.addLabel(e, colorToLabel, colorsCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
-        }
+        labelUnitLayerVertex(v);
 
       }
     }
@@ -148,10 +142,18 @@ public class DownEdgesLabeler implements EdgesLabeler
         for (EdgeLabelingSubgroup subgroup : edgeLabelingSubgroups)
         {
           List<Edge> notLabeledEdges = labelDownEdgesForGivenLabelingBaseEdge(subgroup.getOtherEdges(), subgroup.getFirstLabelingBaseEdge(), adjacencyVector);
-          if (CollectionUtils.isNotEmpty(notLabeledEdges) && subgroup.getSecondLabelingBaseEdge() != null)
+          if (CollectionUtils.isNotEmpty(notLabeledEdges))
           {
-            EdgeLabelingSubgroup edgeLabelingSubgroup = new EdgeLabelingSubgroup(subgroup.getSecondLabelingBaseEdge(), null, notLabeledEdges);
-            edgeLabelingService.addEdgeLabelingSubgroup(edgeLabelingSubgroup, layerLabelingData);
+            if (subgroup.getSecondLabelingBaseEdge() != null)
+            {
+              EdgeLabelingSubgroup edgeLabelingSubgroup = new EdgeLabelingSubgroup(subgroup.getSecondLabelingBaseEdge(), null, notLabeledEdges);
+              edgeLabelingService.addEdgeLabelingSubgroup(edgeLabelingSubgroup, layerLabelingData);
+            }
+            else
+            {
+              Vertex v = subgroup.getFirstLabelingBaseEdge().getOrigin();
+              labelUnitLayerVertex(v);
+            }
           }
         }
       }
@@ -169,6 +171,18 @@ public class DownEdgesLabeler implements EdgesLabeler
       EdgesRef downEdgesRef = labelUtils.getEdgesRef(colorsCounter);
       v.getDownEdges().setEdgesRef(downEdgesRef);
     }
+  }
+
+  private void labelUnitLayerVertex(Vertex v)
+  {
+    int colorToLabel = v.getEdgeWithColorToLabel().getLabel().getColor();
+    List<Edge> vDownEdges = v.getDownEdges().getEdges();
+    int colorsCounter = 0;
+    for (Edge e : vDownEdges)
+    {
+      edgeService.addLabel(e, colorToLabel, colorsCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
+    }
+    setVertexAsUnitLayer(v);
   }
 
   private List<Edge> labelDownEdgesForGivenLabelingBaseEdge(List<Edge> edges, Edge uv, AdjacencyVector adjacencyVector)
