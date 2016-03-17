@@ -65,10 +65,18 @@ public class LayerLabelingData
 
     public static class EdgeLabelingSubgroup
     {
-      public EdgeLabelingSubgroup(Edge firstLabelingBaseEdge, Edge secondLabelingBaseEdge, List<Edge> otherEdges)
+      public EdgeLabelingSubgroup(Edge edge1, Edge edge2, List<Edge> otherEdges)
       {
-        this.firstLabelingBaseEdge = firstLabelingBaseEdge;
-        this.secondLabelingBaseEdge = secondLabelingBaseEdge;
+        if (edge2 != null && edge2.getEndpoint().getVertexNo() < edge1.getEndpoint().getVertexNo())
+        {
+          this.firstLabelingBaseEdge = edge2;
+          this.secondLabelingBaseEdge = edge1;
+        }
+        else
+        {
+          this.firstLabelingBaseEdge = edge1;
+          this.secondLabelingBaseEdge = edge2;
+        }
         this.otherEdges = otherEdges;
       }
 
