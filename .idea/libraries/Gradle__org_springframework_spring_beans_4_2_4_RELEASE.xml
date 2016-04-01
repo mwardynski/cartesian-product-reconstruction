@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="spring-beans-4.2.4.RELEASE">
+  <library name="Gradle: org.springframework:spring-beans:4.2.4.RELEASE">
     <CLASSES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-beans/4.2.4.RELEASE/dc8e0874b53435f3e277d9da5aebd8b93cc7cf64/spring-beans-4.2.4.RELEASE.jar!/" />
     </CLASSES>

@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="spring-test-4.2.4.RELEASE">
+  <library name="Gradle: org.springframework:spring-test:4.2.4.RELEASE">
     <CLASSES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-test/4.2.4.RELEASE/6efb87acf8050fc83334ffac305eb91371787283/spring-test-4.2.4.RELEASE.jar!/" />
     </CLASSES>
