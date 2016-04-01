@@ -48,9 +48,14 @@ public class LabelUtils
     return edgesRef;
   }
 
-  public List<Edge> sortEdgesAccordingToLabels(List<Edge> edgesToSort, GraphColoring graphColoring)
+  public void sortEdgesAccordingToLabels(EdgesGroup edgesGroup, GraphColoring graphColoring)
   {
-    List<Edge> sortedEdges = new ArrayList<Edge>(edgesToSort.size());
+    List<Edge>[] edgesGroupedByColor = groupEdgesByColor(graphColoring, edgesGroup.getEdges());
+    labelGroupedByColorEdges(edgesGroup, edgesGroupedByColor);
+  }
+
+  private List<Edge>[] groupEdgesByColor(GraphColoring graphColoring, List<Edge> edgesToSort)
+  {
     List<Edge>[] colorOccurrence = (List<Edge>[]) new LinkedList<?>[graphColoring.getOriginalColorsAmount()];
     for (Edge edge : edgesToSort)
     {
@@ -58,28 +63,65 @@ public class LabelUtils
       int color = label.getColor();
       if (colorOccurrence[color] == null)
       {
-        colorOccurrence[color] = new LinkedList<Edge>();
+        colorOccurrence[color] = new LinkedList<>();
       }
       colorOccurrence[color].add(edge);
     }
-    for (List<Edge> edges : colorOccurrence)
+    return colorOccurrence;
+  }
+
+  private void labelGroupedByColorEdges(EdgesGroup edgesGroup, List<Edge>[] edgesGroupedByColor)
+  {
+    List<Edge> sortedEdges = new ArrayList<>(edgesGroup.getEdges().size());
+    int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
+    for (List<Edge> edges : edgesGroupedByColor)
     {
-      if (edges != null)
+      if (CollectionUtils.isNotEmpty(edges))
       {
-        Label previousLabel = null;
+        colorsCounter[edges.get(0).getLabel().getColor()] = edges.size();
+
+        List<Edge> edgesToLabel = new LinkedList<>();
+        boolean[] labelsInUse = new boolean[edges.size()];
         for (Edge edge : edges)
         {
-          Label currentLabel = edge.getLabel();
-          if (currentLabel.equals(previousLabel))
+          int edgeName = edge.getLabel().getName();
+          if (edgeName == -1)
           {
-            currentLabel.setName(currentLabel.getName() + 1);
+            edgesToLabel.add(edge);
           }
-          previousLabel = currentLabel;
+          else
+          {
+            if (labelsInUse[edgeName])
+            {
+              edgesToLabel.add(edge);
+            }
+            else
+            {
+              labelsInUse[edgeName] = true;
+            }
+          }
           sortedEdges.add(edge);
         }
+
+        Iterator<Edge> edgesToLabelIterator = edgesToLabel.iterator();
+        for (int i = 0; i < labelsInUse.length; i++)
+        {
+          if (!labelsInUse[i] && edgesToLabelIterator.hasNext())
+          {
+            Edge edgeToLabel = edgesToLabelIterator.next();
+            edgeToLabel.getLabel().setName(i);
+            if (!edgesToLabelIterator.hasNext())
+            {
+              break;
+            }
+          }
+        }
+
       }
     }
-    return sortedEdges;
+    EdgesRef downEdgesRef = getEdgesRef(colorsCounter);
+    edgesGroup.setEdgesRef(downEdgesRef);
+    edgesGroup.setEdges(sortedEdges);
   }
 
   public void singleFindPivotSquarePhase(PivotSquareFinderStrategy pivotSquareFinderStrategy, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)

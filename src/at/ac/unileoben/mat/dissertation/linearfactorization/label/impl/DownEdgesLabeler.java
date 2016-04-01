@@ -160,16 +160,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     }
     for (Vertex v : currentLayer)
     {
-
-      List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(v.getDownEdges().getEdges(), graph.getGraphColoring());
-      v.getDownEdges().setEdges(sortedEdges);
-      int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-      for (Edge e : v.getDownEdges().getEdges())
-      {
-        colorsCounter[e.getLabel().getColor()]++;
-      }
-      EdgesRef downEdgesRef = labelUtils.getEdgesRef(colorsCounter);
-      v.getDownEdges().setEdgesRef(downEdgesRef);
+      labelUtils.sortEdgesAccordingToLabels(v.getDownEdges(), graph.getGraphColoring());
     }
   }
 
@@ -232,15 +223,14 @@ public class DownEdgesLabeler implements EdgesLabeler
       while (assignedVerticesIterator.hasNext())
       {
         Vertex u = assignedVerticesIterator.next();
-        labelDownEdgesOfGivenVertex2(u, vAdjacencyVector);
+        labelDownEdgesOfGivenVertex(u, vAdjacencyVector);
         assignedVerticesIterator.remove();
       }
     }
   }
 
-  private void labelDownEdgesOfGivenVertex2(Vertex u, AdjacencyVector vAdjacencyVector)
+  private void labelDownEdgesOfGivenVertex(Vertex u, AdjacencyVector vAdjacencyVector)
   {
-    int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     Edge uv = u.getFirstEdge();
     boolean noPivotSquare = false;
     Edge edgeWithColorToLabel = u.getEdgeWithColorToLabel();
@@ -249,19 +239,18 @@ public class DownEdgesLabeler implements EdgesLabeler
     {
       noPivotSquare = true;
       u.setUnitLayer(true);
-      edgeService.addLabel(uv, colorToLabel, 0, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FIRST).sameColorEdge(edgeWithColorToLabel).build());
+      edgeService.addLabel(uv, colorToLabel, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FIRST).sameColorEdge(edgeWithColorToLabel).build());
     }
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     for (Edge uy : uDownEdges)
     {
       if (uy.equals(uv))
       {
-        colorsCounter[uy.getLabel().getColor()]++;
         continue;
       }
       if (noPivotSquare)
       {
-        edgeService.addLabel(uy, colorToLabel, colorsCounter[colorToLabel]++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).sameColorEdge(uv).build());
+        edgeService.addLabel(uy, colorToLabel, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).sameColorEdge(uv).build());
       }
       else
       {
@@ -274,21 +263,17 @@ public class DownEdgesLabeler implements EdgesLabeler
           if (vz != null)
           {
             int vzColor = vz.getLabel().getColor();
-            edgeService.addLabel(uy, vzColor, colorsCounter[vzColor]++, vz, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
+            edgeService.addLabel(uy, vzColor, -1, vz, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
           }
         }
         if (uy.getLabel() == null)
         {
           int uvColor = uv.getLabel().getColor();
 
-          edgeService.addLabel(uy, uvColor, colorsCounter[uvColor]++, null, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uv).build());
+          edgeService.addLabel(uy, uvColor, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uv).build());
         }
       }
     }
-
-    EdgesRef downEdgesRef = labelUtils.getEdgesRef(colorsCounter);
-    u.getDownEdges().setEdgesRef(downEdgesRef);
-    List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(u.getDownEdges().getEdges(), graph.getGraphColoring());
-    u.getDownEdges().setEdges(sortedEdges);
+    labelUtils.sortEdgesAccordingToLabels(u.getDownEdges(), graph.getGraphColoring());
   }
 }
