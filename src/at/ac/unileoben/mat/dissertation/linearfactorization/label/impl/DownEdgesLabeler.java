@@ -79,7 +79,8 @@ public class DownEdgesLabeler implements EdgesLabeler
       List<Edge> uDownEdges = u.getDownEdges().getEdges();
       if (uDownEdges.size() == 1)
       {
-        setVertexAsUnitLayer(u);
+        int colorToLabel = u.getDownEdges().getEdges().get(0).getEndpoint().getDownEdges().getEdges().get(0).getLabel().getColor();
+        setVertexAsUnitLayer(u, colorToLabel);
       }
       else
       {
@@ -95,18 +96,17 @@ public class DownEdgesLabeler implements EdgesLabeler
     }
   }
 
-  private void setVertexAsUnitLayer(Vertex u)
+  private void setVertexAsUnitLayer(Vertex u, int colorToLabel)
   {
     EdgesGroup downEdgesGroup = u.getDownEdges();
     List<Edge> uDownEdges = downEdgesGroup.getEdges();
-    int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-    Edge uv = uDownEdges.iterator().next();
-    Vertex v = uv.getEndpoint();
-    Edge vx = v.getDownEdges().getEdges().iterator().next();
-    int vxColor = vx.getLabel().getColor();
-    edgeService.addLabel(uv, vxColor, 0, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_GENERAL).sameColorEdge(vx).build());
-    colorsCounter[vxColor]++;
+    int nameCounter = 0;
+    for (Edge e : uDownEdges)
+    {
+      edgeService.addLabel(e, colorToLabel, nameCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
+    }
 
+    Vertex v = downEdgesGroup.getEdges().iterator().next().getEndpoint();
     u.setUnitLayer(true);
     if (!v.isUnitLayer())
     {
@@ -114,7 +114,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     }
 
     int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-    colorLengths[vxColor] = 1;
+    colorLengths[colorToLabel] = uDownEdges.size();
     EdgesRef downEdgesRef = new EdgesRef(1);
     coloringService.setColorAmounts(downEdgesRef, colorLengths);
     downEdgesGroup.setEdgesRef(downEdgesRef);
@@ -167,13 +167,7 @@ public class DownEdgesLabeler implements EdgesLabeler
   private void labelUnitLayerVertex(Vertex v)
   {
     int colorToLabel = v.getEdgeWithColorToLabel().getLabel().getColor();
-    List<Edge> vDownEdges = v.getDownEdges().getEdges();
-    int colorsCounter = 0;
-    for (Edge e : vDownEdges)
-    {
-      edgeService.addLabel(e, colorToLabel, colorsCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
-    }
-    setVertexAsUnitLayer(v);
+    setVertexAsUnitLayer(v, colorToLabel);
   }
 
   private List<Edge> labelDownEdgesForGivenLabelingBaseEdge(List<Edge> edges, Edge uv, AdjacencyVector adjacencyVector)
