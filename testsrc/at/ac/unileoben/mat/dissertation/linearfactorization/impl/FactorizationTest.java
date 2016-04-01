@@ -29,13 +29,34 @@ import static org.junit.Assert.assertThat;
 @ContextConfiguration(classes = {FactorizationConfig.class})
 public class FactorizationTest
 {
+  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
   @Autowired
   GraphHelper graphHelper;
-
   @Autowired
   LinearFactorization linearFactorization;
 
-  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
+  @Test
+  public void checkExamples()
+  {
+    for (FactorizationCase factorizationCase : examplesList)
+    {
+      try
+      {
+        List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
+        Vertex root = null;
+        if (factorizationCase.getRootVertexNo() != null)
+        {
+          root = vertices.get(factorizationCase.getRootVertexNo());
+        }
+        Graph resultGraph = linearFactorization.factorize(vertices, root);
+        int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
+        assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+      }
+      catch (IllegalArgumentException | IllegalStateException e)
+      {
+      }
+    }
+  }
 
   static
   {
@@ -59,25 +80,7 @@ public class FactorizationTest
     examplesList.add(new FactorizationCase("example.txt", 1));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-    examplesList.add(new FactorizationCase("failing-exampleOfCartesianProduct-v2.txt", 2));
+    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
     examplesList.add(new FactorizationCase("victory.txt", 3));
-  }
-
-  @Test
-  public void checkExamples()
-  {
-    for (FactorizationCase factorizationCase : examplesList)
-    {
-      try
-      {
-        List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
-        Graph resultGraph = linearFactorization.factorize(vertices, null);
-        int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
-        assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
-      }
-      catch (IllegalArgumentException | IllegalStateException e)
-      {
-      }
-    }
   }
 }

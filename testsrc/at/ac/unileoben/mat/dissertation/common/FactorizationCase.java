@@ -11,11 +11,18 @@ public class FactorizationCase
 {
   String fileName;
   int amountOfFactors;
+  Integer rootVertexNo;
 
   public FactorizationCase(String fileName, int amountOfFactors)
   {
     this.fileName = fileName;
     this.amountOfFactors = amountOfFactors;
+  }
+
+  public FactorizationCase(String fileName, int amountOfFactors, Integer rootVertexNo)
+  {
+    this(fileName, amountOfFactors);
+    this.rootVertexNo = rootVertexNo;
   }
 
   public String getFileName()
@@ -26,5 +33,10 @@ public class FactorizationCase
   public int getAmountOfFactors()
   {
     return amountOfFactors;
+  }
+
+  public Integer getRootVertexNo()
+  {
+    return rootVertexNo;
   }
 }
