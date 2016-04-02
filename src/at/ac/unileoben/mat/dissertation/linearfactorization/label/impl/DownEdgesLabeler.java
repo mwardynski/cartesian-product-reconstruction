@@ -10,7 +10,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -199,75 +198,5 @@ public class DownEdgesLabeler implements EdgesLabeler
       }
     }
     return notLabeledEdges;
-  }
-
-
-  private void labelDownEdgesWithFoundPivotSquares2(FactorizationSteps factorizationSteps)
-  {
-    FactorizationStep labelVerticesPhase = factorizationSteps.getLabelVerticesPhase();
-    for (Vertex v : labelVerticesPhase.getVerticesInLayer())
-    {
-      if (v == null)
-      {
-        continue;
-      }
-      AdjacencyVector vAdjacencyVector = new AdjacencyVector(graph.getVertices().size(), v);
-      List<Vertex> assignedVertices = factorizationStepService.getAssignedVertices(labelVerticesPhase, v);
-      Iterator<Vertex> assignedVerticesIterator = assignedVertices.iterator();
-      while (assignedVerticesIterator.hasNext())
-      {
-        Vertex u = assignedVerticesIterator.next();
-        labelDownEdgesOfGivenVertex(u, vAdjacencyVector);
-        assignedVerticesIterator.remove();
-      }
-    }
-  }
-
-  private void labelDownEdgesOfGivenVertex(Vertex u, AdjacencyVector vAdjacencyVector)
-  {
-    Edge uv = u.getFirstEdge();
-    boolean noPivotSquare = false;
-    Edge edgeWithColorToLabel = u.getEdgeWithColorToLabel();
-    int colorToLabel = edgeWithColorToLabel.getLabel().getColor();
-    if (uv.getLabel() == null)
-    {
-      noPivotSquare = true;
-      u.setUnitLayer(true);
-      edgeService.addLabel(uv, colorToLabel, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FIRST).sameColorEdge(edgeWithColorToLabel).build());
-    }
-    List<Edge> uDownEdges = u.getDownEdges().getEdges();
-    for (Edge uy : uDownEdges)
-    {
-      if (uy.equals(uv))
-      {
-        continue;
-      }
-      if (noPivotSquare)
-      {
-        edgeService.addLabel(uy, colorToLabel, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).sameColorEdge(uv).build());
-      }
-      else
-      {
-        Vertex y = uy.getEndpoint();
-        Edge yz = edgeService.getEdgeByLabel(y, uv.getLabel(), EdgeType.DOWN);
-        if (yz != null)
-        {
-          Vertex z = yz.getEndpoint();
-          Edge vz = vertexService.getEdgeToVertex(vAdjacencyVector, z);
-          if (vz != null)
-          {
-            int vzColor = vz.getLabel().getColor();
-            edgeService.addLabel(uy, vzColor, -1, vz, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
-          }
-        }
-        if (uy.getLabel() == null)
-        {
-          int uvColor = uv.getLabel().getColor();
-
-          edgeService.addLabel(uy, uvColor, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uv).build());
-        }
-      }
-    }
-    labelUtils.sortEdgesAccordingToLabels(u.getDownEdges(), graph.getGraphColoring());
   }
 }
