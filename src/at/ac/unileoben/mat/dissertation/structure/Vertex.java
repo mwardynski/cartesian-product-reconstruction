@@ -16,8 +16,6 @@ public class Vertex
   private int vertexNo;
   private List<Edge> edges;
   private boolean unitLayer;
-  private Color color;
-  private BipartiteColor bipartiteColor;
   private int bfsLayer;
   private EdgesGroup downEdges;
   private EdgesGroup crossEdges;
@@ -27,7 +25,6 @@ public class Vertex
   {
     this.vertexNo = vertexNo;
     this.edges = edges;
-    color = Color.WHITE;
   }
 
   public int getVertexNo()
@@ -58,26 +55,6 @@ public class Vertex
   public void setUnitLayer(boolean unitLayer)
   {
     this.unitLayer = unitLayer;
-  }
-
-  public Color getColor()
-  {
-    return color;
-  }
-
-  public void setColor(Color color)
-  {
-    this.color = color;
-  }
-
-  public BipartiteColor getBipartiteColor()
-  {
-    return bipartiteColor;
-  }
-
-  public void setBipartiteColor(BipartiteColor bipartiteColor)
-  {
-    this.bipartiteColor = bipartiteColor;
   }
 
   public int getBfsLayer()

@@ -16,13 +16,13 @@ public interface GraphHelper
 {
   List<Vertex> parseGraph(String graphFilePath);
 
-  List<Vertex> orderBFS(Vertex root, Integer[] reindexArray);
-
   void addVertex(List<Vertex> allVertices, List<Vertex> neighbors);
 
   List<Vertex> copySubgraph(List<Vertex> allVertices, Optional<Vertex> vertexToRemoveOptional);
 
   List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices);
+
+  <T> T[] createGraphColoringArray(List<Vertex> vertices, T defaultColor);
 
   boolean isGraphK1(List<Vertex> vertices);
 

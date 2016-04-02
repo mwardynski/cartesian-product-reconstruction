@@ -7,6 +7,7 @@ import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -52,6 +53,7 @@ public class GraphHelperImpl implements GraphHelper
     allVertices.add(newVertex);
   }
 
+  @Override
   public List<Vertex> copySubgraph(List<Vertex> allVertices, Optional<Vertex> vertexToRemoveOptional)
   {
     Vertex[] newVerticesArray = new Vertex[allVertices.size()];
@@ -91,27 +93,28 @@ public class GraphHelperImpl implements GraphHelper
 
   public List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices)
   {
+    Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
     List<List<Vertex>> connectedComponents = new LinkedList<>();
 
     for (Vertex v : vertices)
     {
-      if (v.getColor() == Color.WHITE)
+      if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
       {
-        List<Vertex> connectedComponentVertices = orderBFS(v, new Integer[vertices.get(vertices.size() - 1).getVertexNo() + 1]);
+        List<Vertex> connectedComponentVertices = orderBFS(v, vertices, new Integer[vertices.get(vertices.size() - 1).getVertexNo() + 1]);
         connectedComponents.add(connectedComponentVertices);
       }
-      v.setColor(Color.WHITE);
+      graphColoringArray[v.getVertexNo()] = Color.WHITE;
     }
 
     return connectedComponents;
   }
 
-  @Override
-  public List<Vertex> orderBFS(Vertex root, Integer[] reindexArray)
+  private List<Vertex> orderBFS(Vertex root, List<Vertex> vertices, Integer[] reindexArray)
   {
+    Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
     List<Vertex> visitedVertices = new ArrayList<>(reindexArray.length);
     int counter = 0;
-    root.setColor(Color.GRAY);
+    graphColoringArray[root.getVertexNo()] = Color.GRAY;
     root.setBfsLayer(0);
     reindexArray[root.getVertexNo()] = counter++;
     Queue<Vertex> queue = new LinkedList<Vertex>();
@@ -122,18 +125,30 @@ public class GraphHelperImpl implements GraphHelper
       for (Edge e : u.getEdges())
       {
         Vertex v = e.getEndpoint();
-        if (v.getColor() == Color.WHITE)
+        if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
         {
-          v.setColor(Color.GRAY);
+          graphColoringArray[v.getVertexNo()] = Color.GRAY;
           v.setBfsLayer(u.getBfsLayer() + 1);
           reindexArray[v.getVertexNo()] = counter++;
           queue.add(v);
         }
       }
-      u.setColor(Color.BLACK);
+      graphColoringArray[u.getVertexNo()] = Color.BLACK;
       visitedVertices.add(u);
     }
     return visitedVertices;
+  }
+
+  @Override
+  public <T> T[] createGraphColoringArray(List<Vertex> vertices, T defaultColor)
+  {
+    int vertexMaxNo = vertices.get(vertices.size() - 1).getVertexNo();
+    T[] graphColoring = (T[]) Array.newInstance(defaultColor.getClass(), vertexMaxNo + 1);
+    for (Vertex v : vertices)
+    {
+      graphColoring[v.getVertexNo()] = defaultColor;
+    }
+    return graphColoring;
   }
 
   @Override
@@ -178,7 +193,7 @@ public class GraphHelperImpl implements GraphHelper
       root = findVertexWithMinDegree(vertices);
     }
     Integer[] reindexArray = new Integer[findMaxVertexNo(vertices) + 1];
-    orderBFS(root, reindexArray);
+    orderBFS(root, vertices, reindexArray);
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);

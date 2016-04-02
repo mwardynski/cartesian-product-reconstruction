@@ -9,5 +9,5 @@ package at.ac.unileoben.mat.dissertation.structure;
  */
 public enum BipartiteColor
 {
-  RED, BLUE
+  NONE, RED, BLUE
 }

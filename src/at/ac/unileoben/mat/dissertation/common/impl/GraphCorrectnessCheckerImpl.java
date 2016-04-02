@@ -1,10 +1,12 @@
 package at.ac.unileoben.mat.dissertation.common.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphCorrectnessChecker;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.structure.BipartiteColor;
 import at.ac.unileoben.mat.dissertation.structure.Color;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -21,56 +23,61 @@ import java.util.Queue;
 @Component
 public class GraphCorrectnessCheckerImpl implements GraphCorrectnessChecker
 {
+  @Autowired
+  GraphHelper graphHelper;
 
   @Override
-  public boolean isSimple(List<Vertex> graph)
+  public boolean isSimple(List<Vertex> vertices)
   {
-    for (Vertex v : graph)
+    Color[] graphColoringArray = graphHelper.createGraphColoringArray(vertices, Color.WHITE);
+    for (Vertex v : vertices)
     {
       for (Edge e : v.getEdges())
       {
-        if (e.getEndpoint().getColor() == Color.WHITE)
+        if (graphColoringArray[e.getEndpoint().getVertexNo()] == Color.WHITE)
         {
-          e.getEndpoint().setColor(Color.BLACK);
+          graphColoringArray[e.getEndpoint().getVertexNo()] = Color.BLACK;
         }
         else
         {
           return false;
         }
       }
-      if (v.getColor() != Color.WHITE)
+      if (graphColoringArray[v.getVertexNo()] != Color.WHITE)
       {
         return false;
       }
       for (Edge e : v.getEdges())
       {
-        e.getEndpoint().setColor(Color.WHITE);
+        graphColoringArray[e.getEndpoint().getVertexNo()] = Color.WHITE;
       }
     }
     return true;
   }
 
   @Override
-  public boolean isConnected(List<Vertex> graph)
+  public boolean isConnected(List<Vertex> vertices)
   {
     boolean result = true;
-    bfs(graph.get(0));
-    for (Vertex v : graph)
+    Color[] graphColoringArray = graphHelper.createGraphColoringArray(vertices, Color.WHITE);
+    BipartiteColor[] graphBipartiteColoringArray = graphHelper.createGraphColoringArray(vertices, BipartiteColor.NONE);
+    bfs(vertices.get(0), graphColoringArray, graphBipartiteColoringArray);
+    for (Vertex v : vertices)
     {
-      if (v.getColor() != Color.BLACK)
+      if (graphColoringArray[v.getVertexNo()] != Color.BLACK)
       {
         result = false;
       }
     }
-    removeGraphColoring(graph);
     return result;
   }
 
   @Override
-  public boolean isNotBipartite(List<Vertex> graph)
+  public boolean isNotBipartite(List<Vertex> vertices)
   {
-    boolean result = bfs(graph.get(0));
-    removeGraphColoring(graph);
+    Color[] graphColoringArray = graphHelper.createGraphColoringArray(vertices, Color.WHITE);
+    BipartiteColor[] graphBipartiteColoringArray = graphHelper.createGraphColoringArray(vertices, BipartiteColor.NONE);
+    boolean result = bfs(vertices.get(0), graphColoringArray, graphBipartiteColoringArray);
     return result;
   }
 
@@ -84,12 +91,12 @@ public class GraphCorrectnessCheckerImpl implements GraphCorrectnessChecker
        return false;
    }
     */
-  private boolean bfs(Vertex root)
+  private boolean bfs(Vertex root, Color[] graphColoringArray, BipartiteColor[] graphBipartiteColoringArray)
   {
     boolean result = false;
-    root.setColor(Color.GRAY);
-    root.setBipartiteColor(BipartiteColor.RED);
-    Queue<Vertex> queue = new LinkedList<Vertex>();
+    graphColoringArray[root.getVertexNo()] = Color.GRAY;
+    graphBipartiteColoringArray[root.getVertexNo()] = BipartiteColor.RED;
+    Queue<Vertex> queue = new LinkedList<>();
     queue.add(root);
     while (!queue.isEmpty())
     {
@@ -97,38 +104,29 @@ public class GraphCorrectnessCheckerImpl implements GraphCorrectnessChecker
       for (Edge e : u.getEdges())
       {
         Vertex v = e.getEndpoint();
-        if (v.getColor() == Color.WHITE)
+        if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
         {
-          v.setColor(Color.GRAY);
-          if (u.getBipartiteColor() == BipartiteColor.RED)
+          graphColoringArray[v.getVertexNo()] = Color.GRAY;
+          if (graphBipartiteColoringArray[u.getVertexNo()] == BipartiteColor.RED)
           {
-            v.setBipartiteColor(BipartiteColor.BLUE);
+            graphBipartiteColoringArray[v.getVertexNo()] = BipartiteColor.BLUE;
           }
           else
           {
-            v.setBipartiteColor(BipartiteColor.RED);
+            graphBipartiteColoringArray[v.getVertexNo()] = BipartiteColor.RED;
           }
           queue.add(v);
         }
         else
         {
-          if (u.getBipartiteColor() == v.getBipartiteColor())
+          if (graphBipartiteColoringArray[u.getVertexNo()] == graphBipartiteColoringArray[v.getVertexNo()])
           {
             result = true;
           }
         }
       }
-      u.setColor(Color.BLACK);
+      graphColoringArray[u.getVertexNo()] = Color.BLACK;
     }
     return result;
-  }
-
-  private void removeGraphColoring(List<Vertex> graph)
-  {
-    for (Vertex v : graph)
-    {
-      v.setColor(Color.WHITE);
-      v.setBipartiteColor(null);
-    }
   }
 }
