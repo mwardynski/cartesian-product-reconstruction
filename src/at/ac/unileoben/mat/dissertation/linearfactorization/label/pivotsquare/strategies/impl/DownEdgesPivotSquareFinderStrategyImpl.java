@@ -38,10 +38,10 @@ public class DownEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinder
   EdgeLabelingService edgeLabelingService;
 
   @Override
-  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
+  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
   {
-    Edge uv = u.getFirstEdge();
-    Edge vx = u.getSecondEdge();
+    Edge uv = edgeService.getFirstEdge(u, EdgeType.DOWN);
+    Edge vx = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u);
     Label vxLabel = vx.getLabel();
     int vxMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), vxLabel.getColor());
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
@@ -76,7 +76,7 @@ public class DownEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinder
       if (nextPhase != null && vxp != null)
       {
         Vertex xp = vxp.getEndpoint();
-        u.setSecondEdge(vxp);
+        factorizationStepService.assignFirstLayerEdgeForVertexInFactorizationStep(nextPhase, u, vxp);
         factorizationStepService.addVertex(nextPhase, xp, u);
       }
       else

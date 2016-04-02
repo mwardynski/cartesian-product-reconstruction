@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationStep;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationSteps;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
@@ -33,15 +34,33 @@ public class FactorizationStepServiceImpl implements FactorizationStepService
   }
 
   @Override
-  public void initialVertexInsertForDownEdges(FactorizationSteps factorizationSteps, Vertex u, Vertex v, Vertex x)
+  public void initialVertexInsertForDownEdges(FactorizationSteps factorizationSteps, Edge uv, Edge vx)
   {
+    Vertex u = uv.getOrigin();
+    Vertex v = uv.getEndpoint();
+    Vertex x = vx.getEndpoint();
     addVertex(factorizationSteps.getFindSquareFirstPhase(), x, u);
     addVertex(factorizationSteps.getLabelVerticesPhase(), v, u);
+    assignFirstLayerEdgeForVertexInFactorizationStep(factorizationSteps.getFindSquareFirstPhase(), u, vx);
   }
 
   @Override
-  public void initialVertexInsertForCrossEdges(FactorizationSteps factorizationSteps, Vertex u, Vertex w)
+  public void initialVertexInsertForCrossEdges(FactorizationSteps factorizationSteps, Edge uw)
   {
+    Vertex u = uw.getOrigin();
+    Vertex w = uw.getEndpoint();
     addVertex(factorizationSteps.getFindSquareFirstPhase(), w, u);
+  }
+
+  @Override
+  public Edge getFirstLayerEdgeForVertexInFactorizationStep(FactorizationStep factorizationStep, Vertex u)
+  {
+    return factorizationStep.getFirstLayerPerVertexEdges()[u.getVertexNo()];
+  }
+
+  @Override
+  public void assignFirstLayerEdgeForVertexInFactorizationStep(FactorizationStep factorizationStep, Vertex u, Edge firstLayerEdge)
+  {
+    factorizationStep.getFirstLayerPerVertexEdges()[u.getVertexNo()] = firstLayerEdge;
   }
 }

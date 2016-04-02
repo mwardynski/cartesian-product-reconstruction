@@ -15,6 +15,8 @@ public interface EdgeService
 {
   void addLabel(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail);
 
+  Edge getFirstEdge(Vertex v, EdgeType edgeType);
+
   Edge getEdgeByLabel(Vertex v, Label label, EdgeType edgeType);
 
   Edge getEdgeOfDifferentColor(Vertex v, int color, GraphColoring graphColoring);

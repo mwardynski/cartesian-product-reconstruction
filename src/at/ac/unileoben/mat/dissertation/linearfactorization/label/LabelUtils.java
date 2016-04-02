@@ -144,7 +144,7 @@ public class LabelUtils
     while (assignedVerticesIterator.hasNext())
     {
       Vertex u = assignedVerticesIterator.next();
-      pivotSquareFinderStrategy.findPivotSquare(u, xAdjacencyVector, nextPhase, layerLabelingData);
+      pivotSquareFinderStrategy.findPivotSquare(u, xAdjacencyVector, thisPhase, nextPhase, layerLabelingData);
       if (nextPhase != null)
       {
         findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, nextPhase, null, layerLabelingData);

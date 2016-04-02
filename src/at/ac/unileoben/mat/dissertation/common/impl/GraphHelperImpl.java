@@ -267,7 +267,7 @@ public class GraphHelperImpl implements GraphHelper
     List<List<Edge>> tmpEdges = new ArrayList<List<Edge>>(vertices.size());
     for (int i = 0; i < vertices.size(); i++)
     {
-      tmpEdges.add(new ArrayList<Edge>(GraphReaderImpl.MAX_NEIGHBOURS_ACCOUNT));
+      tmpEdges.add(new ArrayList<Edge>(GraphReaderImpl.MAX_NEIGHBOURS_AMOUNT));
     }
     for (Vertex v : vertices)
     {

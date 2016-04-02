@@ -56,7 +56,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     List<Vertex> prePreviousLayer = vertexService.getGraphLayer(currentLayerNo - 2);
-    FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer, prePreviousLayer);
+    FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer, prePreviousLayer, vertexService.getGraphSize());
 
     assignVerticesToFactorizationSteps(currentLayer, factorizationSteps);
 
@@ -83,14 +83,9 @@ public class DownEdgesLabeler implements EdgesLabeler
       }
       else
       {
-        Edge uv = uDownEdges.get(0);
-        u.setFirstEdge(uv);
-        Vertex v = uv.getEndpoint();
-        Edge vx = v.getDownEdges().getEdges().get(0);
-        u.setSecondEdge(vx);
-        u.setEdgeWithColorToLabel(vx);
-        Vertex x = vx.getEndpoint();
-        factorizationStepService.initialVertexInsertForDownEdges(factorizationSteps, u, v, x);
+        Edge uv = edgeService.getFirstEdge(u, EdgeType.DOWN);
+        Edge vx = edgeService.getFirstEdge(uv.getEndpoint(), EdgeType.DOWN);
+        factorizationStepService.initialVertexInsertForDownEdges(factorizationSteps, uv, vx);
       }
     }
   }
@@ -165,8 +160,9 @@ public class DownEdgesLabeler implements EdgesLabeler
 
   private void labelUnitLayerVertex(Vertex v)
   {
-    int colorToLabel = v.getEdgeWithColorToLabel().getLabel().getColor();
-    setVertexAsUnitLayer(v, colorToLabel);
+    Edge firstEdge = edgeService.getFirstEdge(v, EdgeType.DOWN);
+    Edge edgeWithColorToLabel = edgeService.getFirstEdge(firstEdge.getEndpoint(), EdgeType.DOWN);
+    setVertexAsUnitLayer(v, edgeWithColorToLabel.getLabel().getColor());
   }
 
   private List<Edge> labelDownEdgesForGivenLabelingBaseEdge(List<Edge> edges, Edge uv, AdjacencyVector adjacencyVector)

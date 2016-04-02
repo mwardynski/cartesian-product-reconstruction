@@ -34,6 +34,13 @@ public class EdgeServiceImpl implements EdgeService
   }
 
   @Override
+  public Edge getFirstEdge(Vertex v, EdgeType edgeType)
+  {
+    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
+    return edgeGroup.getEdges().get(0);
+  }
+
+  @Override
   public Edge getEdgeByLabel(Vertex v, Label label, EdgeType edgeType)
   {
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);

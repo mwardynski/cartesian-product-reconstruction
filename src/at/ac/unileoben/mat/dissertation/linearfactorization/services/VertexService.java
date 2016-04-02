@@ -16,12 +16,13 @@ import java.util.List;
  */
 public interface VertexService
 {
+  int getGraphSize();
+
   List<Vertex> getGraphLayer(int i);
 
   List<List<Vertex>> createLayersList(List<Vertex> vertices);
 
   Edge getEdgeToVertex(AdjacencyVector vector, Vertex v);
 
-  void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
-  ;
+  void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag); //mergeCrossEdges always true
 }

@@ -15,5 +15,5 @@ import at.ac.unileoben.mat.dissertation.structure.Vertex;
 public interface PivotSquareFinderStrategy
 {
 
-  public void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep nextPhase, LayerLabelingData layerLabelingData);
+  void findPivotSquare(Vertex u, AdjacencyVector xAdjacencyVector, FactorizationStep currentPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData);
 }

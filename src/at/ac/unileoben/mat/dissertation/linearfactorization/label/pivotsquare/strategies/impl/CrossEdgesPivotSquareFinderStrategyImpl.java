@@ -34,7 +34,7 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
   LabelUtils labelUtils;
 
   @Override
-  public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
+  public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
   {
     List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
     for (Edge uv : uCrossEdges)
@@ -62,7 +62,7 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
         continue;
       }
       Vertex v = uv.getEndpoint();
-      Edge uw = u.getFirstEdge();
+      Edge uw = edgeService.getFirstEdge(u, EdgeType.DOWN);
       Edge vx = edgeService.getEdgeByLabel(v, uw.getLabel(), EdgeType.DOWN);
       Edge wx = null;
       if (vx != null)

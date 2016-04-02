@@ -20,10 +20,10 @@ import java.util.List;
 @Component
 public class GraphReaderImpl implements GraphReader
 {
-  public static int MIN_NEIGHBOURS_ACCOUNT = Integer.MAX_VALUE;
-  public static int MAX_NEIGHBOURS_ACCOUNT = Integer.MIN_VALUE;
   private static final String SPLIT_SIGN = " <==> ";
   private static final String INPUT_DIR = "resources/";
+  public static int MIN_NEIGHBOURS_AMOUNT = Integer.MAX_VALUE;
+  public static int MAX_NEIGHBOURS_AMOUNT = Integer.MIN_VALUE;
   private static int MAX_NUMBER_OF_NEIGHBORS = Integer.MIN_VALUE;
 
   @Override
@@ -93,14 +93,14 @@ public class GraphReaderImpl implements GraphReader
 
   private void setMinMax(int size)
   {
-    if (MIN_NEIGHBOURS_ACCOUNT > size)
+    if (MIN_NEIGHBOURS_AMOUNT > size)
     {
-      MIN_NEIGHBOURS_ACCOUNT = size;
+      MIN_NEIGHBOURS_AMOUNT = size;
     }
-    if (MAX_NEIGHBOURS_ACCOUNT < size)
+    if (MAX_NEIGHBOURS_AMOUNT < size)
     {
-      MAX_NEIGHBOURS_ACCOUNT = size;
-      MAX_NUMBER_OF_NEIGHBORS = MAX_NEIGHBOURS_ACCOUNT + 2;
+      MAX_NEIGHBOURS_AMOUNT = size;
+      MAX_NUMBER_OF_NEIGHBORS = MAX_NEIGHBOURS_AMOUNT + 2;
     }
   }
 }

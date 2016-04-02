@@ -27,6 +27,12 @@ public class VertexServiceImpl implements VertexService
   ColoringService coloringService;
 
   @Override
+  public int getGraphSize()
+  {
+    return graph.getVertices().size();
+  }
+
+  @Override
   public List<Vertex> getGraphLayer(int i)
   {
     return graph.getLayers().get(i);
