@@ -71,7 +71,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
           break;
         }
       }
-      if (isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
+      if (graph.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT && isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
       {
         vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP);
         break;

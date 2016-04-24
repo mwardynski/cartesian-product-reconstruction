@@ -10,4 +10,6 @@ package at.ac.unileoben.mat.dissertation.linearfactorization;
 public interface GraphFactorizer
 {
   void factorize();
+
+  void factorizeSingleLayer(int currentLayerNo);
 }

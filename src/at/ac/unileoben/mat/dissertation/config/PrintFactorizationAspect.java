@@ -79,4 +79,11 @@ public class PrintFactorizationAspect
   {
     graphPrinter.printFactorization();
   }
+
+  @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.reconstruction.DuplicateReconstruction.findFactors(..))")
+  public void printGraph(JoinPoint joinPoint)
+  {
+    graphPrinter.printFactorization();
+  }
+
 }
