@@ -44,6 +44,21 @@ public class FactorizationData
       this.mappedColor = mappedColor;
     }
 
+    public Vertex getTopVertex()
+    {
+      return topVertex;
+    }
+
+    public int getHeight()
+    {
+      return height;
+    }
+
+    public int getMappedColor()
+    {
+      return mappedColor;
+    }
+
     @Override
     public String toString()
     {

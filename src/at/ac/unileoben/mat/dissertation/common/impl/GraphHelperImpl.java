@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.common.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,6 +33,9 @@ public class GraphHelperImpl implements GraphHelper
 
   @Autowired
   VertexService vertexService;
+
+  @Autowired
+  ColoringService coloringService;
 
   @Override
   public List<Vertex> parseGraph(String graphFilePath)
@@ -100,7 +107,9 @@ public class GraphHelperImpl implements GraphHelper
     {
       if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
       {
-        List<Vertex> connectedComponentVertices = orderBFS(v, vertices, new Integer[vertices.get(vertices.size() - 1).getVertexNo() + 1]);
+        List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
+        orderBFS(v, vertices, Optional.empty(),
+                (currentVertex, previousVertex) -> connectedComponentVertices.add(currentVertex));
         connectedComponents.add(connectedComponentVertices);
       }
       graphColoringArray[v.getVertexNo()] = Color.WHITE;
@@ -109,40 +118,60 @@ public class GraphHelperImpl implements GraphHelper
     return connectedComponents;
   }
 
-  private List<Vertex> orderBFS(Vertex root, List<Vertex> vertices, Integer[] reindexArray)
+  @Override
+  public List<Vertex> getConnectedComponentForColor(Vertex root, List<Vertex> vertices, int color)
+  {
+    List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
+    AtomicBoolean isFirstVertexMissing = new AtomicBoolean(true);
+    orderBFS(root, vertices, Optional.of(color),
+            (currentVertex, previousVertex) -> {
+              if (isFirstVertexMissing.getAndSet(false))
+              {
+                connectedComponentVertices.add(previousVertex);
+              }
+              connectedComponentVertices.add(currentVertex);
+            });
+    return connectedComponentVertices;
+  }
+
+  private void orderBFS(Vertex root, List<Vertex> vertices, Optional<Integer> currentColorOptional, BiConsumer<Vertex, Vertex> biConsumer)
   {
     Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
-    List<Vertex> visitedVertices = new ArrayList<>(reindexArray.length);
-    int counter = 0;
     graphColoringArray[root.getVertexNo()] = Color.GRAY;
     root.setBfsLayer(0);
-    reindexArray[root.getVertexNo()] = counter++;
-    Queue<Vertex> queue = new LinkedList<Vertex>();
+    Queue<Vertex> queue = new LinkedList<>();
     queue.add(root);
     while (!queue.isEmpty())
     {
       Vertex u = queue.poll();
       for (Edge e : u.getEdges())
       {
+        if (currentColorOptional.isPresent())
+        {
+          Integer currentColor = currentColorOptional.get();
+          if (e.getLabel() == null
+                  || coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor()) != currentColor)
+          {
+            continue;
+          }
+        }
         Vertex v = e.getEndpoint();
         if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
         {
           graphColoringArray[v.getVertexNo()] = Color.GRAY;
-          v.setBfsLayer(u.getBfsLayer() + 1);
-          reindexArray[v.getVertexNo()] = counter++;
+          biConsumer.accept(v, u);
           queue.add(v);
         }
       }
       graphColoringArray[u.getVertexNo()] = Color.BLACK;
-      visitedVertices.add(u);
     }
-    return visitedVertices;
   }
+
 
   @Override
   public <T> T[] createGraphColoringArray(List<Vertex> vertices, T defaultColor)
   {
-    int vertexMaxNo = vertices.get(vertices.size() - 1).getVertexNo();
+    int vertexMaxNo = vertices.stream().mapToInt(Vertex::getVertexNo).max().getAsInt();
     T[] graphColoring = (T[]) Array.newInstance(defaultColor.getClass(), vertexMaxNo + 1);
     for (Vertex v : vertices)
     {
@@ -192,8 +221,16 @@ public class GraphHelperImpl implements GraphHelper
     {
       root = findVertexWithMinDegree(vertices);
     }
+
     Integer[] reindexArray = new Integer[findMaxVertexNo(vertices) + 1];
-    orderBFS(root, vertices, reindexArray);
+    AtomicInteger counter = new AtomicInteger(0);
+    reindexArray[root.getVertexNo()] = counter.getAndIncrement();
+    orderBFS(root, vertices, Optional.empty(),
+            (currentVertex, previousVertex) -> {
+              currentVertex.setBfsLayer(previousVertex.getBfsLayer() + 1);
+              reindexArray[currentVertex.getVertexNo()] = counter.getAndIncrement();
+            });
+
     reindex(vertices, reindexArray);
     vertices = sortVertices(vertices);
     sortEdges(vertices);

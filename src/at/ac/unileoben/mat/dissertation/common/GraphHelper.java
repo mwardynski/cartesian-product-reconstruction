@@ -22,6 +22,8 @@ public interface GraphHelper
 
   List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices);
 
+  List<Vertex> getConnectedComponentForColor(Vertex root, List<Vertex> vertices, int color);
+
   <T> T[] createGraphColoringArray(List<Vertex> vertices, T defaultColor);
 
   boolean isGraphK1(List<Vertex> vertices);

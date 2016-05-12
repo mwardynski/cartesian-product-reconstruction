@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * Created by mwardynski on 24/04/16.
  */
@@ -52,7 +54,8 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     {
       factorizationData = findFactorsForRoot(vertices, vertex);
       if (graph.getGraphColoring().getActualColors().size() != 1 &&
-              graph.getGraphColoring().getActualColors().size() == factorizationData.getFactors().size())
+              graph.getGraphColoring().getActualColors().size() == factorizationData.getFactors().size()
+              && isCorrectAmountOfVerticesInFactors(vertices, factorizationData))
       {
         break;
       }
@@ -61,12 +64,31 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     return factorizationData;
   }
 
+  private boolean isCorrectAmountOfVerticesInFactors(List<Vertex> vertices, FactorizationData factorizationData)
+  {
+
+    List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData -> {
+      List<Vertex> connectedComponentVertices = graphHelper.getConnectedComponentForColor(factorData.getTopVertex(), vertices, factorData.getMappedColor());
+      return connectedComponentVertices.size();
+    }).boxed().collect(toList());
+    Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
+    return amountOfVerticesAfterMultiplication == vertices.size() + 1;
+  }
+
   private FactorizationData findFactorsForRoot(List<Vertex> vertices, Vertex root)
   {
     clearVerticesAndEdges(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
     graph.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
     graphFactorizationPreparer.arrangeFirstLayerEdges();
+    if (graph.getLayers().size() == 3)
+    {
+      FactorizationData factorizationData = collectFirstLayerFactors(vertices, root);
+      if (factorizationData != null)
+      {
+        return factorizationData;
+      }
+    }
     return findFactorsForPreparedGraph();
   }
 
@@ -80,6 +102,34 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
         edge.setLabel(null);
       }
     }
+  }
+
+  private FactorizationData collectFirstLayerFactors(List<Vertex> vertices, Vertex root)
+  {
+    Vertex[] topUnitLayerVertices = new Vertex[graph.getGraphColoring().getOriginalColorsAmount()];
+    int[] unitLayerVerticesAmountPerColor = new int[graph.getGraphColoring().getOriginalColorsAmount()];
+    for (Edge e : root.getUpEdges().getEdges())
+    {
+      int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor());
+      Vertex v = e.getEndpoint();
+      topUnitLayerVertices[arbitraryEdgeColor] = v;
+      unitLayerVerticesAmountPerColor[arbitraryEdgeColor]++;
+    }
+    int graphSizeWithFoundFactors = 1;
+    for (int edgesAmout : unitLayerVerticesAmountPerColor)
+    {
+      if (edgesAmout != 0)
+      {
+        graphSizeWithFoundFactors *= (edgesAmout + 1);
+      }
+    }
+    if (vertices.size() == graphSizeWithFoundFactors + 1)
+    {
+      FactorizationData factorizationData = new FactorizationData();
+      collectFactors(factorizationData, topUnitLayerVertices, null);
+      return factorizationData;
+    }
+    return null;
   }
 
   private FactorizationData findFactorsForPreparedGraph()

@@ -60,13 +60,13 @@ public class PrintFactorizationAspect
 
   }
 
-  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService.addLabel(..)) && args(edge,color,name,labelOperationDetail)")
-  private void labelEdgeOperation(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService.addLabel(..)) && args(edge,color,name,squareMatchingEdge,labelOperationDetail)")
+  private void labelEdgeOperation(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail)
   {
   }
 
-  @Before("labelEdgeOperation(edge,color,name,labelOperationDetail)")
-  public void addEdgeLabelSnapshot(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  @Before("labelEdgeOperation(edge,color,name,squareMatchingEdge,labelOperationDetail)")
+  public void addEdgeLabelSnapshot(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail)
   {
     if (labelOperationDetail.getType() != LabelOperationEnum.PREPARE && labelOperationDetail.getType() != LabelOperationEnum.OPPOSITE)
     {
