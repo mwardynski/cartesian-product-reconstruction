@@ -2,18 +2,28 @@ package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by mwardynski on 03/04/16.
  */
 public class FactorizationData
 {
+  private int layersAmout;
   private int factorsTotalHeight;
   private List<FactorData> factors;
+  private boolean factorizationCompleted;
 
-  public FactorizationData()
+  public FactorizationData(int layersAmout)
   {
+    this.layersAmout = layersAmout;
     factors = new LinkedList<>();
+    factorizationCompleted = false;
+  }
+
+  public int getLayersAmout()
+  {
+    return layersAmout;
   }
 
   public int getFactorsTotalHeight()
@@ -31,22 +41,32 @@ public class FactorizationData
     return factors;
   }
 
+  public boolean isFactorizationCompleted()
+  {
+    return factorizationCompleted;
+  }
+
+  public void setFactorizationCompleted(boolean factorizationCompleted)
+  {
+    this.factorizationCompleted = factorizationCompleted;
+  }
+
   public static class FactorData
   {
-    private Vertex topVertex;
+    private List<Vertex> topVertices;
     private int height;
     private int mappedColor;
 
-    public FactorData(Vertex topVertex, int height, int mappedColor)
+    public FactorData(List<Vertex> topVertices, int height, int mappedColor)
     {
-      this.topVertex = topVertex;
+      this.topVertices = topVertices;
       this.height = height;
       this.mappedColor = mappedColor;
     }
 
-    public Vertex getTopVertex()
+    public List<Vertex> getTopVertices()
     {
-      return topVertex;
+      return topVertices;
     }
 
     public int getHeight()
@@ -62,7 +82,7 @@ public class FactorizationData
     @Override
     public String toString()
     {
-      return String.format("v:%d c:%d h:%d", topVertex.getVertexNo(), mappedColor, height);
+      return String.format("v:%d c:%d h:%d", topVertices.stream().map(v -> v.toString()).collect(Collectors.joining(",")), mappedColor, height);
     }
   }
 }

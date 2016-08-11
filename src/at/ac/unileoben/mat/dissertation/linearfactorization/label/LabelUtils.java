@@ -91,7 +91,7 @@ public class LabelUtils
           }
           else
           {
-            if (labelsInUse[edgeName])
+            if (edgeName >= labelsInUse.length || labelsInUse[edgeName])
             {
               edgesToLabel.add(edge);
             }

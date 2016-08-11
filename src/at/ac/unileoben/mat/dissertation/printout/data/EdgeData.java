@@ -14,6 +14,8 @@ public class EdgeData
 {
   long originNo;
   long endpointNo;
+  String forwardEdgeLabel;
+  String backwardEdgeLabel;
   String color = EdgeColorEnum.BLACK.toString();
   String style = EdgeStyleEnum.SOLID.toString();
 
@@ -35,6 +37,26 @@ public class EdgeData
   public void setEndpointNo(long endpointNo)
   {
     this.endpointNo = endpointNo;
+  }
+
+  public String getForwardEdgeLabel()
+  {
+    return forwardEdgeLabel;
+  }
+
+  public void setForwardEdgeLabel(String forwardEdgeLabel)
+  {
+    this.forwardEdgeLabel = forwardEdgeLabel;
+  }
+
+  public String getBackwardEdgeLabel()
+  {
+    return backwardEdgeLabel;
+  }
+
+  public void setBackwardEdgeLabel(String backwardEdgeLabel)
+  {
+    this.backwardEdgeLabel = backwardEdgeLabel;
   }
 
   public String getColor()

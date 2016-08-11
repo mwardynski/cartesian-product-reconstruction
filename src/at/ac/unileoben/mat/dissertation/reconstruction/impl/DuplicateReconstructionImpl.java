@@ -4,8 +4,8 @@ import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.DuplicateReconstruction;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,10 +34,10 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
   GraphFactorizer graphFactorizer;
 
   @Autowired
-  VertexService vertexService;
+  ColoringService coloringService;
 
   @Autowired
-  ColoringService coloringService;
+  ReconstructionService reconstructionService;
 
 
   @Override
@@ -55,6 +55,7 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
       factorizationData = findFactorsForRoot(vertices, vertex);
       if (graph.getGraphColoring().getActualColors().size() != 1 &&
               graph.getGraphColoring().getActualColors().size() == factorizationData.getFactors().size()
+              && isNonOrOnlyOneVertexToAddInNewLayer(factorizationData)
               && isCorrectAmountOfVerticesInFactors(vertices, factorizationData))
       {
         break;
@@ -64,11 +65,22 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     return factorizationData;
   }
 
+
+  private boolean isNonOrOnlyOneVertexToAddInNewLayer(FactorizationData factorizationData)
+  {
+    boolean isNonOrOnlyOneVertexToAddInNewLayer = true;
+    if (factorizationData.getFactorsTotalHeight() == factorizationData.getLayersAmout())
+    {
+      isNonOrOnlyOneVertexToAddInNewLayer = !factorizationData.getFactors().stream().filter(factorData -> factorData.getTopVertices().size() > 1).findAny().isPresent();
+    }
+    return isNonOrOnlyOneVertexToAddInNewLayer;
+  }
+
   private boolean isCorrectAmountOfVerticesInFactors(List<Vertex> vertices, FactorizationData factorizationData)
   {
-
-    List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData -> {
-      List<Vertex> connectedComponentVertices = graphHelper.getConnectedComponentForColor(factorData.getTopVertex(), vertices, factorData.getMappedColor());
+    List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
+    {
+      List<Vertex> connectedComponentVertices = graphHelper.getConnectedComponentForColor(factorData.getTopVertices().iterator().next(), vertices, factorData.getMappedColor());
       return connectedComponentVertices.size();
     }).boxed().collect(toList());
     Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
@@ -81,15 +93,16 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     graphHelper.prepareGraphBfsStructure(vertices, root);
     graph.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
     graphFactorizationPreparer.arrangeFirstLayerEdges();
-    if (graph.getLayers().size() == 3)
+
+    int layersAmount = graph.getLayers().size();
+    FactorizationData factorizationData = new FactorizationData(layersAmount);
+
+    collectFirstLayerFactors(vertices, root, factorizationData);
+    if (!factorizationData.isFactorizationCompleted())
     {
-      FactorizationData factorizationData = collectFirstLayerFactors(vertices, root);
-      if (factorizationData != null)
-      {
-        return factorizationData;
-      }
+      factorizationData = findFactorsForPreparedGraph();
     }
-    return findFactorsForPreparedGraph();
+    return factorizationData;
   }
 
   private void clearVerticesAndEdges(List<Vertex> vertices)
@@ -104,127 +117,46 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     }
   }
 
-  private FactorizationData collectFirstLayerFactors(List<Vertex> vertices, Vertex root)
+  private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root, FactorizationData factorizationData)
   {
-    Vertex[] topUnitLayerVertices = new Vertex[graph.getGraphColoring().getOriginalColorsAmount()];
+    List<List<Vertex>> topUnitLayerVertices = reconstructionService.createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
     int[] unitLayerVerticesAmountPerColor = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     for (Edge e : root.getUpEdges().getEdges())
     {
       int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor());
       Vertex v = e.getEndpoint();
-      topUnitLayerVertices[arbitraryEdgeColor] = v;
+      topUnitLayerVertices.get(arbitraryEdgeColor).add(v);
       unitLayerVerticesAmountPerColor[arbitraryEdgeColor]++;
     }
     int graphSizeWithFoundFactors = 1;
-    for (int edgesAmout : unitLayerVerticesAmountPerColor)
+    for (int edgesAmount : unitLayerVerticesAmountPerColor)
     {
-      if (edgesAmout != 0)
+      if (edgesAmount != 0)
       {
-        graphSizeWithFoundFactors *= (edgesAmout + 1);
+        graphSizeWithFoundFactors *= (edgesAmount + 1);
       }
     }
-    if (vertices.size() == graphSizeWithFoundFactors + 1)
+    if (vertices.size() + 1 == graphSizeWithFoundFactors)
     {
-      FactorizationData factorizationData = new FactorizationData();
-      collectFactors(factorizationData, topUnitLayerVertices, null);
-      return factorizationData;
+      reconstructionService.collectFactors(factorizationData, topUnitLayerVertices);
+      factorizationData.setFactorizationCompleted(true);
     }
-    return null;
   }
 
   private FactorizationData findFactorsForPreparedGraph()
   {
-    FactorizationData factorizationData = new FactorizationData();
     int layersAmount = graph.getLayers().size();
+    FactorizationData factorizationData = new FactorizationData(layersAmount);
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      graphFactorizer.factorizeSingleLayer(currentLayerNo);
-      if (!isLastPossibleLayerForNewFactors(currentLayerNo, layersAmount, factorizationData))
+      graphFactorizer.factorizeSingleLayer(currentLayerNo, factorizationData);
+      if (factorizationData.isFactorizationCompleted())
       {
-        collectFactorsFromPreviousLayer(currentLayerNo - 1, factorizationData);
-        if (isLastPossibleLayerForNewFactors(currentLayerNo, layersAmount, factorizationData))
-        {
-          collectFactorsFromCurrentLayer(currentLayerNo, factorizationData);
-          break;
-        }
-      }
-      else if (isLastPossibleLayerForNewFactors(currentLayerNo, layersAmount, factorizationData))
-      {
-        collectFactorsFromPreviousLayer(currentLayerNo - 1, factorizationData);
-        collectFactorsFromCurrentLayer(currentLayerNo, factorizationData);
         break;
       }
     }
     return factorizationData;
   }
 
-  private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, int layersAmount, FactorizationData factorizationData)
-  {
-    return currentLayerNo == layersAmount - 1 - factorizationData.getFactorsTotalHeight();
-  }
 
-  private void collectFactorsFromCurrentLayer(int currentLayerNo, FactorizationData factorizationData)
-  {
-    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
-    Vertex[] topUnitLayerVertices = new Vertex[graph.getGraphColoring().getOriginalColorsAmount()];
-    for (Vertex v : currentLayer)
-    {
-      if (v.isUnitLayer())
-      {
-        Edge arbitraryEdge = v.getDownEdges().getEdges().get(0);
-        int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), arbitraryEdge.getLabel().getColor());
-        topUnitLayerVertices[arbitraryEdgeColor] = v;
-      }
-    }
-    collectFactors(factorizationData, topUnitLayerVertices, null);
-  }
-
-  private void collectFactorsFromPreviousLayer(int previousLayerNo, FactorizationData factorizationData)
-  {
-    List<Vertex> previousLayer = vertexService.getGraphLayer(previousLayerNo);
-    Vertex[] topUnitLayerVertices = new Vertex[graph.getGraphColoring().getOriginalColorsAmount()];
-    Vertex exclusionVertex = new Vertex(-1, null);
-    for (Vertex v : previousLayer)
-    {
-      Edge arbitraryEdge = v.getDownEdges().getEdges().get(0);
-      int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), arbitraryEdge.getLabel().getColor());
-      if (v.isUnitLayer() && topUnitLayerVertices[arbitraryEdgeColor] != exclusionVertex)
-      {
-        boolean potentialCompletedFactor = true;
-        for (Edge vUpEdge : v.getUpEdges().getEdges())
-        {
-          Vertex endpointVertex = vUpEdge.getEndpoint();
-          if (endpointVertex.isUnitLayer())
-          {
-            potentialCompletedFactor = false;
-            break;
-          }
-        }
-        if (potentialCompletedFactor)
-        {
-          topUnitLayerVertices[arbitraryEdgeColor] = v;
-        }
-        else
-        {
-          topUnitLayerVertices[arbitraryEdgeColor] = exclusionVertex;
-        }
-      }
-    }
-    collectFactors(factorizationData, topUnitLayerVertices, exclusionVertex);
-  }
-
-  private void collectFactors(FactorizationData factorizationData, Vertex[] topUnitLayerVertices, Vertex exclusionVertex)
-  {
-    for (Integer colorIndex : graph.getGraphColoring().getActualColors())
-    {
-      Vertex topUnitLayerVertex = topUnitLayerVertices[colorIndex];
-      if (topUnitLayerVertex != null && topUnitLayerVertex != exclusionVertex)
-      {
-        int mappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), topUnitLayerVertex.getDownEdges().getEdges().get(0).getLabel().getColor());
-        FactorizationData.FactorData factorData = new FactorizationData.FactorData(topUnitLayerVertex, topUnitLayerVertex.getBfsLayer(), mappedColor);
-        factorizationData.getFactors().add(factorData);
-        factorizationData.setFactorsTotalHeight(factorizationData.getFactorsTotalHeight() + topUnitLayerVertex.getBfsLayer());
-      }
-    }
-  }
 }

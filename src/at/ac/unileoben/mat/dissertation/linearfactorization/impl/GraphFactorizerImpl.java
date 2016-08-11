@@ -7,7 +7,10 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdges
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
+import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,21 +43,38 @@ public class GraphFactorizerImpl implements GraphFactorizer
   @Autowired
   ColoringService coloringService;
 
+  @Autowired
+  ReconstructionService reconstructionService;
+
   @Override
   public void factorize()
   {
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      factorizeSingleLayer(currentLayerNo);
+      factorizeSingleLayer(currentLayerNo, null);
     }
   }
 
-  public void factorizeSingleLayer(int currentLayerNo)
+  @Override
+  public void factorizeSingleLayer(int currentLayerNo, FactorizationData factorizationData)
   {
     downEdgesLabeler.labelEdges(currentLayerNo);
     crossEdgesLabeler.labelEdges(currentLayerNo);
     upEdgesLabeler.labelEdges(currentLayerNo);
-    consistencyChecker.checkConsistency(currentLayerNo);
+
+    if (graph.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT)
+    {
+      consistencyChecker.checkConsistency(currentLayerNo);
+    }
+    else
+    {
+      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
+      if (!factorizationData.isFactorizationCompleted())
+      {
+        consistencyChecker.checkConsistency(currentLayerNo);
+        reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
+      }
+    }
   }
 }

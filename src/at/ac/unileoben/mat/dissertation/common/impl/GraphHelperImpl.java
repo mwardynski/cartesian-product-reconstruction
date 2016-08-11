@@ -124,7 +124,8 @@ public class GraphHelperImpl implements GraphHelper
     List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
     AtomicBoolean isFirstVertexMissing = new AtomicBoolean(true);
     orderBFS(root, vertices, Optional.of(color),
-            (currentVertex, previousVertex) -> {
+            (currentVertex, previousVertex) ->
+            {
               if (isFirstVertexMissing.getAndSet(false))
               {
                 connectedComponentVertices.add(previousVertex);
@@ -138,7 +139,6 @@ public class GraphHelperImpl implements GraphHelper
   {
     Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
     graphColoringArray[root.getVertexNo()] = Color.GRAY;
-    root.setBfsLayer(0);
     Queue<Vertex> queue = new LinkedList<>();
     queue.add(root);
     while (!queue.isEmpty())
@@ -225,8 +225,10 @@ public class GraphHelperImpl implements GraphHelper
     Integer[] reindexArray = new Integer[findMaxVertexNo(vertices) + 1];
     AtomicInteger counter = new AtomicInteger(0);
     reindexArray[root.getVertexNo()] = counter.getAndIncrement();
+    root.setBfsLayer(0);
     orderBFS(root, vertices, Optional.empty(),
-            (currentVertex, previousVertex) -> {
+            (currentVertex, previousVertex) ->
+            {
               currentVertex.setBfsLayer(previousVertex.getBfsLayer() + 1);
               reindexArray[currentVertex.getVertexNo()] = counter.getAndIncrement();
             });

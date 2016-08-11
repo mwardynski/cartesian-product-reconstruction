@@ -9,12 +9,12 @@
 #end
 \node[vertex,fill=\color!\weight] (\name) at \pos {$\label$};
 
-\foreach \source/ \dest/ \col/ \style in {
+\foreach \source/ \dest/ \col/ \style/ \backwardEdgeLabel/ \forwardEdgeLabel  in {
 #foreach( $edge in $edges )
     #set($separator = "#if($foreach.hasNext),#{else}}#end")
-    $edge.originNo/$edge.endpointNo/$edge.color/$edge.style$separator
+    $edge.originNo/$edge.endpointNo/$edge.color/$edge.style/{$!{edge.backwardEdgeLabel}}/{$!{edge.forwardEdgeLabel}}$separator
 #end
-\path[edge,\col,\style] (\source) -- (\dest);
+\path[edge,\col,\style] (\source) -- node[backwardEdgeLabel] {$\backwardEdgeLabel$} node[forwardEdgeLabel] {$\forwardEdgeLabel$} (\dest);
 
 \end{tikzpicture}
 \end{figure}

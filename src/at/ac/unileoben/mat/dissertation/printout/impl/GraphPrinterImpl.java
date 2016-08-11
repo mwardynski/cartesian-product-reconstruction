@@ -8,6 +8,7 @@ import at.ac.unileoben.mat.dissertation.printout.data.EdgeStyleDefinition;
 import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeColorEnum;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeStyleEnum;
+import at.ac.unileoben.mat.dissertation.printout.utils.LabelUtils;
 import at.ac.unileoben.mat.dissertation.printout.utils.VertexColorEnum;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.velocity.VelocityContext;
@@ -177,6 +178,16 @@ public class GraphPrinterImpl implements GraphPrinter
     EdgeData edgeData = new EdgeData();
     edgeData.setOriginNo(edge.getOrigin().getVertexNo());
     edgeData.setEndpointNo(edge.getEndpoint().getVertexNo());
+
+    if (edge.getLabel() != null)
+    {
+      edgeData.setBackwardEdgeLabel(LabelUtils.formatLabel(edge.getLabel()));
+
+      if (edge.getOpposite() != null && edge.getOpposite().getLabel() != null)
+      {
+        edgeData.setForwardEdgeLabel(LabelUtils.formatLabel(edge.getOpposite().getLabel()));
+      }
+    }
 
     Label label = edge.getLabel();
     if (label != null && label.getColor() < edgeColors.length)
