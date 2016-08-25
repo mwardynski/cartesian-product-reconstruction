@@ -62,7 +62,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
 
   private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
   {
-    return currentLayerNo == factorizationData.getLayersAmout() - factorizationData.getFactorsTotalHeight() - 1;
+    return currentLayerNo == factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight() ;
   }
 
   private void collectFactorsFromCurrentLayer(int currentLayerNo, FactorizationData factorizationData)
@@ -123,7 +123,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
         int bfsLayer = topUnitLayerVertices.iterator().next().getBfsLayer();
         FactorizationData.FactorData factorData = new FactorizationData.FactorData(topUnitLayerVertices, bfsLayer, mappedColor);
         factorizationData.getFactors().add(factorData);
-        factorizationData.setFactorsTotalHeight(factorizationData.getFactorsTotalHeight() + bfsLayer);
+        factorizationData.setCollectedFactorsTotalHeight(factorizationData.getCollectedFactorsTotalHeight() + bfsLayer);
       }
     }
   }

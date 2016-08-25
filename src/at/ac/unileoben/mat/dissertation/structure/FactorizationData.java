@@ -9,31 +9,31 @@ import java.util.stream.Collectors;
  */
 public class FactorizationData
 {
-  private int layersAmout;
-  private int factorsTotalHeight;
+  private int maxFactorsHeight;
+  private int collectedFactorsTotalHeight;
   private List<FactorData> factors;
   private boolean factorizationCompleted;
 
-  public FactorizationData(int layersAmout)
+  public FactorizationData(int maxFactorsHeight)
   {
-    this.layersAmout = layersAmout;
+    this.maxFactorsHeight = maxFactorsHeight;
     factors = new LinkedList<>();
     factorizationCompleted = false;
   }
 
-  public int getLayersAmout()
+  public int getMaxFactorsHeight()
   {
-    return layersAmout;
+    return maxFactorsHeight;
   }
 
-  public int getFactorsTotalHeight()
+  public int getCollectedFactorsTotalHeight()
   {
-    return factorsTotalHeight;
+    return collectedFactorsTotalHeight;
   }
 
-  public void setFactorsTotalHeight(int factorsTotalHeight)
+  public void setCollectedFactorsTotalHeight(int collectedFactorsTotalHeight)
   {
-    this.factorsTotalHeight = factorsTotalHeight;
+    this.collectedFactorsTotalHeight = collectedFactorsTotalHeight;
   }
 
   public List<FactorData> getFactors()
