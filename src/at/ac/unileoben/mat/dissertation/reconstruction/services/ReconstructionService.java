@@ -12,7 +12,7 @@ public interface ReconstructionService
 {
   List<List<Vertex>> createTopVerticesList(int originalColorsAmount);
 
-  void findReconstructionComponents(int currentLayerNo, FactorizationData factorizationData);
+  FactorizationData findReconstructionComponents(int currentLayerNo, FactorizationData factorizationData);
 
   void collectFactors(FactorizationData factorizationData, List<List<Vertex>> topUnitLayerVertices);
 }

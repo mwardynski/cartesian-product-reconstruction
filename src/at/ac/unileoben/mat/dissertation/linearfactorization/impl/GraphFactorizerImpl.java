@@ -70,11 +70,8 @@ public class GraphFactorizerImpl implements GraphFactorizer
     else
     {
       reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
-      if (!factorizationData.isFactorizationCompleted())
-      {
-        consistencyChecker.checkConsistency(currentLayerNo);
-        reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
-      }
+      consistencyChecker.checkConsistency(currentLayerNo);
+      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
     }
   }
 }

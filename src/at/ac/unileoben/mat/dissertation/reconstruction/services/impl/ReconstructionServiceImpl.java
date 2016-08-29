@@ -40,8 +40,20 @@ public class ReconstructionServiceImpl implements ReconstructionService
   }
 
   @Override
-  public void findReconstructionComponents(int currentLayerNo, FactorizationData factorizationData)
+  public FactorizationData findReconstructionComponents(int currentLayerNo, FactorizationData factorizationData)
   {
+    if (factorizationData.isFactorizationCompleted())
+    {
+      if (factorizationData.getFactors().size() != graph.getGraphColoring().getActualColors().size())
+      {
+        factorizationData = new FactorizationData(factorizationData.getMaxFactorsHeight());
+      }
+      else
+      {
+        return factorizationData;
+      }
+    }
+
     if (!isLastPossibleLayerForNewFactors(currentLayerNo, factorizationData))
     {
       collectFactorsFromPreviousLayer(currentLayerNo - 1, factorizationData);
@@ -58,11 +70,12 @@ public class ReconstructionServiceImpl implements ReconstructionService
       collectFactorsFromCurrentLayer(currentLayerNo, factorizationData);
       factorizationData.setFactorizationCompleted(true);
     }
+    return factorizationData;
   }
 
   private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
   {
-    return currentLayerNo == factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight() ;
+    return currentLayerNo == factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight();
   }
 
   private void collectFactorsFromCurrentLayer(int currentLayerNo, FactorizationData factorizationData)

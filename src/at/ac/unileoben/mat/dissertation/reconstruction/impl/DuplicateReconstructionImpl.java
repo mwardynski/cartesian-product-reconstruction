@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.OptionalInt;
 
 import static java.util.stream.Collectors.toList;
 
@@ -55,7 +56,7 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
       factorizationData = findFactorsForRoot(vertices, vertex);
       if (graph.getGraphColoring().getActualColors().size() != 1 &&
               graph.getGraphColoring().getActualColors().size() == factorizationData.getFactors().size()
-              && isNonOrOnlyOneVertexToAddInNewLayer(factorizationData)
+//              && isNonOrOnlyOneVertexToAddInNewLayer(factorizationData)
               && isCorrectAmountOfVerticesInFactors(vertices, factorizationData))
       {
         break;
@@ -68,12 +69,25 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
 
   private boolean isNonOrOnlyOneVertexToAddInNewLayer(FactorizationData factorizationData)
   {
-    boolean isNonOrOnlyOneVertexToAddInNewLayer = true;
-    if (factorizationData.getFactorsTotalHeight() == factorizationData.getLayersAmout())
+    boolean nonOrOnlyOneVertexToAddInNewLayer = true;
+    List<List<Vertex>> layers = graph.getLayers();
+    int highestLayerSize;
+    if (factorizationData.getCollectedFactorsTotalHeight() == layers.size())
     {
-      isNonOrOnlyOneVertexToAddInNewLayer = !factorizationData.getFactors().stream().filter(factorData -> factorData.getTopVertices().size() > 1).findAny().isPresent();
+      highestLayerSize = 0;
     }
-    return isNonOrOnlyOneVertexToAddInNewLayer;
+    else
+    {
+      List<Vertex> highestLayer = layers.get(layers.size() - 1);
+      highestLayerSize = highestLayer.size();
+    }
+    nonOrOnlyOneVertexToAddInNewLayer = !factorizationData.getFactors()
+            .stream()
+            .filter(factorData -> factorData.getTopVertices().size() - highestLayerSize < 0 || factorData.getTopVertices().size() - highestLayerSize > 1)
+            .findAny()
+            .isPresent();
+
+    return nonOrOnlyOneVertexToAddInNewLayer;
   }
 
   private boolean isCorrectAmountOfVerticesInFactors(List<Vertex> vertices, FactorizationData factorizationData)
@@ -95,13 +109,10 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     graphFactorizationPreparer.arrangeFirstLayerEdges();
 
     int layersAmount = graph.getLayers().size();
-    FactorizationData factorizationData = new FactorizationData(layersAmount);
+    FactorizationData factorizationData = new FactorizationData(layersAmount - 1);
 
     collectFirstLayerFactors(vertices, root, factorizationData);
-    if (!factorizationData.isFactorizationCompleted())
-    {
-      factorizationData = findFactorsForPreparedGraph();
-    }
+    factorizationData = findFactorsForPreparedGraph(factorizationData);
     return factorizationData;
   }
 
@@ -143,20 +154,46 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     }
   }
 
-  private FactorizationData findFactorsForPreparedGraph()
+  private FactorizationData findFactorsForPreparedGraph(FactorizationData factorizationData)
   {
     int layersAmount = graph.getLayers().size();
-    FactorizationData factorizationData = new FactorizationData(layersAmount);
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      graphFactorizer.factorizeSingleLayer(currentLayerNo, factorizationData);
-      if (factorizationData.isFactorizationCompleted())
+      if (graph.getOperationOnGraph() == OperationOnGraph.RECONSTRUCT && breakProcessing(currentLayerNo, factorizationData))
       {
         break;
+      }
+      else
+      {
+        graphFactorizer.factorizeSingleLayer(currentLayerNo, factorizationData);
       }
     }
     return factorizationData;
   }
 
+  private boolean breakProcessing(int currentLayer, FactorizationData factorizationData)
+  {
+
+    return isSingleFactor() || isLastIncompleteLayer(currentLayer, factorizationData);
+  }
+
+  private boolean isSingleFactor()
+  {
+    return graph.getGraphColoring().getActualColors().size() == 1;
+  }
+
+  private boolean isLastIncompleteLayer(int currentLayer, FactorizationData factorizationData)
+  {
+    boolean lastIncompleteLayer = false;
+    if (currentLayer == graph.getLayers().size() - 1)
+    {
+      OptionalInt maxTopVerticesSizeOptional = factorizationData.getFactors().stream().mapToInt(factorData -> factorData.getTopVertices().size()).max();
+      if (maxTopVerticesSizeOptional.isPresent() && graph.getLayers().get(currentLayer).size() < maxTopVerticesSizeOptional.getAsInt())
+      {
+        lastIncompleteLayer = true;
+      }
+    }
+    return lastIncompleteLayer;
+  }
 
 }
