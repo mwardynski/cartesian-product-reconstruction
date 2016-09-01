@@ -1,12 +1,10 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by mwardynski on 12/06/16.
@@ -33,6 +33,8 @@ public class ReconstructionServiceImpl implements ReconstructionService
   @Autowired
   ColoringService coloringService;
 
+  @Autowired
+  GraphHelper graphHelper;
 
   public List<List<Vertex>> createTopVerticesList(int originalColorsAmount)
   {
@@ -40,42 +42,91 @@ public class ReconstructionServiceImpl implements ReconstructionService
   }
 
   @Override
-  public FactorizationData findReconstructionComponents(int currentLayerNo, FactorizationData factorizationData)
+  public void findReconstructionComponents(int currentLayerNo, FactorizationResultData factorizationResultData, boolean afterConsistencyCheck)
   {
-    if (factorizationData.isFactorizationCompleted())
+    boolean processsCurrentLayer = handleCurrentFactorization(currentLayerNo, factorizationResultData, afterConsistencyCheck);
+    if (processsCurrentLayer)
     {
-      if (factorizationData.getFactors().size() != graph.getGraphColoring().getActualColors().size())
-      {
-        factorizationData = new FactorizationData(factorizationData.getMaxFactorsHeight());
-      }
-      else
-      {
-        return factorizationData;
-      }
+      processCurrentLayer(currentLayerNo, factorizationResultData);
     }
+  }
 
-    if (!isLastPossibleLayerForNewFactors(currentLayerNo, factorizationData))
+  private boolean handleCurrentFactorization(int currentLayerNo, FactorizationResultData factorizationResultData, boolean afterConsistencyCheck)
+  {
+    int actualColorsAmount = graph.getGraphColoring().getActualColors().size();
+    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+
+    boolean processCurrentLayer = actualColorsAmount != 1;
+    List<FactorizationData.FactorData> currentFactors = currentFactorizationData.getFactors();
+    if (CollectionUtils.isNotEmpty(currentFactors) && currentFactors.size() != actualColorsAmount)
     {
-      collectFactorsFromPreviousLayer(currentLayerNo - 1, factorizationData);
-//      collectFactorsFromCurrentLayer(currentLayerNo, factorizationData);
-      if (isLastPossibleLayerForNewFactors(currentLayerNo, factorizationData))
+      // TODO
+      // handle marge
+      updateFactorizationResult(factorizationResultData);
+      currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot());
+      factorizationResultData.setCurrentFactorization(currentFactorizationData);
+    }
+    else
+    {
+      processCurrentLayer &= !currentFactorizationData.isFactorizationCompleted();
+    }
+    currentFactorizationData.setMaxConsistentLayerNo(currentLayerNo);
+    currentFactorizationData.setAfterConsistencyCheck(afterConsistencyCheck);
+    if (isLastLayerAndCurrentFactorizationCompleted(currentLayerNo, currentFactorizationData))
+    {
+      factorizationResultData.setResultFactorization(currentFactorizationData);
+    }
+    return processCurrentLayer;
+  }
+
+  public void updateFactorizationResult(FactorizationResultData factorizationResultData)
+  {
+    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+    if (currentFactorizationData.isFactorizationCompleted())
+    {
+      FactorizationData resultFactorizationData = factorizationResultData.getResultFactorization();
+      if (currentFactorizationData.compareTo(resultFactorizationData) > 0)
       {
-        collectFactorsFromCurrentLayer(currentLayerNo, factorizationData);
-        factorizationData.setFactorizationCompleted(true);
+        factorizationResultData.setResultFactorization(currentFactorizationData);
       }
     }
-    else if (isLastPossibleLayerForNewFactors(currentLayerNo, factorizationData))
+  }
+
+  private boolean isLastLayerAndCurrentFactorizationCompleted(int currentLayerNo, FactorizationData currentFactorizationData)
+  {
+    return currentLayerNo == graph.getLayers().size() - 1 && currentFactorizationData.isFactorizationCompleted();
+  }
+
+  private void processCurrentLayer(int currentLayerNo, FactorizationResultData factorizationResultData)
+  {
+    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+    if (!isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData))
     {
-      collectFactorsFromPreviousLayer(currentLayerNo - 1, factorizationData);
-      collectFactorsFromCurrentLayer(currentLayerNo, factorizationData);
-      factorizationData.setFactorizationCompleted(true);
+      collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
+      collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
+      if (areCollectedFactorsOfMaxTotalHeight(currentFactorizationData))
+      {
+//        collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
+        currentFactorizationData.setFactorizationCompleted(isCorrectAmountOfVerticesInFactors(currentFactorizationData));
+      }
     }
-    return factorizationData;
+    else if (isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData))
+    {
+      collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
+      collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
+      currentFactorizationData.setFactorizationCompleted(isCorrectAmountOfVerticesInFactors(currentFactorizationData));
+    }
   }
 
   private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
   {
     return currentLayerNo == factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight();
+  }
+
+  private boolean areCollectedFactorsOfMaxTotalHeight(FactorizationData factorizationData)
+  {
+    int factorsHeightDifference = factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight();
+    return factorsHeightDifference == 0 || factorsHeightDifference == -1;
   }
 
   private void collectFactorsFromCurrentLayer(int currentLayerNo, FactorizationData factorizationData)
@@ -139,6 +190,17 @@ public class ReconstructionServiceImpl implements ReconstructionService
         factorizationData.setCollectedFactorsTotalHeight(factorizationData.getCollectedFactorsTotalHeight() + bfsLayer);
       }
     }
+  }
+
+  private boolean isCorrectAmountOfVerticesInFactors(FactorizationData factorizationData)
+  {
+    List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
+    {
+      List<Vertex> connectedComponentVertices = graphHelper.getConnectedComponentForColor(factorData.getTopVertices().iterator().next(), graph.getVertices(), factorData.getMappedColor());
+      return connectedComponentVertices.size();
+    }).boxed().collect(toList());
+    Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
+    return amountOfVerticesAfterMultiplication == graph.getVertices().size() + 1;
   }
 
 }

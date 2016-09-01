@@ -8,7 +8,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLa
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
-import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
+import at.ac.unileoben.mat.dissertation.structure.FactorizationResultData;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ public class GraphFactorizerImpl implements GraphFactorizer
   }
 
   @Override
-  public void factorizeSingleLayer(int currentLayerNo, FactorizationData factorizationData)
+  public void factorizeSingleLayer(int currentLayerNo, FactorizationResultData factorizationResultData)
   {
     downEdgesLabeler.labelEdges(currentLayerNo);
     crossEdgesLabeler.labelEdges(currentLayerNo);
@@ -69,9 +69,9 @@ public class GraphFactorizerImpl implements GraphFactorizer
     }
     else
     {
-      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
+      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationResultData, false);
       consistencyChecker.checkConsistency(currentLayerNo);
-      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationData);
+      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationResultData, true);
     }
   }
 }

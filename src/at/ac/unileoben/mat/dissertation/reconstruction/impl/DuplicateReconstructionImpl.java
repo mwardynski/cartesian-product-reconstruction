@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.OptionalInt;
 
-import static java.util.stream.Collectors.toList;
-
 /**
  * Created by mwardynski on 24/04/16.
  */
@@ -50,20 +48,13 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
   @Override
   public FactorizationData findFactors(List<Vertex> vertices)
   {
-    FactorizationData factorizationData = null;
+    FactorizationResultData factorizationResultData = new FactorizationResultData();
     for (Vertex vertex : vertices)
     {
-      factorizationData = findFactorsForRoot(vertices, vertex);
-      if (graph.getGraphColoring().getActualColors().size() != 1 &&
-              graph.getGraphColoring().getActualColors().size() == factorizationData.getFactors().size()
-//              && isNonOrOnlyOneVertexToAddInNewLayer(factorizationData)
-              && isCorrectAmountOfVerticesInFactors(vertices, factorizationData))
-      {
-        break;
-      }
+      findFactorsForRoot(vertices, vertex, factorizationResultData);
       graphHelper.revertGraphBfsStructure();
     }
-    return factorizationData;
+    return factorizationResultData.getResultFactorization();
   }
 
 
@@ -90,18 +81,8 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     return nonOrOnlyOneVertexToAddInNewLayer;
   }
 
-  private boolean isCorrectAmountOfVerticesInFactors(List<Vertex> vertices, FactorizationData factorizationData)
-  {
-    List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
-    {
-      List<Vertex> connectedComponentVertices = graphHelper.getConnectedComponentForColor(factorData.getTopVertices().iterator().next(), vertices, factorData.getMappedColor());
-      return connectedComponentVertices.size();
-    }).boxed().collect(toList());
-    Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
-    return amountOfVerticesAfterMultiplication == vertices.size() + 1;
-  }
 
-  private FactorizationData findFactorsForRoot(List<Vertex> vertices, Vertex root)
+  private void findFactorsForRoot(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
   {
     clearVerticesAndEdges(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
@@ -109,11 +90,11 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     graphFactorizationPreparer.arrangeFirstLayerEdges();
 
     int layersAmount = graph.getLayers().size();
-    FactorizationData factorizationData = new FactorizationData(layersAmount - 1);
+    FactorizationData factorizationData = new FactorizationData(layersAmount - 1, root);
+    factorizationResultData.setCurrentFactorization(factorizationData);
 
-    collectFirstLayerFactors(vertices, root, factorizationData);
-    factorizationData = findFactorsForPreparedGraph(factorizationData);
-    return factorizationData;
+    collectFirstLayerFactors(vertices, root, factorizationResultData);
+    findFactorsForPreparedGraph(factorizationResultData);
   }
 
   private void clearVerticesAndEdges(List<Vertex> vertices)
@@ -128,7 +109,7 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     }
   }
 
-  private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root, FactorizationData factorizationData)
+  private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
   {
     List<List<Vertex>> topUnitLayerVertices = reconstructionService.createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
     int[] unitLayerVerticesAmountPerColor = new int[graph.getGraphColoring().getOriginalColorsAmount()];
@@ -149,32 +130,38 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     }
     if (vertices.size() + 1 == graphSizeWithFoundFactors)
     {
-      reconstructionService.collectFactors(factorizationData, topUnitLayerVertices);
-      factorizationData.setFactorizationCompleted(true);
+      FactorizationData currentFactorization = factorizationResultData.getCurrentFactorization();
+      reconstructionService.collectFactors(currentFactorization, topUnitLayerVertices);
+      currentFactorization.setMaxConsistentLayerNo(1);
+      currentFactorization.setFactorizationCompleted(true);
     }
   }
 
-  private FactorizationData findFactorsForPreparedGraph(FactorizationData factorizationData)
+  private void findFactorsForPreparedGraph(FactorizationResultData factorizationResultData)
   {
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      if (graph.getOperationOnGraph() == OperationOnGraph.RECONSTRUCT && breakProcessing(currentLayerNo, factorizationData))
+      if (graph.getOperationOnGraph() == OperationOnGraph.RECONSTRUCT && breakProcessing(currentLayerNo, factorizationResultData))
       {
         break;
       }
       else
       {
-        graphFactorizer.factorizeSingleLayer(currentLayerNo, factorizationData);
+        graphFactorizer.factorizeSingleLayer(currentLayerNo, factorizationResultData);
       }
     }
-    return factorizationData;
   }
 
-  private boolean breakProcessing(int currentLayer, FactorizationData factorizationData)
+  private boolean breakProcessing(int currentLayer, FactorizationResultData factorizationResultData)
   {
 
-    return isSingleFactor() || isLastIncompleteLayer(currentLayer, factorizationData);
+    boolean breakProcesssing = isSingleFactor() || isLastIncompleteLayer(currentLayer, factorizationResultData);
+    if (breakProcesssing)
+    {
+      reconstructionService.updateFactorizationResult(factorizationResultData);
+    }
+    return breakProcesssing;
   }
 
   private boolean isSingleFactor()
@@ -182,15 +169,17 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     return graph.getGraphColoring().getActualColors().size() == 1;
   }
 
-  private boolean isLastIncompleteLayer(int currentLayer, FactorizationData factorizationData)
+  private boolean isLastIncompleteLayer(int currentLayer, FactorizationResultData factorizationResultData)
   {
     boolean lastIncompleteLayer = false;
+    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
     if (currentLayer == graph.getLayers().size() - 1)
     {
-      OptionalInt maxTopVerticesSizeOptional = factorizationData.getFactors().stream().mapToInt(factorData -> factorData.getTopVertices().size()).max();
+      OptionalInt maxTopVerticesSizeOptional = currentFactorizationData.getFactors().stream().mapToInt(factorData -> factorData.getTopVertices().size()).max();
       if (maxTopVerticesSizeOptional.isPresent() && graph.getLayers().get(currentLayer).size() < maxTopVerticesSizeOptional.getAsInt())
       {
         lastIncompleteLayer = true;
+
       }
     }
     return lastIncompleteLayer;

@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.StopWatch;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -48,6 +49,8 @@ public class DuplicateReconstructionTest
         List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
         for (int vertexNumberToRemove = 0; vertexNumberToRemove < vertices.size(); vertexNumberToRemove++)
         {
+          StopWatch stopWatch = new StopWatch();
+          stopWatch.start();
           List<Vertex> incompleteVertices = graphHelper.parseGraph(factorizationCase.getFileName());
           graphFactorizationPreparer.removeVertex(incompleteVertices, vertexNumberToRemove);
 
@@ -56,12 +59,15 @@ public class DuplicateReconstructionTest
             FactorizationData factorizationData = duplicateReconstruction.findFactors(incompleteVertices);
             assertThat("file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove,
                     factorizationData.getFactors().size(), is(factorizationCase.getAmountOfFactors()));
+            System.out.print("OK - file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
           }
           catch (Exception e)
           {
-            System.out.println("EXCEPTION " + e + ", file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
+            System.out.print("EXCEPTION " + e + ", file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
             e.printStackTrace();
           }
+          stopWatch.stop();
+          System.out.println(" [" + stopWatch.getTotalTimeSeconds() + "s]");
         }
       }
       catch (IllegalArgumentException | IllegalStateException e)
@@ -74,22 +80,21 @@ public class DuplicateReconstructionTest
   {
 
     examplesList.add(new FactorizationCase("newExCart.txt", 2));
-//    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
-//    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
-//    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
-//    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
-//    examplesList.add(new FactorizationCase("g1", 2));
-//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
-//    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
+    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
+    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
+    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
+    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
+    examplesList.add(new FactorizationCase("g1", 2));
+    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
+    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
     //working
-//    examplesList.add(new FactorizationCase("c.txt", 3));
-//    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
-//    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
-//
-//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-//    examplesList.add(new FactorizationCase("breakExample.txt", 2));
+    examplesList.add(new FactorizationCase("c.txt", 3));
+    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
+    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
+    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
+    examplesList.add(new FactorizationCase("breakExample.txt", 2));
     //not needed:
-//    examplesList.add(new FactorizationCase("victory.txt", 3));
+    examplesList.add(new FactorizationCase("victory.txt", 3));
 //    examplesList.add(new FactorizationCase("cd.txt", 1));
 //    examplesList.add(new FactorizationCase("g3", 1));
 //    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));

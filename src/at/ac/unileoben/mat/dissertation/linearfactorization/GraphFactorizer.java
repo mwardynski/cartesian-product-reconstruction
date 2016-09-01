@@ -1,6 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization;
 
-import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
+import at.ac.unileoben.mat.dissertation.structure.FactorizationResultData;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,5 +13,5 @@ public interface GraphFactorizer
 {
   void factorize();
 
-  void factorizeSingleLayer(int currentLayerNo, FactorizationData factorizationData);
+  void factorizeSingleLayer(int currentLayerNo, FactorizationResultData factorizationResultData);
 }

@@ -7,18 +7,22 @@ import java.util.stream.Collectors;
 /**
  * Created by mwardynski on 03/04/16.
  */
-public class FactorizationData
+public class FactorizationData implements Comparable<FactorizationData>
 {
   private int maxFactorsHeight;
   private int collectedFactorsTotalHeight;
   private List<FactorData> factors;
   private boolean factorizationCompleted;
+  private Vertex rootVertex;
+  private int maxConsistentLayerNo;
+  private boolean afterConsistencyCheck;
 
-  public FactorizationData(int maxFactorsHeight)
+  public FactorizationData(int maxFactorsHeight, Vertex rootVertex)
   {
     this.maxFactorsHeight = maxFactorsHeight;
-    factors = new LinkedList<>();
+    this.rootVertex = rootVertex;
     factorizationCompleted = false;
+    factors = new LinkedList<>();
   }
 
   public int getMaxFactorsHeight()
@@ -49,6 +53,59 @@ public class FactorizationData
   public void setFactorizationCompleted(boolean factorizationCompleted)
   {
     this.factorizationCompleted = factorizationCompleted;
+  }
+
+  public Vertex getRootVertex()
+  {
+    return rootVertex;
+  }
+
+  public int getMaxConsistentLayerNo()
+  {
+    return maxConsistentLayerNo;
+  }
+
+  public void setMaxConsistentLayerNo(int maxConsistentLayerNo)
+  {
+    this.maxConsistentLayerNo = maxConsistentLayerNo;
+  }
+
+  public boolean isAfterConsistencyCheck()
+  {
+    return afterConsistencyCheck;
+  }
+
+  public void setAfterConsistencyCheck(boolean afterConsistencyCheck)
+  {
+    this.afterConsistencyCheck = afterConsistencyCheck;
+  }
+
+  @Override
+  public int compareTo(FactorizationData other)
+  {
+    if (other == null)
+    {
+      return 1;
+    }
+    else if (this.getMaxConsistentLayerNo() == other.getMaxConsistentLayerNo())
+    {
+      if (this.isAfterConsistencyCheck() && !other.isAfterConsistencyCheck())
+      {
+        return 1;
+      }
+      else if (!this.isAfterConsistencyCheck() && other.isAfterConsistencyCheck())
+      {
+        return -1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    else
+    {
+      return this.getMaxConsistentLayerNo() - other.getMaxConsistentLayerNo();
+    }
   }
 
   public static class FactorData
