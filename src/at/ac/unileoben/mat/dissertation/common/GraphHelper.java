@@ -24,6 +24,10 @@ public interface GraphHelper
 
   List<Vertex> getConnectedComponentForColor(Vertex root, List<Vertex> vertices, int color);
 
+  List<Vertex> getFactorForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
+
+  void createEdgeBetweenVertices(Vertex factorCurrentVertex, Vertex factorPreviousVertex);
+
   <T> T[] createGraphColoringArray(List<Vertex> vertices, T defaultColor);
 
   boolean isGraphK1(List<Vertex> vertices);

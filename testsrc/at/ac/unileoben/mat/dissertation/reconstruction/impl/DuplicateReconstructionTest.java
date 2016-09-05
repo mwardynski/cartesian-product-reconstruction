@@ -94,7 +94,7 @@ public class DuplicateReconstructionTest
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
     examplesList.add(new FactorizationCase("breakExample.txt", 2));
     //not needed:
-    examplesList.add(new FactorizationCase("victory.txt", 3));
+//    examplesList.add(new FactorizationCase("victory.txt", 3));
 //    examplesList.add(new FactorizationCase("cd.txt", 1));
 //    examplesList.add(new FactorizationCase("g3", 1));
 //    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));

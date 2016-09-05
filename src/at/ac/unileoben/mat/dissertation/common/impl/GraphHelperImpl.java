@@ -53,7 +53,7 @@ public class GraphHelperImpl implements GraphHelper
     {
       if (!addedNeighbors[neighborVertex.getVertexNo()])
       {
-        addEdge(newVertex, neighborVertex);
+        createEdgeBetweenVertices(newVertex, neighborVertex);
         addedNeighbors[neighborVertex.getVertexNo()] = true;
       }
     }
@@ -80,7 +80,7 @@ public class GraphHelperImpl implements GraphHelper
           int edgeEndpointVertexNo = e.getEndpoint().getVertexNo();
           if ((!vertexToRemoveOptional.isPresent() || edgeEndpointVertexNo != vertexToRemoveOptional.get().getVertexNo()) && edgeEndpointVertexNo < i)
           {
-            addEdge(newVertex, newVerticesArray[edgeEndpointVertexNo]);
+            createEdgeBetweenVertices(newVertex, newVerticesArray[edgeEndpointVertexNo]);
           }
         }
       }
@@ -88,15 +88,6 @@ public class GraphHelperImpl implements GraphHelper
     return newVertices;
   }
 
-  private void addEdge(Vertex newVertex, Vertex neighborVertex)
-  {
-    Edge e1 = new Edge(newVertex, neighborVertex);
-    Edge e2 = new Edge(neighborVertex, newVertex);
-    e1.setOpposite(e2);
-    e2.setOpposite(e1);
-    newVertex.getEdges().add(e1);
-    neighborVertex.getEdges().add(e2);
-  }
 
   public List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices)
   {
@@ -108,7 +99,7 @@ public class GraphHelperImpl implements GraphHelper
       if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
       {
         List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
-        orderBFS(v, vertices, Optional.empty(),
+        orderBFS(Arrays.asList(v), vertices, Optional.empty(), Collections.emptySet(),
                 (currentVertex, previousVertex) -> connectedComponentVertices.add(currentVertex));
         connectedComponents.add(connectedComponentVertices);
       }
@@ -123,7 +114,7 @@ public class GraphHelperImpl implements GraphHelper
   {
     List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
     AtomicBoolean isFirstVertexMissing = new AtomicBoolean(true);
-    orderBFS(root, vertices, Optional.of(color),
+    orderBFS(Arrays.asList(root), vertices, Optional.of(color), Collections.emptySet(),
             (currentVertex, previousVertex) ->
             {
               if (isFirstVertexMissing.getAndSet(false))
@@ -135,25 +126,63 @@ public class GraphHelperImpl implements GraphHelper
     return connectedComponentVertices;
   }
 
-  private void orderBFS(Vertex root, List<Vertex> vertices, Optional<Integer> currentColorOptional, BiConsumer<Vertex, Vertex> biConsumer)
+  @Override
+  public List<Vertex> getFactorForTopVertices(List<Vertex> topVertices, List<Vertex> vertices)
+  {
+    List<Vertex> factorVertices = new ArrayList<>(vertices.size());
+    Vertex[] reindexArray = new Vertex[vertices.size()];
+    orderBFS(topVertices, vertices, Optional.empty(), EnumSet.of(EdgeType.UP),
+            (currentVertex, previousVertex) ->
+            {
+              Vertex factorCurrentVertex = getFactorVertex(currentVertex, factorVertices, reindexArray, vertices.size());
+              Vertex factorPreviousVertex = getFactorVertex(previousVertex, factorVertices, reindexArray, vertices.size());
+              createEdgeBetweenVertices(factorCurrentVertex, factorPreviousVertex);
+            });
+    return factorVertices;
+  }
+
+  private Vertex getFactorVertex(Vertex vertex, List<Vertex> factorVertices, Vertex[] reindexArray, int verticesSize)
+  {
+    Vertex factorCurrentVertex;
+    if (reindexArray[vertex.getVertexNo()] == null)
+    {
+      Vertex newVertex = new Vertex(factorVertices.size(), new ArrayList<>(verticesSize));
+      factorVertices.add(newVertex);
+      reindexArray[vertex.getVertexNo()] = newVertex;
+      factorCurrentVertex = newVertex;
+    }
+    else
+    {
+      factorCurrentVertex = reindexArray[vertex.getVertexNo()];
+    }
+    return factorCurrentVertex;
+  }
+
+  @Override
+  public void createEdgeBetweenVertices(Vertex factorCurrentVertex, Vertex factorPreviousVertex)
+  {
+    Edge e1 = new Edge(factorCurrentVertex, factorPreviousVertex);
+    Edge e2 = new Edge(factorPreviousVertex, factorCurrentVertex);
+    e1.setOpposite(e2);
+    e2.setOpposite(e1);
+    factorCurrentVertex.getEdges().add(e1);
+    factorPreviousVertex.getEdges().add(e2);
+  }
+
+  private void orderBFS(List<Vertex> roots, List<Vertex> vertices, Optional<Integer> currentColorOptional, Set<EdgeType> excludedEdgeTypes, BiConsumer<Vertex, Vertex> biConsumer)
   {
     Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
-    graphColoringArray[root.getVertexNo()] = Color.GRAY;
+    roots.stream().forEach(root -> graphColoringArray[root.getVertexNo()] = Color.GRAY);
     Queue<Vertex> queue = new LinkedList<>();
-    queue.add(root);
+    queue.addAll(roots);
     while (!queue.isEmpty())
     {
       Vertex u = queue.poll();
       for (Edge e : u.getEdges())
       {
-        if (currentColorOptional.isPresent())
+        if (isEdgeTypeToByExcluded(currentColorOptional, e) || isEdgeTypeToBeExcluded(excludedEdgeTypes, e))
         {
-          Integer currentColor = currentColorOptional.get();
-          if (e.getLabel() == null
-                  || coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor()) != currentColor)
-          {
-            continue;
-          }
+          continue;
         }
         Vertex v = e.getEndpoint();
         if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
@@ -165,6 +194,31 @@ public class GraphHelperImpl implements GraphHelper
       }
       graphColoringArray[u.getVertexNo()] = Color.BLACK;
     }
+  }
+
+  private boolean isEdgeTypeToByExcluded(Optional<Integer> currentColorOptional, Edge e)
+  {
+    boolean exculdeEge = false;
+    if (currentColorOptional.isPresent())
+    {
+      Integer currentColor = currentColorOptional.get();
+      if (e.getLabel() == null
+              || coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor()) != currentColor)
+      {
+        exculdeEge = true;
+      }
+    }
+    return exculdeEge;
+  }
+
+  private boolean isEdgeTypeToBeExcluded(Set<EdgeType> excludedEdgeTypes, Edge e)
+  {
+    boolean exculdeEge = false;
+    if (excludedEdgeTypes.contains(e.getEdgeType()))
+    {
+      exculdeEge = true;
+    }
+    return exculdeEge;
   }
 
 
@@ -226,7 +280,7 @@ public class GraphHelperImpl implements GraphHelper
     AtomicInteger counter = new AtomicInteger(0);
     reindexArray[root.getVertexNo()] = counter.getAndIncrement();
     root.setBfsLayer(0);
-    orderBFS(root, vertices, Optional.empty(),
+    orderBFS(Arrays.asList(root), vertices, Optional.empty(), Collections.emptySet(),
             (currentVertex, previousVertex) ->
             {
               currentVertex.setBfsLayer(previousVertex.getBfsLayer() + 1);

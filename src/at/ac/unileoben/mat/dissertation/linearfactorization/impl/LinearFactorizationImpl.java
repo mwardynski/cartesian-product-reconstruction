@@ -8,6 +8,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPr
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -73,6 +74,7 @@ public class LinearFactorizationImpl implements LinearFactorization
   public Graph factorize(List<Vertex> vertices, Vertex root)
   {
     prepare(vertices, root);
+    graph.setOperationOnGraph(OperationOnGraph.FACTORIZE);
     factorizeGraph();
     return graph;
   }
