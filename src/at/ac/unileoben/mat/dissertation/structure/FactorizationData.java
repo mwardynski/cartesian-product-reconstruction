@@ -16,13 +16,15 @@ public class FactorizationData implements Comparable<FactorizationData>
   private Vertex rootVertex;
   private int maxConsistentLayerNo;
   private boolean afterConsistencyCheck;
+  private FactorizationUnitLayerSpecData[] unitLayerSpecs;
 
-  public FactorizationData(int maxFactorsHeight, Vertex rootVertex)
+  public FactorizationData(int maxFactorsHeight, Vertex rootVertex, FactorizationUnitLayerSpecData[] unitLayerSpecs)
   {
     this.maxFactorsHeight = maxFactorsHeight;
     this.rootVertex = rootVertex;
-    factorizationCompleted = false;
-    factors = new LinkedList<>();
+    this.factorizationCompleted = false;
+    this.factors = new LinkedList<>();
+    this.unitLayerSpecs = unitLayerSpecs;
   }
 
   public int getMaxFactorsHeight()
@@ -80,6 +82,11 @@ public class FactorizationData implements Comparable<FactorizationData>
     this.afterConsistencyCheck = afterConsistencyCheck;
   }
 
+  public FactorizationUnitLayerSpecData[] getUnitLayerSpecs()
+  {
+    return unitLayerSpecs;
+  }
+
   @Override
   public int compareTo(FactorizationData other)
   {
@@ -126,11 +133,6 @@ public class FactorizationData implements Comparable<FactorizationData>
       return topVertices;
     }
 
-    public int getHeight()
-    {
-      return height;
-    }
-
     public int getMappedColor()
     {
       return mappedColor;
@@ -142,4 +144,5 @@ public class FactorizationData implements Comparable<FactorizationData>
       return String.format("v:%d c:%d h:%d", topVertices.stream().map(v -> v.toString()).collect(Collectors.joining(",")), mappedColor, height);
     }
   }
+
 }

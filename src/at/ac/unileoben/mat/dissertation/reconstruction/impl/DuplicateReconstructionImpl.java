@@ -175,7 +175,8 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     graphFactorizationPreparer.arrangeFirstLayerEdges();
 
     int layersAmount = graph.getLayers().size();
-    FactorizationData factorizationData = new FactorizationData(layersAmount - 1, root);
+    FactorizationUnitLayerSpecData[] unitLayerSpecs = new FactorizationUnitLayerSpecData[vertices.size()];
+    FactorizationData factorizationData = new FactorizationData(layersAmount - 1, root, unitLayerSpecs);
     factorizationResultData.setCurrentFactorization(factorizationData);
 
     collectFirstLayerFactors(vertices, root, factorizationResultData);
@@ -197,22 +198,28 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
   private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
   {
     List<List<Vertex>> topUnitLayerVertices = reconstructionService.createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
-    int[] unitLayerVerticesAmountPerColor = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     for (Edge e : root.getUpEdges().getEdges())
     {
       int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor());
       Vertex v = e.getEndpoint();
       topUnitLayerVertices.get(arbitraryEdgeColor).add(v);
-      unitLayerVerticesAmountPerColor[arbitraryEdgeColor]++;
     }
     int graphSizeWithFoundFactors = 1;
-    for (int edgesAmount : unitLayerVerticesAmountPerColor)
+
+    FactorizationUnitLayerSpecData[] unitLayerSpecs = factorizationResultData.getCurrentFactorization().getUnitLayerSpecs();
+    unitLayerSpecs[0] = new FactorizationUnitLayerSpecData(0, 0);
+    for (int currentColor = 0; currentColor < topUnitLayerVertices.size(); currentColor++)
     {
+      int edgesAmount = topUnitLayerVertices.get(currentColor).size();
       if (edgesAmount != 0)
       {
-        graphSizeWithFoundFactors *= (edgesAmount + 1);
+        graphSizeWithFoundFactors *= (++edgesAmount);
       }
+
+      FactorizationUnitLayerSpecData factorizationUnitLayerSpecData = new FactorizationUnitLayerSpecData(currentColor, edgesAmount);
+      topUnitLayerVertices.get(currentColor).forEach(v -> unitLayerSpecs[v.getVertexNo()] = factorizationUnitLayerSpecData);
     }
+
     if (vertices.size() + 1 == graphSizeWithFoundFactors)
     {
       FactorizationData currentFactorization = factorizationResultData.getCurrentFactorization();

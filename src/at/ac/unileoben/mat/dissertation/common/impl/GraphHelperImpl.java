@@ -10,9 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * Created with IntelliJ IDEA.
@@ -110,20 +109,45 @@ public class GraphHelperImpl implements GraphHelper
   }
 
   @Override
-  public List<Vertex> getConnectedComponentForColor(Vertex root, List<Vertex> vertices, int color)
+  public int getConnectedComponentSizeForColor(Vertex root, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color)
   {
-    List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
-    AtomicBoolean isFirstVertexMissing = new AtomicBoolean(true);
+    if (unitLayerSpecs[root.getVertexNo()] != null)
+    {
+      return unitLayerSpecs[root.getVertexNo()].getUnitLayerSize();
+    }
+    boolean[] includedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+    FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData = new FactorizationUnitLayerSpecData(color, 1);
     orderBFS(Arrays.asList(root), vertices, Optional.of(color), Collections.emptySet(),
             (currentVertex, previousVertex) ->
             {
-              if (isFirstVertexMissing.getAndSet(false))
+              int vertexNo = currentVertex.getVertexNo();
+              boolean proceedWithCurrentVertex = false;
+              if (unitLayerSpecs[vertexNo] == null)
               {
-                connectedComponentVertices.add(previousVertex);
+                newFactorizationUnitLayerSpecData.setUnitLayerSize(newFactorizationUnitLayerSpecData.getUnitLayerSize() + 1);
+                proceedWithCurrentVertex = true;
               }
-              connectedComponentVertices.add(currentVertex);
+              else if (includedColors[unitLayerSpecs[vertexNo].getMappedColor()] == false)
+              {
+                int newUnitLayerSize = calculateNewUnitLayerSize(unitLayerSpecs, newFactorizationUnitLayerSpecData, color, vertexNo);
+                newFactorizationUnitLayerSpecData.setUnitLayerSize(newUnitLayerSize);
+                includedColors[unitLayerSpecs[vertexNo].getMappedColor()] = true;
+              }
+              unitLayerSpecs[vertexNo] = newFactorizationUnitLayerSpecData;
+              return proceedWithCurrentVertex;
             });
-    return connectedComponentVertices;
+    unitLayerSpecs[root.getVertexNo()] = newFactorizationUnitLayerSpecData;
+    return newFactorizationUnitLayerSpecData.getUnitLayerSize();
+  }
+
+  private int calculateNewUnitLayerSize(FactorizationUnitLayerSpecData[] unitLayerSpecs, FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData, int color, int vertexNo)
+  {
+    int newUnitLayerSize = newFactorizationUnitLayerSpecData.getUnitLayerSize() + unitLayerSpecs[vertexNo].getUnitLayerSize();
+    if (unitLayerSpecs[vertexNo].getMappedColor() != color)
+    {
+      newUnitLayerSize--;
+    }
+    return newUnitLayerSize;
   }
 
   @Override
@@ -137,6 +161,7 @@ public class GraphHelperImpl implements GraphHelper
               Vertex factorCurrentVertex = getFactorVertex(currentVertex, factorVertices, reindexArray, vertices.size());
               Vertex factorPreviousVertex = getFactorVertex(previousVertex, factorVertices, reindexArray, vertices.size());
               createEdgeBetweenVertices(factorCurrentVertex, factorPreviousVertex);
+              return true;
             });
     return factorVertices;
   }
@@ -169,7 +194,7 @@ public class GraphHelperImpl implements GraphHelper
     factorPreviousVertex.getEdges().add(e2);
   }
 
-  private void orderBFS(List<Vertex> roots, List<Vertex> vertices, Optional<Integer> currentColorOptional, Set<EdgeType> excludedEdgeTypes, BiConsumer<Vertex, Vertex> biConsumer)
+  private void orderBFS(List<Vertex> roots, List<Vertex> vertices, Optional<Integer> currentColorOptional, Set<EdgeType> excludedEdgeTypes, BiFunction<Vertex, Vertex, Boolean> biFunction)
   {
     Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
     roots.stream().forEach(root -> graphColoringArray[root.getVertexNo()] = Color.GRAY);
@@ -180,23 +205,30 @@ public class GraphHelperImpl implements GraphHelper
       Vertex u = queue.poll();
       for (Edge e : u.getEdges())
       {
-        if (isEdgeTypeToByExcluded(currentColorOptional, e) || isEdgeTypeToBeExcluded(excludedEdgeTypes, e))
+        if (isEdgeColorToByExcluded(currentColorOptional, e) || isEdgeTypeToBeExcluded(excludedEdgeTypes, e))
         {
           continue;
         }
         Vertex v = e.getEndpoint();
         if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
         {
-          graphColoringArray[v.getVertexNo()] = Color.GRAY;
-          biConsumer.accept(v, u);
-          queue.add(v);
+          Boolean proceedWithVertex = biFunction.apply(v, u);
+          if (proceedWithVertex)
+          {
+            graphColoringArray[v.getVertexNo()] = Color.GRAY;
+            queue.add(v);
+          }
+          else
+          {
+            graphColoringArray[v.getVertexNo()] = Color.BLACK;
+          }
         }
       }
       graphColoringArray[u.getVertexNo()] = Color.BLACK;
     }
   }
 
-  private boolean isEdgeTypeToByExcluded(Optional<Integer> currentColorOptional, Edge e)
+  private boolean isEdgeColorToByExcluded(Optional<Integer> currentColorOptional, Edge e)
   {
     boolean exculdeEge = false;
     if (currentColorOptional.isPresent())
@@ -285,6 +317,7 @@ public class GraphHelperImpl implements GraphHelper
             {
               currentVertex.setBfsLayer(previousVertex.getBfsLayer() + 1);
               reindexArray[currentVertex.getVertexNo()] = counter.getAndIncrement();
+              return true;
             });
 
     reindex(vertices, reindexArray);

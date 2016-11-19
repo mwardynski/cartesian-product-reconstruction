@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.common;
 
+import at.ac.unileoben.mat.dissertation.structure.FactorizationUnitLayerSpecData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public interface GraphHelper
 
   List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices);
 
-  List<Vertex> getConnectedComponentForColor(Vertex root, List<Vertex> vertices, int color);
+  int getConnectedComponentSizeForColor(Vertex root, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
 
   List<Vertex> getFactorForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
 

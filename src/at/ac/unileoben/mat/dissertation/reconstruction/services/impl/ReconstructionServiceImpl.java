@@ -60,10 +60,8 @@ public class ReconstructionServiceImpl implements ReconstructionService
     List<FactorizationData.FactorData> currentFactors = currentFactorizationData.getFactors();
     if (CollectionUtils.isNotEmpty(currentFactors) && currentFactors.size() != actualColorsAmount)
     {
-      // TODO
-      // handle marge
       updateFactorizationResult(factorizationResultData);
-      currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot());
+      currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot(), currentFactorizationData.getUnitLayerSpecs());
       factorizationResultData.setCurrentFactorization(currentFactorizationData);
     }
     else
@@ -194,10 +192,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
   private boolean isCorrectAmountOfVerticesInFactors(FactorizationData factorizationData)
   {
     List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
-    {
-      List<Vertex> connectedComponentVertices = graphHelper.getConnectedComponentForColor(factorData.getTopVertices().iterator().next(), graph.getVertices(), factorData.getMappedColor());
-      return connectedComponentVertices.size();
-    }).boxed().collect(toList());
+            graphHelper.getConnectedComponentSizeForColor(factorData.getTopVertices().iterator().next(), graph.getVertices(), factorizationData.getUnitLayerSpecs(), factorData.getMappedColor())).boxed().collect(toList());
     Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
     return amountOfVerticesAfterMultiplication == graph.getVertices().size() + 1;
   }
