@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @Component
 public class GraphPrinterImpl implements GraphPrinter
 {
-  public static final double EDGE_LENGTH = 2.0;
+  public static final double EDGE_LENGTH = 1.0;
   public static final String LAYER_DONE = "LAYER - DONE";
   public static final String LABEL_PREFIX = "LABEL - ";
   public static final String MERGE_PREFIX = "MERGE - ";

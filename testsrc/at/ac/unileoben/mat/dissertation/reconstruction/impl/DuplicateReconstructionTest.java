@@ -79,6 +79,8 @@ public class DuplicateReconstructionTest
   static
   {
 
+//    examplesList.add(new FactorizationCase("handP2.txt", 2));
+//    examplesList.add(new FactorizationCase("handP3.txt", 2));
     examplesList.add(new FactorizationCase("newExCart.txt", 2));
     examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
     examplesList.add(new FactorizationCase("breakExample2.txt", 2));
