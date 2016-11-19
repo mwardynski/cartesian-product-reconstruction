@@ -79,8 +79,8 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
   public Graph reconstruct(List<Vertex> vertices)
   {
     FactorizationData factorizationData = findFactors(vertices);
-    graphHelper.prepareGraphBfsStructure(vertices, factorizationData.getRootVertex());
 
+    graphHelper.prepareGraphBfsStructure(vertices, factorizationData.getRootVertex());
     List<List<Vertex>> factors = factorizationData.getFactors().stream()
             .map(factor -> graphHelper.getFactorForTopVertices(factor.getTopVertices(), vertices))
             .collect(toList());
@@ -152,10 +152,7 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
     factorVertices.stream()
             .flatMap(vertex -> vertex.getEdges().stream())
             .filter(edge -> edge.getOrigin().getVertexNo() < edge.getEndpoint().getVertexNo())
-            .forEach(edge ->
-            {
-              consumer.accept(edge);
-            });
+            .forEach(edge -> consumer.accept(edge));
   }
 
   @Override
@@ -244,12 +241,12 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
   private boolean breakProcessing(int currentLayer, FactorizationResultData factorizationResultData)
   {
 
-    boolean breakProcesssing = isSingleFactor() || isLastIncompleteLayer(currentLayer, factorizationResultData);
-    if (breakProcesssing)
+    boolean breakProcessing = isSingleFactor() || isLastIncompleteLayer(currentLayer, factorizationResultData);
+    if (breakProcessing)
     {
       reconstructionService.updateFactorizationResult(factorizationResultData);
     }
-    return breakProcesssing;
+    return breakProcessing;
   }
 
   private boolean isSingleFactor()

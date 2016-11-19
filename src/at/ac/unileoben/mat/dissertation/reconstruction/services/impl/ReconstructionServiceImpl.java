@@ -44,8 +44,8 @@ public class ReconstructionServiceImpl implements ReconstructionService
   @Override
   public void findReconstructionComponents(int currentLayerNo, FactorizationResultData factorizationResultData, boolean afterConsistencyCheck)
   {
-    boolean processsCurrentLayer = handleCurrentFactorization(currentLayerNo, factorizationResultData, afterConsistencyCheck);
-    if (processsCurrentLayer)
+    boolean processCurrentLayer = handleCurrentFactorization(currentLayerNo, factorizationResultData, afterConsistencyCheck);
+    if (processCurrentLayer)
     {
       processCurrentLayer(currentLayerNo, factorizationResultData);
     }
@@ -100,23 +100,21 @@ public class ReconstructionServiceImpl implements ReconstructionService
   private void processCurrentLayer(int currentLayerNo, FactorizationResultData factorizationResultData)
   {
     FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
-    if (!isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData))
+
+    collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
+    collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
+
+    if (isFactorizationPossiblyCompleted(currentLayerNo, currentFactorizationData))
     {
-      collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
-      collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
-      if (areCollectedFactorsOfMaxTotalHeight(currentFactorizationData))
-      {
-//        collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
-        currentFactorizationData.setFactorizationCompleted(isCorrectAmountOfVerticesInFactors(currentFactorizationData));
-      }
-    }
-    else if (isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData))
-    {
-      collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
-      collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
       currentFactorizationData.setFactorizationCompleted(isCorrectAmountOfVerticesInFactors(currentFactorizationData));
     }
   }
+
+  private boolean isFactorizationPossiblyCompleted(int currentLayerNo, FactorizationData currentFactorizationData)
+  {
+    return isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) || (!isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) && areCollectedFactorsOfMaxTotalHeight(currentFactorizationData));
+  }
+
 
   private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
   {
@@ -181,10 +179,11 @@ public class ReconstructionServiceImpl implements ReconstructionService
     for (Integer colorIndex : graph.getGraphColoring().getActualColors())
     {
       List<Vertex> topUnitLayerVertices = topUnitLayerVerticesList.get(colorIndex);
-      if (topUnitLayerVertices != null && CollectionUtils.isNotEmpty(topUnitLayerVertices))
+      if (CollectionUtils.isNotEmpty(topUnitLayerVertices))
       {
-        int mappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), topUnitLayerVertices.iterator().next().getDownEdges().getEdges().get(0).getLabel().getColor());
-        int bfsLayer = topUnitLayerVertices.iterator().next().getBfsLayer();
+        Vertex unitLayerVertex = topUnitLayerVertices.iterator().next();
+        int mappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), unitLayerVertex.getDownEdges().getEdges().get(0).getLabel().getColor());
+        int bfsLayer = unitLayerVertex.getBfsLayer();
         FactorizationData.FactorData factorData = new FactorizationData.FactorData(topUnitLayerVertices, bfsLayer, mappedColor);
         factorizationData.getFactors().add(factorData);
         factorizationData.setCollectedFactorsTotalHeight(factorizationData.getCollectedFactorsTotalHeight() + bfsLayer);

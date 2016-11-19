@@ -64,7 +64,7 @@ public class EdgeServiceImpl implements EdgeService
     List<Edge> edges = v.getDownEdges().getEdges();
     for (int i = 0; i < edgesRef.getColorPositions().size(); i++)
     {
-      if (coloringService.getPositionsForColor(edgesRef, i).isEmpty())//FIXME optimize it!!!
+      if (coloringService.getPositionsForColor(edgesRef, i).isEmpty())
       {
         continue;
       }
