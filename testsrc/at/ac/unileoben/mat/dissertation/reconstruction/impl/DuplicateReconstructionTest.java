@@ -81,10 +81,10 @@ public class DuplicateReconstructionTest
 
 //    examplesList.add(new FactorizationCase("handP2.txt", 2));
 //    examplesList.add(new FactorizationCase("handP3.txt", 2));
-    examplesList.add(new FactorizationCase("newExCart.txt", 2));
-    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
+//    examplesList.add(new FactorizationCase("newExCart.txt", 2));
+//    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
     examplesList.add(new FactorizationCase("breakExample4.txt", 2));
     examplesList.add(new FactorizationCase("g1", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));

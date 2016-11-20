@@ -1,6 +1,5 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,25 +10,38 @@ public class FactorizationData implements Comparable<FactorizationData>
 {
   private int maxFactorsHeight;
   private int collectedFactorsTotalHeight;
-  private List<FactorData> factors;
   private boolean factorizationCompleted;
   private Vertex rootVertex;
+  private List<FactorData> factors;
   private int maxConsistentLayerNo;
+
+
   private boolean afterConsistencyCheck;
   private FactorizationUnitLayerSpecData[] unitLayerSpecs;
 
-  public FactorizationData(int maxFactorsHeight, Vertex rootVertex, FactorizationUnitLayerSpecData[] unitLayerSpecs)
+
+  public FactorizationData(int maxFactorsHeight, Vertex rootVertex, List<FactorData> factors, FactorizationUnitLayerSpecData[] unitLayerSpecs)
   {
     this.maxFactorsHeight = maxFactorsHeight;
     this.rootVertex = rootVertex;
-    this.factorizationCompleted = false;
-    this.factors = new LinkedList<>();
+    this.factors = factors;
     this.unitLayerSpecs = unitLayerSpecs;
+    this.factorizationCompleted = false;
   }
 
   public int getMaxFactorsHeight()
   {
     return maxFactorsHeight;
+  }
+
+  public boolean isFactorizationCompleted()
+  {
+    return factorizationCompleted;
+  }
+
+  public List<FactorData> getFactors()
+  {
+    return factors;
   }
 
   public int getCollectedFactorsTotalHeight()
@@ -40,16 +52,6 @@ public class FactorizationData implements Comparable<FactorizationData>
   public void setCollectedFactorsTotalHeight(int collectedFactorsTotalHeight)
   {
     this.collectedFactorsTotalHeight = collectedFactorsTotalHeight;
-  }
-
-  public List<FactorData> getFactors()
-  {
-    return factors;
-  }
-
-  public boolean isFactorizationCompleted()
-  {
-    return factorizationCompleted;
   }
 
   public void setFactorizationCompleted(boolean factorizationCompleted)
@@ -131,6 +133,11 @@ public class FactorizationData implements Comparable<FactorizationData>
     public List<Vertex> getTopVertices()
     {
       return topVertices;
+    }
+
+    public int getHeight()
+    {
+      return height;
     }
 
     public int getMappedColor()

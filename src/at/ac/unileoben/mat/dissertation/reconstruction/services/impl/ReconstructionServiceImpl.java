@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,7 +62,14 @@ public class ReconstructionServiceImpl implements ReconstructionService
     if (CollectionUtils.isNotEmpty(currentFactors) && currentFactors.size() != actualColorsAmount)
     {
       updateFactorizationResult(factorizationResultData);
-      currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot(), currentFactorizationData.getUnitLayerSpecs());
+      List<FactorizationData.FactorData> newFactors = new LinkedList<>(currentFactorizationData.getFactors());
+      int collectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight();
+      currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot(),
+              newFactors, currentFactorizationData.getUnitLayerSpecs());
+
+
+      currentFactorizationData.setCollectedFactorsTotalHeight(collectedFactorsTotalHeight);
+
       factorizationResultData.setCurrentFactorization(currentFactorizationData);
     }
     else
@@ -99,8 +107,14 @@ public class ReconstructionServiceImpl implements ReconstructionService
   {
     FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
 
+    int prevFactorsAmount = currentFactorizationData.getFactors().size();
     collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
     collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
+
+    if (currentFactorizationData.getFactors().size() != prevFactorsAmount)
+    {
+      removeOutdatedFactors(currentFactorizationData);
+    }
 
     if (isFactorizationPossiblyCompleted(currentLayerNo, currentFactorizationData))
     {
@@ -113,11 +127,11 @@ public class ReconstructionServiceImpl implements ReconstructionService
     return isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) || (!isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) && areCollectedFactorsOfMaxTotalHeight(currentFactorizationData));
   }
 
-
   private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
   {
     return currentLayerNo == factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight();
   }
+
 
   private boolean areCollectedFactorsOfMaxTotalHeight(FactorizationData factorizationData)
   {
@@ -183,8 +197,30 @@ public class ReconstructionServiceImpl implements ReconstructionService
         int mappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), unitLayerVertex.getDownEdges().getEdges().get(0).getLabel().getColor());
         int bfsLayer = unitLayerVertex.getBfsLayer();
         FactorizationData.FactorData factorData = new FactorizationData.FactorData(topUnitLayerVertices, bfsLayer, mappedColor);
-        factorizationData.getFactors().add(factorData);
+
+        factorizationData.getFactors().add(0, factorData);
         factorizationData.setCollectedFactorsTotalHeight(factorizationData.getCollectedFactorsTotalHeight() + bfsLayer);
+      }
+    }
+  }
+
+  private void removeOutdatedFactors(FactorizationData currentFactorizationData)
+  {
+    boolean[] colors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+    Iterator<FactorizationData.FactorData> factorsIterator = currentFactorizationData.getFactors().iterator();
+    while (factorsIterator.hasNext())
+    {
+      FactorizationData.FactorData factor = factorsIterator.next();
+      int factorMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), factor.getMappedColor());
+      if (colors[factorMappedColor])
+      {
+        factorsIterator.remove();
+        int newCollectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight() - factor.getHeight();
+        currentFactorizationData.setCollectedFactorsTotalHeight(newCollectedFactorsTotalHeight);
+      }
+      else
+      {
+        colors[factorMappedColor] = true;
       }
     }
   }
@@ -192,7 +228,8 @@ public class ReconstructionServiceImpl implements ReconstructionService
   private boolean isCorrectAmountOfVerticesInFactors(FactorizationData factorizationData)
   {
     List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
-            graphHelper.getConnectedComponentSizeForColor(factorData.getTopVertices().iterator().next(), graph.getVertices(), factorizationData.getUnitLayerSpecs(), factorData.getMappedColor())).boxed().collect(toList());
+            graphHelper.getConnectedComponentSizeForColor(factorData.getTopVertices().iterator().next(), graph.getVertices(), factorizationData.getUnitLayerSpecs(), factorData.getMappedColor()))
+            .boxed().collect(toList());
     Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
     return amountOfVerticesAfterMultiplication == graph.getVertices().size() + 1;
   }

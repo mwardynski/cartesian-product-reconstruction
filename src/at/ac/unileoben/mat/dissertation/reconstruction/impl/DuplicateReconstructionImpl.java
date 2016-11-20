@@ -15,10 +15,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -176,7 +173,8 @@ public class DuplicateReconstructionImpl implements DuplicateReconstruction
 
     int layersAmount = graph.getLayers().size();
     FactorizationUnitLayerSpecData[] unitLayerSpecs = new FactorizationUnitLayerSpecData[vertices.size()];
-    FactorizationData factorizationData = new FactorizationData(layersAmount - 1, root, unitLayerSpecs);
+    List<FactorizationData.FactorData> newFactors = new LinkedList<>();
+    FactorizationData factorizationData = new FactorizationData(layersAmount - 1, root, newFactors, unitLayerSpecs);
     factorizationResultData.setCurrentFactorization(factorizationData);
 
     collectFirstLayerFactors(vertices, root, factorizationResultData);
