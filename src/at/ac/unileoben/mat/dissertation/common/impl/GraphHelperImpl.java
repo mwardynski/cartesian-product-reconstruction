@@ -109,15 +109,47 @@ public class GraphHelperImpl implements GraphHelper
   }
 
   @Override
-  public int getConnectedComponentSizeForColor(Vertex root, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color)
+  public int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color)
   {
-    if (unitLayerSpecs[root.getVertexNo()] != null)
-    {
-      return unitLayerSpecs[root.getVertexNo()].getUnitLayerSize();
-    }
     boolean[] includedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
-    FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData = new FactorizationUnitLayerSpecData(color, 1);
-    orderBFS(Arrays.asList(root), vertices, Optional.of(color), Collections.emptySet(),
+    FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData = new FactorizationUnitLayerSpecData(color, 0);
+
+    Iterator<Vertex> topVerticesIterator = topVertices.iterator();
+    while (topVerticesIterator.hasNext())
+    {
+      Vertex topVertex = topVerticesIterator.next();
+      if (unitLayerSpecs[topVertex.getVertexNo()] != null)
+      {
+        handleUnitLayerVertexWithSpec(topVertex, topVerticesIterator, newFactorizationUnitLayerSpecData, unitLayerSpecs, color, includedColors);
+      }
+      else
+      {
+        handleUnitLayerVertexWithoutSpec(topVertex, vertices, newFactorizationUnitLayerSpecData, unitLayerSpecs, color, includedColors);
+      }
+      unitLayerSpecs[topVertex.getVertexNo()] = newFactorizationUnitLayerSpecData;
+    }
+    return newFactorizationUnitLayerSpecData.getUnitLayerSize();
+  }
+
+  private void handleUnitLayerVertexWithSpec(Vertex topVertex, Iterator<Vertex> topVerticesIterator, FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color, boolean[] includedColors)
+  {
+    int topVertexNo = topVertex.getVertexNo();
+    if (includedColors[unitLayerSpecs[topVertexNo].getMappedColor()] == false)
+    {
+      int newUnitLayerSize = calculateNewUnitLayerSize(unitLayerSpecs, newFactorizationUnitLayerSpecData, color, topVertexNo);
+      newFactorizationUnitLayerSpecData.setUnitLayerSize(newUnitLayerSize);
+      includedColors[unitLayerSpecs[topVertexNo].getMappedColor()] = true;
+    }
+    else
+    {
+      topVerticesIterator.remove();
+    }
+  }
+
+  private void handleUnitLayerVertexWithoutSpec(Vertex topVertex, List<Vertex> vertices, FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color, boolean[] includedColors)
+  {
+    newFactorizationUnitLayerSpecData.setUnitLayerSize(newFactorizationUnitLayerSpecData.getUnitLayerSize() + 1);
+    orderBFS(Arrays.asList(topVertex), vertices, Optional.of(color), Collections.emptySet(),
             (currentVertex, previousVertex) ->
             {
               int vertexNo = currentVertex.getVertexNo();
@@ -136,8 +168,6 @@ public class GraphHelperImpl implements GraphHelper
               unitLayerSpecs[vertexNo] = newFactorizationUnitLayerSpecData;
               return proceedWithCurrentVertex;
             });
-    unitLayerSpecs[root.getVertexNo()] = newFactorizationUnitLayerSpecData;
-    return newFactorizationUnitLayerSpecData.getUnitLayerSize();
   }
 
   private int calculateNewUnitLayerSize(FactorizationUnitLayerSpecData[] unitLayerSpecs, FactorizationUnitLayerSpecData newFactorizationUnitLayerSpecData, int color, int vertexNo)

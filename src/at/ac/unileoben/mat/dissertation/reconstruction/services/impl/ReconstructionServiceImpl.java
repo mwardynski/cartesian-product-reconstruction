@@ -206,21 +206,23 @@ public class ReconstructionServiceImpl implements ReconstructionService
 
   private void removeOutdatedFactors(FactorizationData currentFactorizationData)
   {
-    boolean[] colors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+    FactorizationData.FactorData[] higherFactors = new FactorizationData.FactorData[graph.getGraphColoring().getOriginalColorsAmount()];
     Iterator<FactorizationData.FactorData> factorsIterator = currentFactorizationData.getFactors().iterator();
     while (factorsIterator.hasNext())
     {
       FactorizationData.FactorData factor = factorsIterator.next();
       int factorMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), factor.getMappedColor());
-      if (colors[factorMappedColor])
+      if (higherFactors[factorMappedColor] != null)
       {
-        factorsIterator.remove();
+        FactorizationData.FactorData higherFactor = higherFactors[factorMappedColor];
+        higherFactor.getTopVertices().addAll(factor.getTopVertices());
         int newCollectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight() - factor.getHeight();
         currentFactorizationData.setCollectedFactorsTotalHeight(newCollectedFactorsTotalHeight);
+        factorsIterator.remove();
       }
       else
       {
-        colors[factorMappedColor] = true;
+        higherFactors[factorMappedColor] = factor;
       }
     }
   }
@@ -228,7 +230,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
   private boolean isCorrectAmountOfVerticesInFactors(FactorizationData factorizationData)
   {
     List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
-            graphHelper.getConnectedComponentSizeForColor(factorData.getTopVertices().iterator().next(), graph.getVertices(), factorizationData.getUnitLayerSpecs(), factorData.getMappedColor()))
+            graphHelper.getConnectedComponentSizeForColor(factorData.getTopVertices(), graph.getVertices(), factorizationData.getUnitLayerSpecs(), factorData.getMappedColor()))
             .boxed().collect(toList());
     Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
     return amountOfVerticesAfterMultiplication == graph.getVertices().size() + 1;

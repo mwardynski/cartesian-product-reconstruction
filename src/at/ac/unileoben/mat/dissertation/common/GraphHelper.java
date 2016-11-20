@@ -23,7 +23,7 @@ public interface GraphHelper
 
   List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices);
 
-  int getConnectedComponentSizeForColor(Vertex root, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
+  int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
 
   List<Vertex> getFactorForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
 
