@@ -4,7 +4,7 @@ import at.ac.unileoben.mat.dissertation.common.FactorizationCase;
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
-import at.ac.unileoben.mat.dissertation.reconstruction.DuplicateReconstruction;
+import at.ac.unileoben.mat.dissertation.reconstruction.ReconstructionAfterFindingAllFactors;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.junit.Test;
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {FactorizationConfig.class})
-public class DuplicateReconstructionTest
+public class ReconstructionAfterFindingAllFactorsTest
 {
 
   private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
@@ -34,7 +34,7 @@ public class DuplicateReconstructionTest
   GraphHelper graphHelper;
 
   @Autowired
-  DuplicateReconstruction duplicateReconstruction;
+  ReconstructionAfterFindingAllFactors duplicateReconstruction;
 
   @Autowired
   GraphFactorizationPreparer graphFactorizationPreparer;
