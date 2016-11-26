@@ -14,6 +14,8 @@
 \tikzstyle{selected vertex} = [vertex, fill=red!24]
 \tikzstyle{edge} = [draw,thick]
 \tikzstyle{weight} = [font=\small]
+\tikzstyle{backwardEdgeLabel} = [font=\small, very near start, sloped, above]
+\tikzstyle{forwardEdgeLabel} = [font=\small, very near end, sloped, below]
 
 
 #foreach( $step in $steps )

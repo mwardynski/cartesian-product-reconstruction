@@ -1,12 +1,14 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphCorrectnessChecker;
-import at.ac.unileoben.mat.dissertation.common.GraphReader;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.common.impl.GraphHelperImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
+import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
-import at.ac.unileoben.mat.dissertation.linearfactorization.GraphPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -29,13 +31,13 @@ public class LinearFactorizationImpl implements LinearFactorization
   Graph graph;
 
   @Autowired
-  GraphPreparer graphPreparer;
+  GraphHelper graphHelper;
+
+  @Autowired
+  GraphFactorizationPreparer graphFactorizationPreparer;
 
   @Autowired
   GraphFactorizer graphFactorizer;
-
-  @Autowired
-  GraphReader graphReader;
 
   @Autowired
   GraphCorrectnessChecker graphCorrectnessChecker;
@@ -52,8 +54,8 @@ public class LinearFactorizationImpl implements LinearFactorization
 
     ApplicationContext applicationContext = new AnnotationConfigApplicationContext(FactorizationConfig.class);
 
-    LinearFactorizationImpl linearFactorization = applicationContext.getBean(LinearFactorizationImpl.class);
-    List<Vertex> vertices = linearFactorization.parseGraph(args[0]);
+    GraphHelper graphHelper = applicationContext.getBean(GraphHelperImpl.class);
+    List<Vertex> vertices = graphHelper.parseGraph(args[0]);
 
     Vertex root = null;
     if (args.length > 1)
@@ -61,21 +63,18 @@ public class LinearFactorizationImpl implements LinearFactorization
       root = vertices.get(Integer.parseInt(args[1]));
     }
 
+    LinearFactorization linearFactorization = applicationContext.getBean(LinearFactorizationImpl.class);
     Graph resultGraph = linearFactorization.factorize(vertices, root);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
   }
 
-  @Override
-  public List<Vertex> parseGraph(String graphFilePath)
-  {
-    return graphReader.readGraph(graphFilePath);
-  }
 
   @Override
   public Graph factorize(List<Vertex> vertices, Vertex root)
   {
     prepare(vertices, root);
+    graph.setOperationOnGraph(OperationOnGraph.FACTORIZE);
     factorizeGraph();
     return graph;
   }
@@ -83,7 +82,8 @@ public class LinearFactorizationImpl implements LinearFactorization
   private void prepare(List<Vertex> vertices, Vertex root)
   {
     checkGraphCorrectness(vertices);
-    graphPreparer.prepareToLinearFactorization(vertices, root);
+    graphHelper.prepareGraphBfsStructure(vertices, root);
+    graphFactorizationPreparer.arrangeFirstLayerEdges();
     if (graph.getLayers().size() < 3)
     {
       throw new IllegalStateException(graphCorrectnessChecker.NOT_HIGH_ENOUGH);
@@ -93,7 +93,7 @@ public class LinearFactorizationImpl implements LinearFactorization
   private void factorizeGraph()
   {
     graphFactorizer.factorize();
-    graphPreparer.finalizeFactorization();
+    graphHelper.revertGraphBfsStructure();
   }
 
 

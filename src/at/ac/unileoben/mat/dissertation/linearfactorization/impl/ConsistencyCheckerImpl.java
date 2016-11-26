@@ -71,7 +71,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
           break;
         }
       }
-      if (isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
+      if (graph.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT && isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
       {
         vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP);
         break;
@@ -181,7 +181,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge zzp = edgeService.getEdgeByLabel(z, uv.getLabel(), EdgeType.DOWN);
         if (zzp == null || !zzp.getEndpoint().equals(zp))
         {
-          inconsistentEdges.add(uz);//not invoked
+          inconsistentEdges.add(uz);
         }
       }
     }

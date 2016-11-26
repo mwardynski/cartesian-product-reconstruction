@@ -16,23 +16,15 @@ public class Vertex
   private int vertexNo;
   private List<Edge> edges;
   private boolean unitLayer;
-  private Color color;
-  private BipartiteColor bipartiteColor;
   private int bfsLayer;
   private EdgesGroup downEdges;
   private EdgesGroup crossEdges;
   private EdgesGroup upEdges;
 
-  private Edge firstEdge;
-  private Edge secondEdge;
-  private Edge edgeWithColorToLabel;
-
-
   public Vertex(int vertexNo, List<Edge> edges)
   {
     this.vertexNo = vertexNo;
     this.edges = edges;
-    color = Color.WHITE;
   }
 
   public int getVertexNo()
@@ -63,26 +55,6 @@ public class Vertex
   public void setUnitLayer(boolean unitLayer)
   {
     this.unitLayer = unitLayer;
-  }
-
-  public Color getColor()
-  {
-    return color;
-  }
-
-  public void setColor(Color color)
-  {
-    this.color = color;
-  }
-
-  public BipartiteColor getBipartiteColor()
-  {
-    return bipartiteColor;
-  }
-
-  public void setBipartiteColor(BipartiteColor bipartiteColor)
-  {
-    this.bipartiteColor = bipartiteColor;
   }
 
   public int getBfsLayer()
@@ -123,36 +95,6 @@ public class Vertex
   public void setUpEdges(EdgesGroup upEdges)
   {
     this.upEdges = upEdges;
-  }
-
-  public Edge getFirstEdge()
-  {
-    return firstEdge;
-  }
-
-  public void setFirstEdge(Edge firstEdge)
-  {
-    this.firstEdge = firstEdge;
-  }
-
-  public Edge getSecondEdge()
-  {
-    return secondEdge;
-  }
-
-  public void setSecondEdge(Edge secondEdge)
-  {
-    this.secondEdge = secondEdge;
-  }
-
-  public Edge getEdgeWithColorToLabel()
-  {
-    return edgeWithColorToLabel;
-  }
-
-  public void setEdgeWithColorToLabel(Edge edgeWithColorToLabel)
-  {
-    this.edgeWithColorToLabel = edgeWithColorToLabel;
   }
 
   @Override

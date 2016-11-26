@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="tools">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../java/java8/jdk/lib/tools.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -27,6 +27,12 @@ public class VertexServiceImpl implements VertexService
   ColoringService coloringService;
 
   @Override
+  public int getGraphSize()
+  {
+    return graph.getVertices().size();
+  }
+
+  @Override
   public List<Vertex> getGraphLayer(int i)
   {
     return graph.getLayers().get(i);
@@ -65,7 +71,6 @@ public class VertexServiceImpl implements VertexService
       List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
       edgesToRelabel.addAll(vCrossEdges);
     }
-    boolean[] colorPresence = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
     for (Edge vw : edgesToRelabel)
     {
       Vertex w = vw.getEndpoint();

@@ -3,10 +3,12 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.services.impl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,10 +26,18 @@ public class EdgeServiceImpl implements EdgeService
   ColoringService coloringService;
 
   @Override
-  public void addLabel(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail)
+  public void addLabel(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail)
   {
     Label label = new Label(color, name);
     edge.setLabel(label);
+    edge.setSquareMatchingEdge(squareMatchingEdge);
+  }
+
+  @Override
+  public Edge getFirstEdge(Vertex v, EdgeType edgeType)
+  {
+    EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
+    return edgeGroup.getEdges().get(0);
   }
 
   @Override
@@ -54,7 +64,7 @@ public class EdgeServiceImpl implements EdgeService
     List<Edge> edges = v.getDownEdges().getEdges();
     for (int i = 0; i < edgesRef.getColorPositions().size(); i++)
     {
-      if (coloringService.getPositionsForColor(edgesRef, i).isEmpty())//FIXME optimize it!!!
+      if (coloringService.getPositionsForColor(edgesRef, i).isEmpty())
       {
         continue;
       }
@@ -106,13 +116,16 @@ public class EdgeServiceImpl implements EdgeService
     List<Edge> edgesOfGivenColors = new LinkedList<Edge>();
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
     EdgesRef edgesRef = edgeGroup.getEdgesRef();
-    List<Edge> allEdges = edgeGroup.getEdges();
-    for (Integer givenColor : colors)
+    List<Edge> allEdgesOfGroup = edgeGroup.getEdges();
+    if (CollectionUtils.isNotEmpty(allEdgesOfGroup))
     {
-      List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, givenColor);
-      for (int edgePosition : positionsForColor)
+      for (Integer givenColor : colors)
       {
-        edgesOfGivenColors.add(allEdges.get(edgePosition));
+        List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, givenColor);
+        for (int edgePosition : positionsForColor)
+        {
+          edgesOfGivenColors.add(allEdgesOfGroup.get(edgePosition));
+        }
       }
     }
     return edgesOfGivenColors;
@@ -132,5 +145,33 @@ public class EdgeServiceImpl implements EdgeService
     {
       return v.getUpEdges();
     }
+  }
+
+  @Override
+  public List<Edge> getAllEdgesOfColor(Vertex v, int color)
+  {
+    LinkedList<Edge> allEdges = new LinkedList<>();
+    allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.DOWN));
+    allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.CROSS));
+    allEdges.addAll(getAllEdgesOfColors(v, Collections.singletonList(color), EdgeType.UP));
+    return allEdges;
+  }
+
+  @Override
+  public List<Edge> getFurtherEdgesOfGivenTypeAndDifferentEndpoint(Edge e, Vertex endPoint, EdgeType edgeType)
+  {
+    List<Edge> furtherEdges = new LinkedList<>();
+    EdgesGroup edgesGroup = getEdgeGroupForEdgeType(e.getEndpoint(), edgeType);
+    if (edgesGroup != null && CollectionUtils.isNotEmpty(edgesGroup.getEdges()))
+    {
+      for (Edge furtherEdge : edgesGroup.getEdges())
+      {
+        if (furtherEdge.getEndpoint() != e.getOrigin() && furtherEdge.getEndpoint() != endPoint)
+        {
+          furtherEdges.add(furtherEdge);
+        }
+      }
+    }
+    return furtherEdges;
   }
 }

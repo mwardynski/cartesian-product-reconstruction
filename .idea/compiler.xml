@@ -18,6 +18,9 @@
         <processorPath useClasspath="true" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="cartesian_product_main" target="1.8" />
+      <module name="cartesian_product_test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
-

@@ -15,17 +15,17 @@ public class FactorizationSteps
   private FactorizationStep findSquareSecondPhase;
   private FactorizationStep labelVerticesPhase;
 
-  public FactorizationSteps(List<Vertex> firstLayer)
+  public FactorizationSteps(List<Vertex> firstLayer, int graphSize)
   {
-    findSquareFirstPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size());
-    findSquareSecondPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size());
+    findSquareFirstPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size(), graphSize);
+    findSquareSecondPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size(), graphSize);
   }
 
-  public FactorizationSteps(List<Vertex> firstLayer, List<Vertex> secondLayer)
+  public FactorizationSteps(List<Vertex> firstLayer, List<Vertex> secondLayer, int graphSize)
   {
-    findSquareFirstPhase = new FactorizationStep(secondLayer.get(0).getVertexNo(), secondLayer.size());
-    findSquareSecondPhase = new FactorizationStep(secondLayer.get(0).getVertexNo(), secondLayer.size());
-    labelVerticesPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size());
+    findSquareFirstPhase = new FactorizationStep(secondLayer.get(0).getVertexNo(), secondLayer.size(), graphSize);
+    findSquareSecondPhase = new FactorizationStep(secondLayer.get(0).getVertexNo(), secondLayer.size(), graphSize);
+    labelVerticesPhase = new FactorizationStep(firstLayer.get(0).getVertexNo(), firstLayer.size(), graphSize);
   }
 
   public FactorizationStep getFindSquareFirstPhase()

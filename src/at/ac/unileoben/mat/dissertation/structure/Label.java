@@ -75,6 +75,6 @@ public class Label
   @Override
   public String toString()
   {
-    return String.format("n:%d, c:%d", name, color);
+    return String.format("c:%d, n:%d", color, name);
   }
 }

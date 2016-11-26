@@ -13,7 +13,9 @@ import java.util.List;
  */
 public interface EdgeService
 {
-  void addLabel(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail);
+  void addLabel(Edge edge, int color, int name, Edge squareMatchingEdge, LabelOperationDetail labelOperationDetail);
+
+  Edge getFirstEdge(Vertex v, EdgeType edgeType);
 
   Edge getEdgeByLabel(Vertex v, Label label, EdgeType edgeType);
 
@@ -22,4 +24,8 @@ public interface EdgeService
   List<List<Edge>> getAllEdgesOfDifferentColor(Vertex v, int color, GraphColoring graphColoring, EdgeType edgeType);
 
   List<Edge> getAllEdgesOfColors(Vertex v, List<Integer> colors, EdgeType edgeType);
+
+  List<Edge> getAllEdgesOfColor(Vertex v, int color);
+
+  List<Edge> getFurtherEdgesOfGivenTypeAndDifferentEndpoint(Edge e, Vertex endPoint, EdgeType edgeType);
 }

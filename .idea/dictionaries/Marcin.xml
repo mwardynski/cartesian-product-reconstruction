@@ -2,6 +2,8 @@
   <dictionary name="Marcin">
     <words>
       <w>factorizer</w>
+      <w>reconstructor</w>
+      <w>subgraph</w>
     </words>
   </dictionary>
 </component>

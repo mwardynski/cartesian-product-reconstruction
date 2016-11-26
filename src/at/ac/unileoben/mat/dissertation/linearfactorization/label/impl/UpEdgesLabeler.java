@@ -39,17 +39,24 @@ public class UpEdgesLabeler implements EdgesLabeler
     for (Vertex u : currentLayer)
     {
       List<Edge> uUpEdges = u.getUpEdges().getEdges();
-      int[] colorsCounter = new int[graph.getGraphColoring().getOriginalColorsAmount()];
       for (int i = 0; i < uUpEdges.size(); i++)
       {
         Edge uv = uUpEdges.get(i);
-        int oppositeEdgeColor = uv.getOpposite().getLabel().getColor();
-        edgeService.addLabel(uv, oppositeEdgeColor, colorsCounter[oppositeEdgeColor]++, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
+        Edge vu = uv.getOpposite();
+        Edge vuSquareMatchingEdge = vu.getSquareMatchingEdge();
+        if (vuSquareMatchingEdge != null)
+        {
+          Edge uvSquareMatchingEdge = vuSquareMatchingEdge.getOpposite();
+          Label uvSquareMatchingEdgeLabel = uvSquareMatchingEdge.getLabel();
+          edgeService.addLabel(uv, uvSquareMatchingEdgeLabel.getColor(), uvSquareMatchingEdgeLabel.getName(), uvSquareMatchingEdge, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
+        }
+        else
+        {
+          int oppositeEdgeColor = vu.getLabel().getColor();
+          edgeService.addLabel(uv, oppositeEdgeColor, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.OPPOSITE).build());
+        }
       }
-      EdgesRef upEdgesRef = labelUtils.getEdgesRef(colorsCounter);
-      u.getUpEdges().setEdgesRef(upEdgesRef);
-      List<Edge> sortedEdges = labelUtils.sortEdgesAccordingToLabels(u.getUpEdges().getEdges(), graph.getGraphColoring());
-      u.getUpEdges().setEdges(sortedEdges);
+      labelUtils.sortEdgesAccordingToLabels(u.getUpEdges(), graph.getGraphColoring());
     }
   }
 

@@ -14,6 +14,7 @@ public class Edge
   Edge opposite;
   EdgeType edgeType;
   Label label;
+  Edge squareMatchingEdge;
 
   public Edge(Vertex origin, Vertex endpoint)
   {
@@ -59,6 +60,16 @@ public class Edge
   public void setLabel(Label label)
   {
     this.label = label;
+  }
+
+  public Edge getSquareMatchingEdge()
+  {
+    return squareMatchingEdge;
+  }
+
+  public void setSquareMatchingEdge(Edge squareMatchingEdge)
+  {
+    this.squareMatchingEdge = squareMatchingEdge;
   }
 
   @Override
