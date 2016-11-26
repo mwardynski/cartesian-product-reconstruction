@@ -30,7 +30,6 @@ import static java.util.stream.Collectors.toList;
 public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractReconstructionAfterFindingAllFactors
 {
 
-
   @Autowired
   GraphHelper graphHelper;
 
@@ -53,7 +52,7 @@ public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractR
     List<Vertex> vertices = graphHelper.parseGraph(args[0]);
 
 
-    ReconstructionAfterFindingAllFactors reconstruction = applicationContext.getBean(ReconstructionAfterFindingAllFactors.class);
+    ReconstructionAfterFindingAllFactors reconstruction = applicationContext.getBean(DuplicateReconstructionAfterFindingAllFactorsImpl.class);
     Graph resultGraph = reconstruction.reconstruct(vertices);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
@@ -64,6 +63,11 @@ public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractR
   {
     FactorizationData factorizationData = findFactors(vertices);
 
+    return reconstructWithFoundFactors(vertices, factorizationData);
+  }
+
+  private Graph reconstructWithFoundFactors(List<Vertex> vertices, FactorizationData factorizationData)
+  {
     graphHelper.prepareGraphBfsStructure(vertices, factorizationData.getRootVertex());
     List<List<Vertex>> factors = factorizationData.getFactors().stream()
             .map(factor -> graphHelper.getFactorForTopVertices(factor.getTopVertices(), vertices))

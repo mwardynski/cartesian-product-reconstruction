@@ -49,7 +49,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     return factorizationResultData.getResultFactorization();
   }
 
-  private void findFactorsForRoot(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
+  protected void findFactorsForRoot(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
   {
     clearVerticesAndEdges(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
