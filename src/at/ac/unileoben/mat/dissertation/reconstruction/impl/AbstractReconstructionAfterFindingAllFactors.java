@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
@@ -23,6 +24,9 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
   private Graph graph;
 
   @Autowired
+  private ReconstructionData reconstructionData;
+
+  @Autowired
   private GraphHelper graphHelper;
 
   @Autowired
@@ -37,33 +41,37 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
   @Autowired
   private ColoringService coloringService;
 
+  @Autowired
+  private ReconstructionHelper reconstructionHelper;
+
   @Override
   public FactorizationData findFactors(List<Vertex> vertices)
   {
-    FactorizationResultData factorizationResultData = new FactorizationResultData();
+    reconstructionHelper.clearReconstructionData();
+    reconstructionData.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
     for (Vertex vertex : vertices)
     {
-      findFactorsForRoot(vertices, vertex, factorizationResultData);
+      findFactorsForRoot(vertices, vertex);
       graphHelper.revertGraphBfsStructure();
     }
-    return factorizationResultData.getResultFactorization();
+    return reconstructionData.getResultFactorization();
   }
 
-  protected void findFactorsForRoot(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
+  protected void findFactorsForRoot(List<Vertex> vertices, Vertex root)
   {
     clearVerticesAndEdges(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
-    graph.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
+
     graphFactorizationPreparer.arrangeFirstLayerEdges();
 
     int layersAmount = graph.getLayers().size();
     FactorizationUnitLayerSpecData[] unitLayerSpecs = new FactorizationUnitLayerSpecData[vertices.size()];
     List<FactorizationData.FactorData> newFactors = new LinkedList<>();
     FactorizationData factorizationData = new FactorizationData(layersAmount - 1, root, newFactors, unitLayerSpecs);
-    factorizationResultData.setCurrentFactorization(factorizationData);
+    reconstructionData.setCurrentFactorization(factorizationData);
 
-    collectFirstLayerFactors(vertices, root, factorizationResultData);
-    findFactorsForPreparedGraph(factorizationResultData);
+    collectFirstLayerFactors(vertices, root);
+    findFactorsForPreparedGraph();
   }
 
   private void clearVerticesAndEdges(List<Vertex> vertices)
@@ -78,7 +86,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     }
   }
 
-  private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root, FactorizationResultData factorizationResultData)
+  private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root)
   {
     List<List<Vertex>> topUnitLayerVertices = reconstructionService.createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
     for (Edge e : root.getUpEdges().getEdges())
@@ -89,7 +97,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     }
     int graphSizeWithFoundFactors = 1;
 
-    FactorizationUnitLayerSpecData[] unitLayerSpecs = factorizationResultData.getCurrentFactorization().getUnitLayerSpecs();
+    FactorizationUnitLayerSpecData[] unitLayerSpecs = reconstructionData.getCurrentFactorization().getUnitLayerSpecs();
     unitLayerSpecs[0] = new FactorizationUnitLayerSpecData(0, 0);
     for (int currentColor = 0; currentColor < topUnitLayerVertices.size(); currentColor++)
     {
@@ -105,36 +113,35 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
 
     if (vertices.size() + 1 == graphSizeWithFoundFactors)
     {
-      FactorizationData currentFactorization = factorizationResultData.getCurrentFactorization();
+      FactorizationData currentFactorization = reconstructionData.getCurrentFactorization();
       reconstructionService.collectFactors(currentFactorization, topUnitLayerVertices);
       currentFactorization.setMaxConsistentLayerNo(1);
       currentFactorization.setFactorizationCompleted(true);
     }
   }
 
-  private void findFactorsForPreparedGraph(FactorizationResultData factorizationResultData)
+  private void findFactorsForPreparedGraph()
   {
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      if (graph.getOperationOnGraph() == OperationOnGraph.RECONSTRUCT && breakProcessing(currentLayerNo, factorizationResultData))
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.RECONSTRUCT && breakProcessing(currentLayerNo))
       {
         break;
       }
       else
       {
-        graphFactorizer.factorizeSingleLayer(currentLayerNo, factorizationResultData);
+        graphFactorizer.factorizeSingleLayer(currentLayerNo);
       }
     }
   }
 
-  private boolean breakProcessing(int currentLayer, FactorizationResultData factorizationResultData)
+  private boolean breakProcessing(int currentLayer)
   {
-
-    boolean breakProcessing = isSingleFactor() || isLastIncompleteLayer(currentLayer, factorizationResultData);
+    boolean breakProcessing = isSingleFactor() || isLastIncompleteLayer(currentLayer);
     if (breakProcessing)
     {
-      reconstructionService.updateFactorizationResult(factorizationResultData);
+      reconstructionService.updateFactorizationResult();
     }
     return breakProcessing;
   }
@@ -144,10 +151,10 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     return graph.getGraphColoring().getActualColors().size() == 1;
   }
 
-  private boolean isLastIncompleteLayer(int currentLayer, FactorizationResultData factorizationResultData)
+  private boolean isLastIncompleteLayer(int currentLayer)
   {
     boolean lastIncompleteLayer = false;
-    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
     if (currentLayer == graph.getLayers().size() - 1)
     {
       OptionalInt maxTopVerticesSizeOptional = currentFactorizationData.getFactors().stream().mapToInt(factorData -> factorData.getTopVertices().size()).max();

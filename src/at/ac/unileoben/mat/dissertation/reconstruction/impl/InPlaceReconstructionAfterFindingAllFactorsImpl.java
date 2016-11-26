@@ -20,6 +20,9 @@ public class InPlaceReconstructionAfterFindingAllFactorsImpl extends AbstractRec
 {
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   GraphHelper graphHelper;
 
   public static void main(String... args)
@@ -52,8 +55,8 @@ public class InPlaceReconstructionAfterFindingAllFactorsImpl extends AbstractRec
 
   private Graph reconstructWithFoundFactors(List<Vertex> vertices, FactorizationData factorizationData)
   {
-    FactorizationResultData factorizationResultData = new FactorizationResultData();
-    findFactorsForRoot(vertices, factorizationData.getRootVertex(), factorizationResultData);
+    reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
+    findFactorsForRoot(vertices, factorizationData.getRootVertex());
 
     return mockResultGraph(factorizationData);
   }

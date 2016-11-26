@@ -8,9 +8,9 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLa
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
-import at.ac.unileoben.mat.dissertation.structure.FactorizationResultData;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
+import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +26,9 @@ public class GraphFactorizerImpl implements GraphFactorizer
 {
   @Autowired
   Graph graph;
+
+  @Autowired
+  ReconstructionData reconstructionData;
 
   @Autowired
   DownEdgesLabeler downEdgesLabeler;
@@ -52,26 +55,26 @@ public class GraphFactorizerImpl implements GraphFactorizer
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      factorizeSingleLayer(currentLayerNo, null);
+      factorizeSingleLayer(currentLayerNo);
     }
   }
 
   @Override
-  public void factorizeSingleLayer(int currentLayerNo, FactorizationResultData factorizationResultData)
+  public void factorizeSingleLayer(int currentLayerNo)
   {
     downEdgesLabeler.labelEdges(currentLayerNo);
     crossEdgesLabeler.labelEdges(currentLayerNo);
     upEdgesLabeler.labelEdges(currentLayerNo);
 
-    if (graph.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT)
+    if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT)
     {
       consistencyChecker.checkConsistency(currentLayerNo);
     }
     else
     {
-      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationResultData, false);
+      reconstructionService.findReconstructionComponents(currentLayerNo, false);
       consistencyChecker.checkConsistency(currentLayerNo);
-      reconstructionService.findReconstructionComponents(currentLayerNo, factorizationResultData, true);
+      reconstructionService.findReconstructionComponents(currentLayerNo, true);
     }
   }
 }
