@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
+import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
@@ -29,6 +30,9 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   ReconstructionData reconstructionData;
 
   @Autowired
+  ReconstructionHelper reconstructionHelper;
+
+  @Autowired
   EdgeService edgeService;
 
   @Autowired
@@ -44,6 +48,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     checkPreviousLayerUpEdgesConsistency(previousLayer);
     checkCurrentLayerAllEdgesConsistency(currentLayer);
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      reconstructionHelper.reconstructWithCollectedData();
+    }
   }
 
   private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
@@ -161,7 +169,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
 
   private List<Edge> checkPivotSquares(Edge uv, EdgeType edgeType)
   {
-    List<Edge> inconsistentEdges = new LinkedList<Edge>();
+    List<Edge> inconsistentEdges = new LinkedList<>();
     Vertex u = uv.getOrigin();
     Vertex v = uv.getEndpoint();
     List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
@@ -188,7 +196,15 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
     }
-    return inconsistentEdges;
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION && !inconsistentEdges.isEmpty())
+    {
+      reconstructionHelper.addEdgesToReconstruction(inconsistentEdges, uv, edgeType);
+      return new LinkedList<>();
+    }
+    else
+    {
+      return inconsistentEdges;
+    }
   }
 
   private List<Edge> getNotCorrespondingEdgesRegardingColor(List<List<Edge>> uEdges, List<List<Edge>> vEdges)

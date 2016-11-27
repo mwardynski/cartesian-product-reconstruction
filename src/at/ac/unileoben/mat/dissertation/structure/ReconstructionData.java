@@ -2,6 +2,9 @@ package at.ac.unileoben.mat.dissertation.structure;
 
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * Created by mwardynski on 31/08/16.
  */
@@ -11,6 +14,13 @@ public class ReconstructionData
   FactorizationData currentFactorization;
   FactorizationData resultFactorization;
   OperationOnGraph operationOnGraph;
+  Vertex newVertex;
+  Queue<ReconstructionEntryData> reconstructionEntries;
+
+  public ReconstructionData()
+  {
+    reconstructionEntries = new LinkedList<>();
+  }
 
   public FactorizationData getCurrentFactorization()
   {
@@ -40,5 +50,20 @@ public class ReconstructionData
   public void setOperationOnGraph(OperationOnGraph operationOnGraph)
   {
     this.operationOnGraph = operationOnGraph;
+  }
+
+  public Vertex getNewVertex()
+  {
+    return newVertex;
+  }
+
+  public void setNewVertex(Vertex newVertex)
+  {
+    this.newVertex = newVertex;
+  }
+
+  public Queue<ReconstructionEntryData> getReconstructionEntries()
+  {
+    return reconstructionEntries;
   }
 }

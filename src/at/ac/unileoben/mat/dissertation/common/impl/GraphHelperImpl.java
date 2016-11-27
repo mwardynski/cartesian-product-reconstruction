@@ -430,7 +430,7 @@ public class GraphHelperImpl implements GraphHelper
       Vertex v = lit.previous();
       result[--frequencyArray[v.getVertexNo()]] = v;
     }
-    return Arrays.asList(result);
+    return new ArrayList<>(Arrays.asList(result));
   }
 
   private void sortEdges(List<Vertex> vertices)
@@ -459,9 +459,9 @@ public class GraphHelperImpl implements GraphHelper
   {
     for (Vertex v : vertices)
     {
-      List<Edge> downEdges = new ArrayList<Edge>();
-      List<Edge> crossEdges = new ArrayList<Edge>();
-      List<Edge> upEdges = new ArrayList<Edge>();
+      List<Edge> downEdges = new LinkedList<>();
+      List<Edge> crossEdges = new LinkedList<>();
+      List<Edge> upEdges = new LinkedList<>();
 
       for (Edge e : v.getEdges())
       {
@@ -481,9 +481,9 @@ public class GraphHelperImpl implements GraphHelper
           upEdges.add(e);
         }
       }
-      v.setDownEdges(new EdgesGroup(downEdges));
-      v.setCrossEdges(new EdgesGroup(crossEdges));
-      v.setUpEdges(new EdgesGroup(upEdges));
+      v.setDownEdges(new EdgesGroup(new ArrayList<>(downEdges)));
+      v.setCrossEdges(new EdgesGroup(new ArrayList<>(crossEdges)));
+      v.setUpEdges(new EdgesGroup(new ArrayList<>(upEdges)));
     }
   }
 

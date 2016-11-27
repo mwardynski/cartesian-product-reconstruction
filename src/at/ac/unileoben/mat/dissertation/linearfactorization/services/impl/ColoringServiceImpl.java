@@ -97,7 +97,7 @@ public class ColoringServiceImpl implements ColoringService
         colorPositionsArray[i] = colorGroupLocation;
       }
     }
-    edgesRef.setColorPositions(Arrays.asList(colorPositionsArray));
+    edgesRef.setColorPositions(new ArrayList<>(Arrays.asList(colorPositionsArray)));
   }
 
   @Override

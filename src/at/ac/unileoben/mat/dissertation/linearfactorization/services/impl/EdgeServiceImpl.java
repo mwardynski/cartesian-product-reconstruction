@@ -86,7 +86,7 @@ public class EdgeServiceImpl implements EdgeService
   {
     EdgesGroup edgeGroup = getEdgeGroupForEdgeType(v, edgeType);
     EdgesRef edgesRef = edgeGroup.getEdgesRef();
-    List<Edge> allDownEdges = edgeGroup.getEdges();
+    List<Edge> allGroupEdges = edgeGroup.getEdges();
 
     int originalColorsAmount = graphColoring.getOriginalColorsAmount();
     List<List<Edge>> resultEdges = new ArrayList<List<Edge>>();
@@ -102,7 +102,7 @@ public class EdgeServiceImpl implements EdgeService
         List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, i);
         for (int edgePosition : positionsForColor)
         {
-          Edge edge = allDownEdges.get(edgePosition);
+          Edge edge = allGroupEdges.get(edgePosition);
           resultEdges.get(edge.getLabel().getColor()).add(edge);
         }
       }
