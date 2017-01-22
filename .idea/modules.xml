@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/cartesian_product.iml" filepath="$PROJECT_DIR$/.idea/modules/cartesian_product.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cartesian_product_main.iml" filepath="$PROJECT_DIR$/.idea/modules/cartesian_product_main.iml" group="cartesian_product" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cartesian_product_test.iml" filepath="$PROJECT_DIR$/.idea/modules/cartesian_product_test.iml" group="cartesian_product" />
     </modules>
   </component>
 </project>

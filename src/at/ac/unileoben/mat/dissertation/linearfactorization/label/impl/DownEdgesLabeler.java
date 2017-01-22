@@ -30,6 +30,9 @@ public class DownEdgesLabeler implements EdgesLabeler
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   EdgeService edgeService;
 
   @Autowired
