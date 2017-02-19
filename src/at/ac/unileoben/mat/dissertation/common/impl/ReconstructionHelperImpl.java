@@ -35,6 +35,8 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   {
     reconstructionData.setCurrentFactorization(null);
     reconstructionData.setResultFactorization(null);
+    reconstructionData.setNewVertex(null);
+    reconstructionData.getReconstructionEntries().clear();
   }
 
   @Override
@@ -56,6 +58,7 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   {
     Set<EdgeType> reconstructedEdgeTypes = EnumSet.noneOf(EdgeType.class);
 
+    boolean isReconstructionAfterConsistencyTest = true;
     Queue<ReconstructionEntryData> reconstructionEntries = reconstructionData.getReconstructionEntries();
     while (!reconstructionEntries.isEmpty())
     {
@@ -64,11 +67,21 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       createNewVertexIfNeeded(reconstructionEntry.getSourceVertex());
       reconstructedEdgeTypes.add(reconstructionEntry.getEdgeType());
 
-      reconstructionEntry.getInconsistentEdges()
-              .forEach(edge -> addEdgeToMissingVertex(edge, reconstructionEntry.getSourceVertex(), reconstructionEntry.getEdgeType()));
+      for (Edge edge : reconstructionEntry.getInconsistentEdges())
+      {
+        if (edge.getLabel() == null)
+        {
+          isReconstructionAfterConsistencyTest = false;
+        }
+        addEdgeToMissingVertex(edge, reconstructionEntry.getSourceVertex(), reconstructionEntry.getEdgeType());
+      }
     }
 
-    arrangeNewVertexEdges(reconstructedEdgeTypes);
+    //TODO is this method needed?
+    if (isReconstructionAfterConsistencyTest)
+    {
+      arrangeNewVertexEdges(reconstructedEdgeTypes);
+    }
   }
 
   private void createNewVertexIfNeeded(Vertex baseVertex)
@@ -96,17 +109,22 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
 
     Edge newEdge = new Edge(origin, endpoint);
     newEdge.setEdgeType(edgeType);
-    edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), inconsistentEdge, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
 
     Edge inconsistentEdgeOpposite = inconsistentEdge.getOpposite();
     Edge newEdgeOpposite = new Edge(endpoint, origin);
     newEdgeOpposite.setEdgeType(getOppositeEdgeType(edgeType));
-    edgeService.addLabel(newEdgeOpposite, inconsistentEdgeOpposite.getLabel().getColor(), inconsistentEdgeOpposite.getLabel().getName(), inconsistentEdgeOpposite, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+
+    if (inconsistentEdge.getLabel() != null)
+    {
+      edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), inconsistentEdge, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+      edgeService.addLabel(newEdgeOpposite, inconsistentEdgeOpposite.getLabel().getColor(), inconsistentEdgeOpposite.getLabel().getName(), inconsistentEdgeOpposite, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+    }
 
     newEdge.setOpposite(newEdgeOpposite);
     newEdgeOpposite.setOpposite(newEdge);
 
     reconstructionData.getNewVertex().getEdges().add(newEdgeOpposite);
+    origin.getEdges().add(newEdge);
     switch (edgeType)
     {
       case UP:
@@ -132,7 +150,11 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   private void insertEdgeIntoExistingEdgesGroup(Edge newEdge, EdgesGroup edgesGroup)
   {
     EdgesRef edgesRef = edgesGroup.getEdgesRef();
-
+    if (edgesRef == null)
+    {
+      edgesGroup.getEdges().add(newEdge);
+      return;
+    }
 
     List<ColorGroupLocation> colorPositions = edgesRef.getColorPositions();
 
@@ -175,7 +197,7 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       }
       else if (newEdgeName == currentEdgeName)
       {
-        System.out.println("shouldn't happen");
+        throw new IllegalStateException("shouldn't happen");
       }
     }
     return lastEdgeIndex;

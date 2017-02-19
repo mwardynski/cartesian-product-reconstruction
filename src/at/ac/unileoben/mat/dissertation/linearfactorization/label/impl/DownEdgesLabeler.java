@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 
+import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
@@ -10,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -53,6 +55,9 @@ public class DownEdgesLabeler implements EdgesLabeler
   @Autowired
   EdgeLabelingService edgeLabelingService;
 
+  @Autowired
+  ReconstructionHelper reconstructionHelper;
+
   @Override
   public void labelEdges(int currentLayerNo)
   {
@@ -76,20 +81,34 @@ public class DownEdgesLabeler implements EdgesLabeler
 
   private void assignVerticesToFactorizationSteps(List<Vertex> currentLayer, FactorizationSteps factorizationSteps)
   {
-    for (Vertex u : currentLayer)
+    currentLayer.forEach(u -> assignSingleVertexToFactorizationSteps(u, factorizationSteps));
+  }
+
+  private void assignSingleVertexToFactorizationSteps(Vertex u, FactorizationSteps factorizationSteps)
+  {
+    List<Edge> uDownEdges = u.getDownEdges().getEdges();
+    if (uDownEdges.size() == 1)
     {
-      List<Edge> uDownEdges = u.getDownEdges().getEdges();
-      if (uDownEdges.size() == 1)
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+              && reconstructionData.getNewVertex() != null
+              && reconstructionData.getNewVertex().getBfsLayer() == u.getBfsLayer() - 1)
+      {
+        ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
+        reconstructionData.getReconstructionEntries().add(reconstructionEntry);
+        reconstructionHelper.reconstructWithCollectedData();
+        assignSingleVertexToFactorizationSteps(u, factorizationSteps);
+      }
+      else
       {
         int colorToLabel = u.getDownEdges().getEdges().get(0).getEndpoint().getDownEdges().getEdges().get(0).getLabel().getColor();
         setVertexAsUnitLayer(u, colorToLabel);
       }
-      else
-      {
-        Edge uv = edgeService.getFirstEdge(u, EdgeType.DOWN);
-        Edge vx = edgeService.getFirstEdge(uv.getEndpoint(), EdgeType.DOWN);
-        factorizationStepService.initialVertexInsertForDownEdges(factorizationSteps, uv, vx);
-      }
+    }
+    else
+    {
+      Edge uv = edgeService.getFirstEdge(u, EdgeType.DOWN);
+      Edge vx = edgeService.getFirstEdge(uv.getEndpoint(), EdgeType.DOWN);
+      factorizationStepService.initialVertexInsertForDownEdges(factorizationSteps, uv, vx);
     }
   }
 
