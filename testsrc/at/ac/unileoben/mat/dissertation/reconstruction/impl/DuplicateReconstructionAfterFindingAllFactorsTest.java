@@ -35,22 +35,26 @@ public class DuplicateReconstructionAfterFindingAllFactorsTest extends AbstractR
 
   static
   {
-    examplesList.add(new FactorizationCase("newExCart.txt", 2));
-    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
-    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
-    examplesList.add(new FactorizationCase("g1", 2));
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
-    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
-    examplesList.add(new FactorizationCase("c.txt", 3));
-    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
-    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-    examplesList.add(new FactorizationCase("breakExample.txt", 2));
+    //cubes
+//    examplesList.add(new FactorizationCase("q7.txt", 7));
+//    examplesList.add(new FactorizationCase("q10.txt", 10));
     //not working
 //    examplesList.add(new FactorizationCase("handP2.txt", 2));
 //    examplesList.add(new FactorizationCase("handP3.txt", 2));
+    //standard
+    examplesList.add(new FactorizationCase("newExCart.txt", 2));
+//    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
+//    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
+//    examplesList.add(new FactorizationCase("g1", 2));
+//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
+//    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
+//    examplesList.add(new FactorizationCase("c.txt", 3));
+//    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
+//    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
+//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
+//    examplesList.add(new FactorizationCase("breakExample.txt", 2));
     //not needed:
 //    examplesList.add(new FactorizationCase("victory.txt", 3));
 //    examplesList.add(new FactorizationCase("cd.txt", 1));

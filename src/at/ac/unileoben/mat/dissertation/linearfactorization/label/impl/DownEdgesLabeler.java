@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -76,7 +77,19 @@ public class DownEdgesLabeler implements EdgesLabeler
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase, layerLabelingData);
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, layerLabelingData);
 
-    labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);
+    List<Vertex> noPivotSquareVerties = layerLabelingData.getNoPivotSquareVerties();
+    if (CollectionUtils.isNotEmpty(noPivotSquareVerties) && reconstructionHelper.isReconstructionSuitableByLabeling(currentLayerNo))
+    {
+      noPivotSquareVerties.forEach(v -> reconstructionHelper.addEdgesToReconstruction(Collections.singletonList(v.getDownEdges().getEdges().get(0)), v, EdgeType.DOWN));
+      reconstructionHelper.reconstructWithCollectedData();
+      labelEdges(currentLayerNo);
+
+    }
+    else
+    {
+      labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);
+    }
+
   }
 
   private void assignVerticesToFactorizationSteps(List<Vertex> currentLayer, FactorizationSteps factorizationSteps)
@@ -89,12 +102,9 @@ public class DownEdgesLabeler implements EdgesLabeler
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     if (uDownEdges.size() == 1)
     {
-      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
-              && reconstructionData.getNewVertex() != null
-              && reconstructionData.getNewVertex().getBfsLayer() == u.getBfsLayer() - 1)
+      if (reconstructionHelper.isReconstructionSuitableByLabeling(u.getBfsLayer()))
       {
-        ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
-        reconstructionData.getReconstructionEntries().add(reconstructionEntry);
+        reconstructionHelper.addEdgesToReconstruction(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
         reconstructionHelper.reconstructWithCollectedData();
         assignSingleVertexToFactorizationSteps(u, factorizationSteps);
       }

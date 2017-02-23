@@ -131,6 +131,10 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
       }
       else
       {
+        if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+        {
+          reconstructionData.setCurrentLayerNo(currentLayerNo);
+        }
         graphFactorizer.factorizeSingleLayer(currentLayerNo);
       }
     }

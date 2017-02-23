@@ -92,7 +92,7 @@ public class EdgeServiceImpl implements EdgeService
     List<List<Edge>> resultEdges = new ArrayList<List<Edge>>();
     for (int i = 0; i < originalColorsAmount; i++)
     {
-      resultEdges.add(new LinkedList<Edge>());
+      resultEdges.add(new LinkedList<>());
     }
 
     for (int i = 0; i < edgesRef.getColorPositions().size(); i++)

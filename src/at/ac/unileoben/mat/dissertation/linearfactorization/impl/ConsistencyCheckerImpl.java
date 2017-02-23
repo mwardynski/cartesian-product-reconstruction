@@ -50,6 +50,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     checkCurrentLayerAllEdgesConsistency(currentLayer);
     if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
     {
+      if (reconstructionHelper.isTopVertexMissingByReconstruction(currentLayerNo))
+      {
+        reconstructionHelper.prepareTopVertexReconstruction(currentLayer);
+      }
       reconstructionHelper.reconstructWithCollectedData();
     }
   }
@@ -82,10 +86,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
           break;
         }
       }
-      if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT && isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
+      if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
+              && isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
       {
         vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP);
-        break;
       }
     }
   }
@@ -196,9 +201,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
     }
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION && !inconsistentEdges.isEmpty())
+    if (reconstructionHelper.isReconstructionSuitableByConsistancyCheck()
+            && !inconsistentEdges.isEmpty())
     {
-      reconstructionHelper.addEdgesToReconstruction(inconsistentEdges, uv, edgeType);
+      reconstructionHelper.addEdgesToReconstruction(inconsistentEdges, uv.getOrigin(), edgeType);
       return new LinkedList<>();
     }
     else
@@ -209,16 +215,42 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
 
   private List<Edge> getNotCorrespondingEdgesRegardingColor(List<List<Edge>> uEdges, List<List<Edge>> vEdges)
   {
-    List<Edge> notCorrespondingEdges = new LinkedList<Edge>();
+    List<Edge> notCorrespondingEdges = new LinkedList<>();
     for (int i = 0; i < uEdges.size(); i++)
     {
       List<Edge> uEdgesOfColorI = uEdges.get(i);
       List<Edge> vEdgesOfColorI = vEdges.get(i);
       if (uEdgesOfColorI.size() != vEdgesOfColorI.size())
       {
-        notCorrespondingEdges.addAll(uEdgesOfColorI);
-        notCorrespondingEdges.addAll(vEdgesOfColorI);
+        Edge[] matchingEdges = new Edge[graph.getVertices().size()];
+
+        for (Edge e : uEdgesOfColorI)
+        {
+          matchingEdges[e.getSquareMatchingEdge().getEndpoint().getVertexNo()] = e;
+        }
+
+        for (Edge e : vEdgesOfColorI)
+        {
+          Edge matchingEdge = matchingEdges[e.getEndpoint().getVertexNo()];
+          if (matchingEdge != null)
+          {
+            matchingEdges[e.getEndpoint().getVertexNo()] = null;
+          }
+          else
+          {
+            notCorrespondingEdges.add(e);
+          }
+        }
+
+        for (Edge e : matchingEdges)
+        {
+          if (e != null)
+          {
+            notCorrespondingEdges.add(e);
+          }
+        }
       }
+
     }
     return notCorrespondingEdges;
   }

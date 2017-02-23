@@ -16,6 +16,7 @@ public class ReconstructionData
   OperationOnGraph operationOnGraph;
   Vertex newVertex;
   Queue<ReconstructionEntryData> reconstructionEntries;
+  int currentLayerNo;
 
   public ReconstructionData()
   {
@@ -65,5 +66,20 @@ public class ReconstructionData
   public Queue<ReconstructionEntryData> getReconstructionEntries()
   {
     return reconstructionEntries;
+  }
+
+  public void setReconstructionEntries(Queue<ReconstructionEntryData> reconstructionEntries)
+  {
+    this.reconstructionEntries = reconstructionEntries;
+  }
+
+  public int getCurrentLayerNo()
+  {
+    return currentLayerNo;
+  }
+
+  public void setCurrentLayerNo(int currentLayerNo)
+  {
+    this.currentLayerNo = currentLayerNo;
   }
 }

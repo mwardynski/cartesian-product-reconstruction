@@ -2,8 +2,10 @@ package at.ac.unileoben.mat.dissertation.common.impl;
 
 import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,9 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   @Autowired
   LabelUtils labelUtils;
 
+  @Autowired
+  ColoringService coloringService;
+
   @Override
   public void clearReconstructionData()
   {
@@ -40,15 +45,33 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   }
 
   @Override
-  public boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Edge baseEdge, EdgeType edgeType)
+  public boolean isReconstructionSuitableByConsistancyCheck()
+  {
+    return reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && (reconstructionData.getCurrentLayerNo() > reconstructionData.getResultFactorization().getMaxConsistentLayerNo()
+            || (reconstructionData.getCurrentLayerNo() == reconstructionData.getResultFactorization().getMaxConsistentLayerNo()
+            && !reconstructionData.getResultFactorization().isAfterConsistencyCheck()));
+  }
+
+  @Override
+  public boolean isReconstructionSuitableByLabeling(int currentLayerNo)
+  {
+    return reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && reconstructionData.getNewVertex() != null
+            && reconstructionData.getNewVertex().getBfsLayer() == currentLayerNo - 1;
+  }
+
+  @Override
+  public boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType)
   {
     if (edgeType == UP && inconsistentEdges.size() > 1)
     {
+//      return true;
       throw new IllegalArgumentException("there shouldn't be more than one inconsistent Up-Edge");
     }
 
 
-    ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(inconsistentEdges, baseEdge.getOrigin(), edgeType);
+    ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(inconsistentEdges, baseVertex, edgeType);
     reconstructionData.getReconstructionEntries().add(reconstructionEntry);
     return true;
   }
@@ -65,19 +88,22 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       ReconstructionEntryData reconstructionEntry = reconstructionEntries.poll();
 
       createNewVertexIfNeeded(reconstructionEntry.getSourceVertex());
-      reconstructedEdgeTypes.add(reconstructionEntry.getEdgeType());
 
+      EdgeType currentEdgeType = reconstructionEntry.getEdgeType();
+      if (!isCorrectEdgeTypeToAdd(currentEdgeType))
+      {
+        continue;
+      }
+      reconstructedEdgeTypes.add(currentEdgeType);
       for (Edge edge : reconstructionEntry.getInconsistentEdges())
       {
         if (edge.getLabel() == null)
         {
           isReconstructionAfterConsistencyTest = false;
         }
-        addEdgeToMissingVertex(edge, reconstructionEntry.getSourceVertex(), reconstructionEntry.getEdgeType());
+        addEdgeToMissingVertex(edge, reconstructionEntry.getSourceVertex(), currentEdgeType);
       }
     }
-
-    //TODO is this method needed?
     if (isReconstructionAfterConsistencyTest)
     {
       arrangeNewVertexEdges(reconstructedEdgeTypes);
@@ -89,18 +115,50 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     Vertex newVertex = reconstructionData.getNewVertex();
     if (newVertex == null)
     {
-      int newVertexNo = graph.getVertices().size();
+      int newVertexNo;
+      if (graph.getLayers().size() - baseVertex.getBfsLayer() > 2)
+      {
+        newVertexNo = graph.getLayers().get(baseVertex.getBfsLayer() + 2).get(0).getVertexNo();
+        for (int i = newVertexNo; i < graph.getVertices().size(); i++)
+        {
+          Vertex vertex = graph.getVertices().get(i);
+          vertex.setVertexNo(vertex.getVertexNo() + 1);
+          //TODO repair reindex array
+        }
+      }
+      else
+      {
+        newVertexNo = graph.getVertices().size();
+      }
       int newVertexLayer = baseVertex.getBfsLayer() + 1;
+
 
       newVertex = new Vertex(newVertexNo, new LinkedList<>());
       newVertex.setBfsLayer(newVertexLayer);
-      newVertex.setDownEdges(new EdgesGroup(new ArrayList<>(newVertexNo)));
-      newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(newVertexNo)));
-      newVertex.setUpEdges(new EdgesGroup(new ArrayList<>(newVertexNo)));
-      graph.getVertices().add(newVertex);
+
+      newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      EdgesRef crossEdgesRef = new EdgesRef(graph.getGraphColoring().getOriginalColorsAmount());
+      coloringService.setColorAmounts(crossEdgesRef, new int[graph.getGraphColoring().getOriginalColorsAmount()]);
+      newVertex.getCrossEdges().setEdgesRef(crossEdgesRef);
+
+      newVertex.setDownEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      newVertex.setUpEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      graph.getVertices().add(newVertexNo, newVertex);
+      if (graph.getLayers().size() == newVertexLayer)
+      {
+        graph.getLayers().add(new ArrayList<>(1));
+      }
       graph.getLayers().get(newVertexLayer).add(newVertex);
       reconstructionData.setNewVertex(newVertex);
     }
+  }
+
+  private boolean isCorrectEdgeTypeToAdd(EdgeType currentEdgeType)
+  {
+    return (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer()
+            && (currentEdgeType == UP || currentEdgeType == CROSS))
+            || (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer() + 1
+            && currentEdgeType == DOWN);
   }
 
   private void addEdgeToMissingVertex(Edge inconsistentEdge, Vertex origin, EdgeType edgeType)
@@ -123,22 +181,35 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     newEdge.setOpposite(newEdgeOpposite);
     newEdgeOpposite.setOpposite(newEdge);
 
-    reconstructionData.getNewVertex().getEdges().add(newEdgeOpposite);
-    origin.getEdges().add(newEdge);
+    boolean isInsertionSuccessful = true;
     switch (edgeType)
     {
       case UP:
-        reconstructionData.getNewVertex().getDownEdges().getEdges().add(newEdgeOpposite);
-        insertEdgeIntoExistingEdgesGroup(newEdge, origin.getUpEdges());
+        isInsertionSuccessful = insertEdgeIntoExistingEdgesGroup(newEdge, origin.getUpEdges());
+        if (isInsertionSuccessful)
+        {
+          reconstructionData.getNewVertex().getDownEdges().getEdges().add(newEdgeOpposite);
+        }
         break;
       case CROSS:
-        reconstructionData.getNewVertex().getCrossEdges().getEdges().add(newEdgeOpposite);
-        insertEdgeIntoExistingEdgesGroup(newEdge, origin.getCrossEdges());
+        isInsertionSuccessful = insertEdgeIntoExistingEdgesGroup(newEdge, origin.getCrossEdges());
+        if (isInsertionSuccessful)
+        {
+          reconstructionData.getNewVertex().getCrossEdges().getEdges().add(newEdgeOpposite);
+        }
         break;
       case DOWN:
-        reconstructionData.getNewVertex().getUpEdges().getEdges().add(newEdgeOpposite);
-        insertEdgeIntoExistingEdgesGroup(newEdge, origin.getDownEdges());
+        isInsertionSuccessful = insertEdgeIntoExistingEdgesGroup(newEdge, origin.getDownEdges());
+        if (isInsertionSuccessful)
+        {
+          reconstructionData.getNewVertex().getUpEdges().getEdges().add(newEdgeOpposite);
+        }
         break;
+    }
+    if (isInsertionSuccessful)
+    {
+      reconstructionData.getNewVertex().getEdges().add(newEdgeOpposite);
+      origin.getEdges().add(newEdge);
     }
   }
 
@@ -147,13 +218,14 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     return edgeType == CROSS ? CROSS : edgeType == DOWN ? UP : DOWN;
   }
 
-  private void insertEdgeIntoExistingEdgesGroup(Edge newEdge, EdgesGroup edgesGroup)
+  private boolean insertEdgeIntoExistingEdgesGroup(Edge newEdge, EdgesGroup edgesGroup)
   {
+    boolean isInsertionSuccessful = true;
     EdgesRef edgesRef = edgesGroup.getEdgesRef();
     if (edgesRef == null)
     {
       edgesGroup.getEdges().add(newEdge);
-      return;
+      return isInsertionSuccessful;
     }
 
     List<ColorGroupLocation> colorPositions = edgesRef.getColorPositions();
@@ -166,11 +238,19 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
 
     if (colorGroupLocationForEdgeColor != null)
     {
-      int newEdgeIndex = calculateIndexForNewEdge(newEdge, edges, colorGroupLocationForEdgeColor);
-      colorGroupLocationForEdgeColor.setLength(colorGroupLocationForEdgeColor.getLength() + 1);
-      edges.add(newEdgeIndex, newEdge);
+      Optional<Integer> newEdgeIndexOptional = calculateIndexForNewEdge(newEdge, edges, colorGroupLocationForEdgeColor);
+      if (newEdgeIndexOptional.isPresent())
+      {
+        int newEdgeIndex = newEdgeIndexOptional.get();
+        colorGroupLocationForEdgeColor.setLength(colorGroupLocationForEdgeColor.getLength() + 1);
+        edges.add(newEdgeIndex, newEdge);
 
-      incrementColorGroupLocationsAfterNewColor(edgeColor, colorPositions, currentEdgesSize);
+        incrementColorGroupLocationsAfterNewColor(edgeColor, colorPositions, currentEdgesSize);
+      }
+      else
+      {
+        isInsertionSuccessful = false;
+      }
     }
     else
     {
@@ -180,27 +260,32 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
 
       incrementColorGroupLocationsAfterNewColor(edgeColor, colorPositions, currentEdgesSize);
     }
-
+    return isInsertionSuccessful;
   }
 
-  private int calculateIndexForNewEdge(Edge newEdge, List<Edge> edges, ColorGroupLocation colorGroupLocationForEdgeColor)
+  private Optional<Integer> calculateIndexForNewEdge(Edge newEdge, List<Edge> edges, ColorGroupLocation colorGroupLocationForEdgeColor)
   {
     int firstEdgeIndex = colorGroupLocationForEdgeColor.getIndex();
-    int lastEdgeIndex = colorGroupLocationForEdgeColor.getIndex() + colorGroupLocationForEdgeColor.getLength();
-    for (int i = firstEdgeIndex; i < lastEdgeIndex; i++)
+    int newEdgeIndex = colorGroupLocationForEdgeColor.getIndex() + colorGroupLocationForEdgeColor.getLength();
+    for (int i = firstEdgeIndex; i < newEdgeIndex; i++)
     {
-      int currentEdgeName = edges.get(i).getLabel().getName();
+      Edge currentEdge = edges.get(i);
+      if (currentEdge.getOrigin() == newEdge.getOrigin() && currentEdge.getEndpoint() == newEdge.getEndpoint())
+      {
+        return Optional.empty();
+      }
+      int currentEdgeName = currentEdge.getLabel().getName();
       int newEdgeName = newEdge.getLabel().getName();
       if (newEdgeName < currentEdgeName)
       {
-        lastEdgeIndex = i;
+        newEdgeIndex = i;
       }
       else if (newEdgeName == currentEdgeName)
       {
         throw new IllegalStateException("shouldn't happen");
       }
     }
-    return lastEdgeIndex;
+    return Optional.of(newEdgeIndex);
   }
 
   private ColorGroupLocation getColorGroupLocationForNewColor(int edgeColor, List<ColorGroupLocation> colorPositions, int currentEdgesSize)
@@ -208,18 +293,18 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     ColorGroupLocation newColorGroupLocation = null;
     if (currentEdgesSize > 0)
     {
-      for (int i = edgeColor + 1; i < colorPositions.size() && newColorGroupLocation == null; i++)
+      for (int i = edgeColor - 1; i >= 0 && newColorGroupLocation == null; i--)
       {
         ColorGroupLocation colorGroupLocation = colorPositions.get(i);
         if (colorGroupLocation != null)
         {
-          newColorGroupLocation = new ColorGroupLocation(colorGroupLocation.getIndex(), 1);
+          newColorGroupLocation = new ColorGroupLocation(colorGroupLocation.getIndex() + colorGroupLocation.getLength(), 1);
         }
       }
     }
-    else
+    if (newColorGroupLocation == null)
     {
-      newColorGroupLocation = new ColorGroupLocation(currentEdgesSize, 1);
+      newColorGroupLocation = new ColorGroupLocation(0, 1);
     }
     return newColorGroupLocation;
   }
@@ -262,6 +347,64 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       }
       edgeTypesIt.remove();
     }
+  }
+
+  @Override
+  public boolean isTopVertexMissingByReconstruction(int currentLayerNo)
+  {
+    return reconstructionData.getNewVertex() == null
+            && CollectionUtils.isEmpty(reconstructionData.getReconstructionEntries())
+            && currentLayerNo == graph.getLayers().size() - 1;
+  }
+
+  @Override
+  public void prepareTopVertexReconstruction(List<Vertex> currentLayer)
+  {
+    for (Vertex u : currentLayer)
+    {
+      Edge uv = u.getDownEdges().getEdges().get(0);
+      int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
+      Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
+      try
+      {
+        Edge referenceEdge = findReferenceEdgeForMissingTopVertex(uv)
+                .orElseGet(() -> findReferenceEdgeForMissingTopVertex(uw)
+                        .orElseThrow(() -> new IllegalStateException("there must be at lease one up edge for missing layer vertex")));
+        addEdgesToReconstruction(Collections.singletonList(referenceEdge), uv.getOrigin(), EdgeType.UP);
+      }
+      catch (NullPointerException e)
+      {
+        e.getCause();
+      }
+    }
+
+  }
+
+  private Optional<Edge> findReferenceEdgeForMissingTopVertex(Edge uv)
+  {
+    Vertex v = uv.getEndpoint();
+    List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
+
+    Optional<Edge> resultEdgeOptional = Optional.empty();
+    for (List<Edge> edges : vDifferentThanUv)
+    {
+      if (edges.size() == 1)
+      {
+        if (!resultEdgeOptional.isPresent())
+        {
+          resultEdgeOptional = Optional.of(edges.get(0));
+        }
+        else
+        {
+          throw new IllegalStateException("there could be only one reference edge pro neighbor for missing top layer vertex");
+        }
+      }
+      else if (edges.size() > 1)
+      {
+        throw new IllegalStateException("there could be only one missing edge pro neighbor for missing top layer vertex");
+      }
+    }
+    return resultEdgeOptional;
   }
 
 }
