@@ -52,7 +52,7 @@ public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractR
     List<Vertex> vertices = graphHelper.parseGraph(args[0]);
 
 
-    ReconstructionAfterFindingAllFactors reconstruction = applicationContext.getBean(DuplicateReconstructionAfterFindingAllFactorsImpl.class);
+    ReconstructionAfterFindingAllFactors reconstruction = applicationContext.getBean("duplicateReconstructionAfterFindingAllFactorsImpl", ReconstructionAfterFindingAllFactors.class);
     Graph resultGraph = reconstruction.reconstruct(vertices);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);

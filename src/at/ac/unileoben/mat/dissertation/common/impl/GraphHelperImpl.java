@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 /**
@@ -99,7 +100,10 @@ public class GraphHelperImpl implements GraphHelper
       {
         List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
         orderBFS(Arrays.asList(v), vertices, Optional.empty(), Collections.emptySet(),
-                (currentVertex, previousVertex) -> connectedComponentVertices.add(currentVertex));
+                (currentVertex, previousVertex) -> connectedComponentVertices.add(currentVertex),
+                (currentVertex, previousVertex) ->
+                {
+                });
         connectedComponents.add(connectedComponentVertices);
       }
       graphColoringArray[v.getVertexNo()] = Color.WHITE;
@@ -167,6 +171,9 @@ public class GraphHelperImpl implements GraphHelper
               }
               unitLayerSpecs[vertexNo] = newFactorizationUnitLayerSpecData;
               return proceedWithCurrentVertex;
+            },
+            (currentVertex, previousVertex) ->
+            {
             });
   }
 
@@ -186,12 +193,12 @@ public class GraphHelperImpl implements GraphHelper
     List<Vertex> factorVertices = new ArrayList<>(vertices.size());
     Vertex[] reindexArray = new Vertex[vertices.size()];
     orderBFS(topVertices, vertices, Optional.empty(), EnumSet.of(EdgeType.UP),
+            (currentVertex, previousVertex) -> true,
             (currentVertex, previousVertex) ->
             {
-              Vertex factorCurrentVertex = getFactorVertex(currentVertex, factorVertices, reindexArray, vertices.size());
               Vertex factorPreviousVertex = getFactorVertex(previousVertex, factorVertices, reindexArray, vertices.size());
+              Vertex factorCurrentVertex = getFactorVertex(currentVertex, factorVertices, reindexArray, vertices.size());
               createEdgeBetweenVertices(factorCurrentVertex, factorPreviousVertex);
-              return true;
             });
     return factorVertices;
   }
@@ -224,7 +231,7 @@ public class GraphHelperImpl implements GraphHelper
     factorPreviousVertex.getEdges().add(e2);
   }
 
-  private void orderBFS(List<Vertex> roots, List<Vertex> vertices, Optional<Integer> currentColorOptional, Set<EdgeType> excludedEdgeTypes, BiFunction<Vertex, Vertex, Boolean> biFunction)
+  private void orderBFS(List<Vertex> roots, List<Vertex> vertices, Optional<Integer> currentColorOptional, Set<EdgeType> excludedEdgeTypes, BiFunction<Vertex, Vertex, Boolean> whiteVertexFunction, BiConsumer<Vertex, Vertex> greyVertexConsumer)
   {
     Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
     roots.stream().forEach(root -> graphColoringArray[root.getVertexNo()] = Color.GRAY);
@@ -240,19 +247,24 @@ public class GraphHelperImpl implements GraphHelper
           continue;
         }
         Vertex v = e.getEndpoint();
-        if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
+        if (graphColoringArray[v.getVertexNo()] != Color.BLACK)
         {
-          Boolean proceedWithVertex = biFunction.apply(v, u);
-          if (proceedWithVertex)
+          greyVertexConsumer.accept(v, u);
+          if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
           {
-            graphColoringArray[v.getVertexNo()] = Color.GRAY;
-            queue.add(v);
-          }
-          else
-          {
-            graphColoringArray[v.getVertexNo()] = Color.BLACK;
+            Boolean proceedWithVertex = whiteVertexFunction.apply(v, u);
+            if (proceedWithVertex)
+            {
+              graphColoringArray[v.getVertexNo()] = Color.GRAY;
+              queue.add(v);
+            }
+            else
+            {
+              graphColoringArray[v.getVertexNo()] = Color.BLACK;
+            }
           }
         }
+
       }
       graphColoringArray[u.getVertexNo()] = Color.BLACK;
     }
@@ -348,6 +360,9 @@ public class GraphHelperImpl implements GraphHelper
               currentVertex.setBfsLayer(previousVertex.getBfsLayer() + 1);
               reindexArray[currentVertex.getVertexNo()] = counter.getAndIncrement();
               return true;
+            },
+            (currentVertex, previousVertex) ->
+            {
             });
 
     reindex(vertices, reindexArray);
