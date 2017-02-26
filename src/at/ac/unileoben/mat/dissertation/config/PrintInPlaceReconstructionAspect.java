@@ -4,11 +4,9 @@ import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -19,9 +17,9 @@ import java.util.List;
  * Time: 18:41
  * To change this template use File | Settings | File Templates.
  */
-//@Aspect
-//@Component
-public class TmpPrintFactorizationAspect
+@Aspect
+@Component
+public class PrintInPlaceReconstructionAspect
 {
 
   @Autowired

@@ -57,7 +57,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     return reconstructionData.getResultFactorization();
   }
 
-  protected void findFactorsForRoot(List<Vertex> vertices, Vertex root)
+  protected Graph findFactorsForRoot(List<Vertex> vertices, Vertex root)
   {
     clearVerticesAndEdges(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
@@ -72,6 +72,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
 
     collectFirstLayerFactors(vertices, root);
     findFactorsForPreparedGraph();
+    return graph;
   }
 
   private void clearVerticesAndEdges(List<Vertex> vertices)

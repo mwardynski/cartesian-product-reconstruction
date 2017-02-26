@@ -50,23 +50,14 @@ public class InPlaceReconstructionAfterFindingAllFactorsImpl extends AbstractRec
   public Graph reconstruct(List<Vertex> vertices)
   {
     FactorizationData factorizationData = findFactors(vertices);
-    return reconstructWithFoundFactors(vertices, factorizationData);
+    Graph graph = reconstructWithFoundFactors(vertices, factorizationData);
+    graphHelper.revertGraphBfsStructure();
+    return graph;
   }
 
   private Graph reconstructWithFoundFactors(List<Vertex> vertices, FactorizationData factorizationData)
   {
     reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
-    findFactorsForRoot(vertices, factorizationData.getRootVertex());
-
-    return mockResultGraph(factorizationData);
+    return findFactorsForRoot(vertices, factorizationData.getRootVertex());
   }
-
-  private Graph mockResultGraph(FactorizationData factorizationData)
-  {
-    Graph graph = new Graph();
-    GraphColoring graphColoring = new GraphColoring(factorizationData.getFactors().size());
-    graph.setGraphColoring(graphColoring);
-    return graph;
-  }
-
 }

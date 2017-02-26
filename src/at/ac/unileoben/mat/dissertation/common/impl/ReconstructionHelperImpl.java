@@ -123,17 +123,18 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
         {
           Vertex vertex = graph.getVertices().get(i);
           vertex.setVertexNo(vertex.getVertexNo() + 1);
-          //TODO repair reindex array
         }
       }
       else
       {
         newVertexNo = graph.getVertices().size();
       }
-      int newVertexLayer = baseVertex.getBfsLayer() + 1;
+      updateReverseReindexArray(newVertexNo);
 
 
       newVertex = new Vertex(newVertexNo, new LinkedList<>());
+
+      int newVertexLayer = baseVertex.getBfsLayer() + 1;
       newVertex.setBfsLayer(newVertexLayer);
 
       newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
@@ -151,6 +152,18 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       graph.getLayers().get(newVertexLayer).add(newVertex);
       reconstructionData.setNewVertex(newVertex);
     }
+  }
+
+  private void updateReverseReindexArray(int newVertexNo)
+  {
+    Integer[] reverseReindexArray = graph.getReverseReindexArray();
+    Integer[] updatedReverseReindexArray = Arrays.copyOf(reverseReindexArray, reverseReindexArray.length + 1);
+    for (int i = reverseReindexArray.length - 1; i >= newVertexNo; i--)
+    {
+      updatedReverseReindexArray[i + 1] = updatedReverseReindexArray[i];
+    }
+    updatedReverseReindexArray[newVertexNo] = graph.getVertices().size();
+    graph.setReverseReindexArray(updatedReverseReindexArray);
   }
 
   private boolean isCorrectEdgeTypeToAdd(EdgeType currentEdgeType)
