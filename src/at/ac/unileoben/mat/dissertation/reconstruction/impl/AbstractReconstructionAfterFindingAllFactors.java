@@ -48,7 +48,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
   public FactorizationData findFactors(List<Vertex> vertices)
   {
     reconstructionHelper.clearReconstructionData();
-    reconstructionData.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
+    reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
     for (Vertex vertex : vertices)
     {
       findFactorsForRoot(vertices, vertex);
@@ -132,10 +132,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
       }
       else
       {
-        if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
-        {
-          reconstructionData.setCurrentLayerNo(currentLayerNo);
-        }
+        reconstructionData.setCurrentLayerNo(currentLayerNo);
         graphFactorizer.factorizeSingleLayer(currentLayerNo);
       }
     }

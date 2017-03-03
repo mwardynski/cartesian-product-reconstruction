@@ -55,6 +55,7 @@ public class GraphFactorizerImpl implements GraphFactorizer
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
+      reconstructionData.setCurrentLayerNo(currentLayerNo);
       factorizeSingleLayer(currentLayerNo);
     }
   }

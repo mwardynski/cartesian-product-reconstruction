@@ -44,11 +44,21 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Override
   public void checkConsistency(int currentLayerNo)
   {
+    GraphColoring backupGraphColoring = null;
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE)
+    {
+      backupGraphColoring = new GraphColoring(graph.getGraphColoring());
+    }
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     checkPreviousLayerUpEdgesConsistency(previousLayer);
     checkCurrentLayerAllEdgesConsistency(currentLayer);
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE && graph.getGraphColoring().getActualColors().size() == 1)
+    {
+      setUpReconstructionInPlace(currentLayerNo, backupGraphColoring);
+      checkConsistency(currentLayerNo);
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
     {
       if (reconstructionHelper.isTopVertexMissingByReconstruction(currentLayerNo))
       {
@@ -58,14 +68,22 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
   }
 
+  private void setUpReconstructionInPlace(int currentLayerNo, GraphColoring backupGraphColoring)
+  {
+    graph.setGraphColoring(backupGraphColoring);
+    reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
+    FactorizationData factorizationData = new FactorizationData(0, null, null, null);
+    factorizationData.setMaxConsistentLayerNo(currentLayerNo - 1);
+    factorizationData.setAfterConsistencyCheck(false);
+    reconstructionData.setResultFactorization(factorizationData);
+  }
+
   private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
   {
     for (Vertex u : layer)
     {
       if (u.isUnitLayer())
       {
-        List<Edge> unitLayerEdges = collectUnitLayerEdges(u);
-        coloringService.mergeColorsForEdges(unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
@@ -93,19 +111,6 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP);
       }
     }
-  }
-
-  private List<Edge> collectUnitLayerEdges(Vertex u)
-  {
-    List<Edge> unitLayerEdges = new LinkedList<Edge>();
-    List<Edge> uDownEdges = u.getDownEdges().getEdges();
-    for (Edge uDownEdge : uDownEdges)
-    {
-      Vertex v = uDownEdge.getEndpoint();
-      Edge firstVDownEdge = v.getDownEdges().getEdges().iterator().next();
-      unitLayerEdges.add(firstVDownEdge);
-    }
-    return unitLayerEdges;
   }
 
 

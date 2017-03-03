@@ -45,7 +45,7 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   }
 
   @Override
-  public boolean isReconstructionSuitableByConsistancyCheck()
+  public boolean isReconstructionSuitableByConsistencyCheck()
   {
     return reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
             && (reconstructionData.getCurrentLayerNo() > reconstructionData.getResultFactorization().getMaxConsistentLayerNo()
@@ -171,7 +171,9 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     return (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer()
             && (currentEdgeType == UP || currentEdgeType == CROSS))
             || (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer() + 1
-            && currentEdgeType == DOWN);
+            && currentEdgeType == DOWN)
+            || (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer() - 1
+            && currentEdgeType == UP);
   }
 
   private void addEdgeToMissingVertex(Edge inconsistentEdge, Vertex origin, EdgeType edgeType)
@@ -378,19 +380,11 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       Edge uv = u.getDownEdges().getEdges().get(0);
       int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
       Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
-      try
-      {
-        Edge referenceEdge = findReferenceEdgeForMissingTopVertex(uv)
-                .orElseGet(() -> findReferenceEdgeForMissingTopVertex(uw)
-                        .orElseThrow(() -> new IllegalStateException("there must be at lease one up edge for missing layer vertex")));
-        addEdgesToReconstruction(Collections.singletonList(referenceEdge), uv.getOrigin(), EdgeType.UP);
-      }
-      catch (NullPointerException e)
-      {
-        e.getCause();
-      }
+      Edge referenceEdge = findReferenceEdgeForMissingTopVertex(uv)
+              .orElseGet(() -> findReferenceEdgeForMissingTopVertex(uw)
+                      .orElseThrow(() -> new IllegalStateException("there must be at lease one up edge for missing layer vertex")));
+      addEdgesToReconstruction(Collections.singletonList(referenceEdge), uv.getOrigin(), EdgeType.UP);
     }
-
   }
 
   private Optional<Edge> findReferenceEdgeForMissingTopVertex(Edge uv)
