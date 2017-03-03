@@ -19,19 +19,14 @@ public class EdgesRef
     this.colorsAmount = colorsAmount;
   }
 
-  public void setColorPositions(List<ColorGroupLocation> colorPositions)
-  {
-    this.colorPositions = colorPositions;
-  }
-
   public List<ColorGroupLocation> getColorPositions()
   {
     return colorPositions;
   }
 
-  public int getColorsAmount()
+  public void setColorPositions(List<ColorGroupLocation> colorPositions)
   {
-    return colorsAmount;
+    this.colorPositions = colorPositions;
   }
 
   @Override

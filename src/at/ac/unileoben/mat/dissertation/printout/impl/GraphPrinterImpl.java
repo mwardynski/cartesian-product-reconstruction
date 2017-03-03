@@ -141,7 +141,7 @@ public class GraphPrinterImpl implements GraphPrinter
         Vertex vertex = layer.get(vertexInLayerNo);
         VertexData vertexData = new VertexData();
         vertexData.setVertexNo(vertex.getVertexNo());
-        vertexData.setOrigVertexNo(graph.getReverseReindexArray()[vertex.getVertexNo()]);
+        vertexData.setOrigVertexNo(vertex.getVertexNo() < graph.getReverseReindexArray().length ? graph.getReverseReindexArray()[vertex.getVertexNo()] : vertex.getVertexNo());
         if (vertex.isUnitLayer())
         {
           vertexData.setColor(VertexColorEnum.ORANGE.toString());

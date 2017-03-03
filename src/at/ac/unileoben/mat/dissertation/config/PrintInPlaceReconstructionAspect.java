@@ -19,11 +19,14 @@ import java.util.List;
  */
 @Aspect
 @Component
-public class PrintFactorizationAspect
+public class PrintInPlaceReconstructionAspect
 {
 
   @Autowired
   Graph graph;
+
+  @Autowired
+  ReconstructionData reconstructionData;
 
   @Autowired
   GraphPrinter graphPrinter;
@@ -31,13 +34,19 @@ public class PrintFactorizationAspect
   @Before("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer.factorize(..))")
   public void addGraphInitialSnapshot(JoinPoint joinPoint)
   {
-    graphPrinter.createLayerSnapshot();
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      graphPrinter.createLayerSnapshot();
+    }
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..))")
   public void addGraphLayerSnapshot(JoinPoint joinPoint)
   {
-    graphPrinter.createLayerSnapshot();
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      graphPrinter.createLayerSnapshot();
+    }
   }
 
 
@@ -54,7 +63,10 @@ public class PrintFactorizationAspect
     int actGraphColorsAmount = graph.getGraphColoring().getActualColors().size();
     if (prevGraphColorsAmount != actGraphColorsAmount)
     {
-      graphPrinter.createMergeSnapshot(edges, mergeTag);
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+      {
+        graphPrinter.createMergeSnapshot(edges, mergeTag);
+      }
     }
     return result;
 
@@ -70,20 +82,29 @@ public class PrintFactorizationAspect
   {
     if (labelOperationDetail.getType() != LabelOperationEnum.PREPARE && labelOperationDetail.getType() != LabelOperationEnum.OPPOSITE)
     {
-      graphPrinter.createLabelSnapshot(edge, color, name, labelOperationDetail);
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+      {
+        graphPrinter.createLabelSnapshot(edge, color, name, labelOperationDetail);
+      }
     }
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer.factorize(..))")
   public void printFactorizedGraph(JoinPoint joinPoint)
   {
-    graphPrinter.printFactorization();
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      graphPrinter.printFactorization();
+    }
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction.reconstruct(..))")
   public void printGraph(JoinPoint joinPoint)
   {
-    graphPrinter.printFactorization();
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      graphPrinter.printFactorization();
+    }
   }
 
 }

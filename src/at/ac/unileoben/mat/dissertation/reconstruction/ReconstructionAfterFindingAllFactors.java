@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by mwardynski on 24/04/16.
  */
-public interface DuplicateReconstruction extends Reconstruction
+public interface ReconstructionAfterFindingAllFactors extends Reconstruction
 {
   FactorizationData findFactors(List<Vertex> vertices);
 }

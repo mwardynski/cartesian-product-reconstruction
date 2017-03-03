@@ -5,5 +5,5 @@ package at.ac.unileoben.mat.dissertation.structure;
  */
 public enum OperationOnGraph
 {
-  FACTORIZE, RECONSTRUCT
+  FACTORIZE, RECONSTRUCT, IN_PLACE_RECONSTRUCTION
 }

@@ -23,9 +23,19 @@ public class ColorGroupLocation
     return index;
   }
 
+  public void setIndex(int index)
+  {
+    this.index = index;
+  }
+
   public int getLength()
   {
     return length;
+  }
+
+  public void setLength(int length)
+  {
+    this.length = length;
   }
 
   @Override

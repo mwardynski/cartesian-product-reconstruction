@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.label;
 
+import at.ac.unileoben.mat.dissertation.common.impl.GraphReaderImpl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
@@ -81,7 +82,7 @@ public class LabelUtils
         colorsCounter[edges.get(0).getLabel().getColor()] = edges.size();
 
         List<Edge> edgesToLabel = new LinkedList<>();
-        boolean[] labelsInUse = new boolean[edges.size()];
+        boolean[] labelsInUse = new boolean[GraphReaderImpl.MAX_NEIGHBOURS_AMOUNT];
         for (Edge edge : edges)
         {
           int edgeName = edge.getLabel().getName();
@@ -91,7 +92,7 @@ public class LabelUtils
           }
           else
           {
-            if (edgeName >= labelsInUse.length || labelsInUse[edgeName])
+            if (labelsInUse[edgeName])
             {
               edgesToLabel.add(edge);
             }

@@ -21,7 +21,6 @@ public class Graph
 
   private Integer[] reverseReindexArray;
 
-  private OperationOnGraph operationOnGraph;
   private AnalyzeData analyzeData;
 
   public Graph()
@@ -86,16 +85,6 @@ public class Graph
   public void setReverseReindexArray(Integer[] reverseReindexArray)
   {
     this.reverseReindexArray = reverseReindexArray;
-  }
-
-  public OperationOnGraph getOperationOnGraph()
-  {
-    return operationOnGraph;
-  }
-
-  public void setOperationOnGraph(OperationOnGraph operationOnGraph)
-  {
-    this.operationOnGraph = operationOnGraph;
   }
 
   public AnalyzeData getAnalyzeData()

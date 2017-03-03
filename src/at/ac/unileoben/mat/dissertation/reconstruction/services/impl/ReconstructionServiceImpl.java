@@ -29,6 +29,9 @@ public class ReconstructionServiceImpl implements ReconstructionService
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   VertexService vertexService;
 
   @Autowired
@@ -43,25 +46,25 @@ public class ReconstructionServiceImpl implements ReconstructionService
   }
 
   @Override
-  public void findReconstructionComponents(int currentLayerNo, FactorizationResultData factorizationResultData, boolean afterConsistencyCheck)
+  public void findReconstructionComponents(int currentLayerNo, boolean afterConsistencyCheck)
   {
-    boolean processCurrentLayer = handleCurrentFactorization(currentLayerNo, factorizationResultData, afterConsistencyCheck);
+    boolean processCurrentLayer = handleCurrentFactorization(currentLayerNo, afterConsistencyCheck);
     if (processCurrentLayer)
     {
-      processCurrentLayer(currentLayerNo, factorizationResultData);
+      processCurrentLayer(currentLayerNo);
     }
   }
 
-  private boolean handleCurrentFactorization(int currentLayerNo, FactorizationResultData factorizationResultData, boolean afterConsistencyCheck)
+  private boolean handleCurrentFactorization(int currentLayerNo, boolean afterConsistencyCheck)
   {
     int actualColorsAmount = graph.getGraphColoring().getActualColors().size();
-    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
 
     boolean processCurrentLayer = actualColorsAmount != 1;
     List<FactorizationData.FactorData> currentFactors = currentFactorizationData.getFactors();
     if (CollectionUtils.isNotEmpty(currentFactors) && currentFactors.size() != actualColorsAmount)
     {
-      updateFactorizationResult(factorizationResultData);
+      updateFactorizationResult();
       List<FactorizationData.FactorData> newFactors = new LinkedList<>(currentFactorizationData.getFactors());
       int collectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight();
       currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot(),
@@ -70,7 +73,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
 
       currentFactorizationData.setCollectedFactorsTotalHeight(collectedFactorsTotalHeight);
 
-      factorizationResultData.setCurrentFactorization(currentFactorizationData);
+      reconstructionData.setCurrentFactorization(currentFactorizationData);
     }
     else
     {
@@ -80,20 +83,20 @@ public class ReconstructionServiceImpl implements ReconstructionService
     currentFactorizationData.setAfterConsistencyCheck(afterConsistencyCheck);
     if (isLastLayerAndCurrentFactorizationCompleted(currentLayerNo, currentFactorizationData))
     {
-      factorizationResultData.setResultFactorization(currentFactorizationData);
+      reconstructionData.setResultFactorization(currentFactorizationData);
     }
     return processCurrentLayer;
   }
 
-  public void updateFactorizationResult(FactorizationResultData factorizationResultData)
+  public void updateFactorizationResult()
   {
-    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
     if (currentFactorizationData.isFactorizationCompleted())
     {
-      FactorizationData resultFactorizationData = factorizationResultData.getResultFactorization();
+      FactorizationData resultFactorizationData = reconstructionData.getResultFactorization();
       if (currentFactorizationData.compareTo(resultFactorizationData) > 0)
       {
-        factorizationResultData.setResultFactorization(currentFactorizationData);
+        reconstructionData.setResultFactorization(currentFactorizationData);
       }
     }
   }
@@ -103,9 +106,9 @@ public class ReconstructionServiceImpl implements ReconstructionService
     return currentLayerNo == graph.getLayers().size() - 1 && currentFactorizationData.isFactorizationCompleted();
   }
 
-  private void processCurrentLayer(int currentLayerNo, FactorizationResultData factorizationResultData)
+  private void processCurrentLayer(int currentLayerNo)
   {
-    FactorizationData currentFactorizationData = factorizationResultData.getCurrentFactorization();
+    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
 
     int prevFactorsAmount = currentFactorizationData.getFactors().size();
     collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
