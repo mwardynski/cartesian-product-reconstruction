@@ -24,27 +24,66 @@ public class ProductGenerator
 
   public static final void main(String... args)
   {
-    int resultGraphLength = G1.length * G2.length;
-    int resultGraph[][] = new int[resultGraphLength][resultGraphLength];
-    for (int i = 0; i < G1.length; i++)
+    ProductGenerator productGenerator = new ProductGenerator();
+    if (args.length == 0)
     {
-      for (int j = 0; j < G2.length; j++)
+      productGenerator.createProduct(G1, G2);
+    }
+    else
+    {
+      productGenerator.createProduct(G1, Integer.parseInt(args[0]));
+    }
+
+  }
+
+  public ProductGenerator()
+  {
+  }
+
+  private void createProduct(int[][] factor, int exponent)
+  {
+    int[][] tmpFactor = factor;
+    for (int i = 1; i < exponent; i++)
+    {
+      tmpFactor = multiplyFactors(factor, tmpFactor);
+    }
+    printResultGraph(tmpFactor);
+  }
+
+  private void createProduct(int[][] factor1, int[][] factor2)
+  {
+    int[][] productGraph = multiplyFactors(factor1, factor2);
+    printResultGraph(productGraph);
+  }
+
+  private int[][] multiplyFactors(int[][] factor1, int[][] factor2)
+  {
+    int resultGraphLength = factor1.length * factor2.length;
+    int resultGraph[][] = new int[resultGraphLength][resultGraphLength];
+    for (int i = 0; i < factor1.length; i++)
+    {
+      for (int j = 0; j < factor2.length; j++)
       {
-        for (int k = 0; k < G2.length; k++)
+        for (int k = 0; k < factor2.length; k++)
         {
-          resultGraph[i * G2.length + j][i * G2.length + k] = G2[j][k];
+          resultGraph[i * factor2.length + j][i * factor2.length + k] = factor2[j][k];
         }
-        for (int k = 0; k < G1.length; k++)
+        for (int k = 0; k < factor1.length; k++)
         {
-          resultGraph[i * G2.length + j][k * G2.length + j] = G2[i][k];
+          resultGraph[i * factor2.length + j][k * factor2.length + j] = factor2[i][k];
         }
       }
     }
 
-    for (int i = 0; i < resultGraphLength; i++)
+    return resultGraph;
+  }
+
+  private static void printResultGraph(int[][] resultGraph)
+  {
+    for (int i = 0; i < resultGraph.length; i++)
     {
       System.out.print(i + " <==> ");
-      for (int j = 0; j < resultGraphLength; j++)
+      for (int j = 0; j < resultGraph.length; j++)
       {
         if (resultGraph[i][j] == 1 && i != j)
         {
@@ -53,7 +92,6 @@ public class ProductGenerator
       }
       System.out.println("");
     }
-
   }
 
 }
