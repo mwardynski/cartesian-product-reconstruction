@@ -5,6 +5,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,22 +42,21 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Autowired
   VertexService vertexService;
 
+  @Autowired
+  ReconstructionBackupLayerService reconstructionBackupLayerService;
+
   @Override
   public void checkConsistency(int currentLayerNo)
   {
-    storeLayerReconstructionBackup();
+    reconstructionBackupLayerService.storeCurrentLayerBackup();
 
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     checkPreviousLayerUpEdgesConsistency(previousLayer);
     checkCurrentLayerAllEdgesConsistency(currentLayer);
-    if (true)
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE && graph.getGraphColoring().getActualColors().size() == 1)
     {
-
-    }
-    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE && graph.getGraphColoring().getActualColors().size() == 1)
-    {
-      setUpReconstructionInPlace(currentLayerNo, reconstructionData.getCurrentLayerBackup().getGraphColoring());
+      setUpReconstructionInPlace(currentLayerNo);
       checkConsistency(currentLayerNo);
     }
     else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
@@ -69,15 +69,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
   }
 
-  private void storeLayerReconstructionBackup()
+  private void setUpReconstructionInPlace(int currentLayerNo)
   {
-    reconstructionData.setPrevLayerBackup(reconstructionData.getCurrentLayerBackup());
-    reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(new GraphColoring(graph.getGraphColoring())));
-  }
+    reconstructionBackupLayerService.recoverAfterCompleteMerge();
 
-  private void setUpReconstructionInPlace(int currentLayerNo, GraphColoring backupGraphColoring)
-  {
-    graph.setGraphColoring(backupGraphColoring);
     reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
     FactorizationData factorizationData = new FactorizationData(0, null, null, null);
     factorizationData.setMaxConsistentLayerNo(currentLayerNo - 1);

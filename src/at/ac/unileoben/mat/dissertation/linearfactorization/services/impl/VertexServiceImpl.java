@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,9 @@ public class VertexServiceImpl implements VertexService
 
   @Autowired
   ColoringService coloringService;
+
+  @Autowired
+  ReconstructionBackupLayerService reconstructionBackupLayerService;
 
   @Override
   public int getGraphSize()
@@ -69,7 +73,7 @@ public class VertexServiceImpl implements VertexService
     if (!v.isUnitLayer())
     {
       v.setUnitLayer(true);
-      reconstructionData.getCurrentLayerBackup().getNewUnitLayerVertices().add(v);
+      reconstructionBackupLayerService.addNewVertexToLayerBackup(v);
     }
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
     List<Edge> edgesToRelabel = new LinkedList<>(vDownEdges);
@@ -84,7 +88,7 @@ public class VertexServiceImpl implements VertexService
       if (!w.isUnitLayer())
       {
         w.setUnitLayer(true);
-        reconstructionData.getCurrentLayerBackup().getNewUnitLayerVertices().add(w);
+        reconstructionBackupLayerService.addNewVertexToLayerBackup(v);
       }
     }
     coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);

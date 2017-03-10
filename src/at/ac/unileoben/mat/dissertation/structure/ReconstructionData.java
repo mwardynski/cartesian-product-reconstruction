@@ -17,6 +17,7 @@ public class ReconstructionData
   Vertex newVertex;
   Queue<ReconstructionEntryData> reconstructionEntries;
   int currentLayerNo;
+  int currentBackupLayerNo;
   LayerBackupReconstructionData prevLayerBackup;
   LayerBackupReconstructionData currentLayerBackup;
 
@@ -83,6 +84,16 @@ public class ReconstructionData
   public void setCurrentLayerNo(int currentLayerNo)
   {
     this.currentLayerNo = currentLayerNo;
+  }
+
+  public int getCurrentBackupLayerNo()
+  {
+    return currentBackupLayerNo;
+  }
+
+  public void setCurrentBackupLayerNo(int currentBackupLayerNo)
+  {
+    this.currentBackupLayerNo = currentBackupLayerNo;
   }
 
   public LayerBackupReconstructionData getPrevLayerBackup()
