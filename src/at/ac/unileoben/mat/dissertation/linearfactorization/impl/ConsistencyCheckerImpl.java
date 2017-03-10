@@ -44,18 +44,19 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Override
   public void checkConsistency(int currentLayerNo)
   {
-    GraphColoring backupGraphColoring = null;
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE)
-    {
-      backupGraphColoring = new GraphColoring(graph.getGraphColoring());
-    }
+    storeLayerReconstructionBackup();
+
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     checkPreviousLayerUpEdgesConsistency(previousLayer);
     checkCurrentLayerAllEdgesConsistency(currentLayer);
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE && graph.getGraphColoring().getActualColors().size() == 1)
+    if (true)
     {
-      setUpReconstructionInPlace(currentLayerNo, backupGraphColoring);
+
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE && graph.getGraphColoring().getActualColors().size() == 1)
+    {
+      setUpReconstructionInPlace(currentLayerNo, reconstructionData.getCurrentLayerBackup().getGraphColoring());
       checkConsistency(currentLayerNo);
     }
     else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
@@ -66,6 +67,12 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       }
       reconstructionHelper.reconstructWithCollectedData();
     }
+  }
+
+  private void storeLayerReconstructionBackup()
+  {
+    reconstructionData.setPrevLayerBackup(reconstructionData.getCurrentLayerBackup());
+    reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(new GraphColoring(graph.getGraphColoring())));
   }
 
   private void setUpReconstructionInPlace(int currentLayerNo, GraphColoring backupGraphColoring)
@@ -119,14 +126,14 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     Vertex v = uv.getEndpoint();
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
     Vertex w = uw.getEndpoint();
-    List<List<Edge>> wDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(w, uw.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
+    List<List<Edge>> wDifferentThanUw = edgeService.getAllEdgesOfDifferentColor(w, uw.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
     int upEdgesTotalSize = 0;
     for (int i = 0; i < vDifferentThanUv.size(); i++)
     {
       int upEdgesSize = vDifferentThanUv.get(i).size();
       if (upEdgesSize == 0)
       {
-        upEdgesSize = wDifferentThanUv.get(i).size();
+        upEdgesSize = wDifferentThanUw.get(i).size();
       }
       upEdgesTotalSize += upEdgesSize;
     }
@@ -206,7 +213,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
     }
-    if (reconstructionHelper.isReconstructionSuitableByConsistancyCheck()
+    if (reconstructionHelper.isReconstructionSuitableByConsistencyCheck()
             && !inconsistentEdges.isEmpty())
     {
       reconstructionHelper.addEdgesToReconstruction(inconsistentEdges, uv.getOrigin(), edgeType);

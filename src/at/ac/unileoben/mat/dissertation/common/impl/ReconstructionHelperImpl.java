@@ -66,7 +66,6 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   {
     if (edgeType == UP && inconsistentEdges.size() > 1)
     {
-//      return true;
       throw new IllegalArgumentException("there shouldn't be more than one inconsistent Up-Edge");
     }
 

@@ -24,6 +24,9 @@ public class VertexServiceImpl implements VertexService
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   ColoringService coloringService;
 
   @Override
@@ -63,9 +66,13 @@ public class VertexServiceImpl implements VertexService
   @Override
   public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
   {
-    v.setUnitLayer(true);
+    if (!v.isUnitLayer())
+    {
+      v.setUnitLayer(true);
+      reconstructionData.getCurrentLayerBackup().getNewUnitLayerVertices().add(v);
+    }
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
-    List<Edge> edgesToRelabel = new LinkedList<Edge>(vDownEdges);
+    List<Edge> edgesToRelabel = new LinkedList<>(vDownEdges);
     if (mergeCrossEdges)
     {
       List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
@@ -74,7 +81,11 @@ public class VertexServiceImpl implements VertexService
     for (Edge vw : edgesToRelabel)
     {
       Vertex w = vw.getEndpoint();
-      w.setUnitLayer(true);
+      if (!w.isUnitLayer())
+      {
+        w.setUnitLayer(true);
+        reconstructionData.getCurrentLayerBackup().getNewUnitLayerVertices().add(w);
+      }
     }
     coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
   }

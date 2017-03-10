@@ -13,7 +13,7 @@ public interface ReconstructionHelper
 {
   void clearReconstructionData();
 
-  boolean isReconstructionSuitableByConsistancyCheck();
+  boolean isReconstructionSuitableByConsistencyCheck();
 
   boolean isReconstructionSuitableByLabeling(int currentLayerNo);
 
