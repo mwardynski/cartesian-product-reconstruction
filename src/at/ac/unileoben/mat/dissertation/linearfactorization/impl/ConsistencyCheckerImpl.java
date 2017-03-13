@@ -186,8 +186,12 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     Vertex v = uv.getEndpoint();
     List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
-    List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
-    inconsistentEdges.addAll(notCorrespondingEdges);
+    if (edgeType != EdgeType.UP
+            || (edgeType == EdgeType.UP && reconstructionHelper.isCorrespondingEdgesCheckForUpEdgesReasonable()))
+    {
+      List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
+      inconsistentEdges.addAll(notCorrespondingEdges);
+    }
     for (List<Edge> uzForColor : uDifferentThanUv)
     {
       for (Edge uz : uzForColor)

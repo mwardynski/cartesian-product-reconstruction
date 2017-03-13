@@ -62,13 +62,22 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
   }
 
   @Override
+  public boolean isCorrespondingEdgesCheckForUpEdgesReasonable()
+  {
+    return reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            || (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && reconstructionData.getNewVertex() == null
+            || (reconstructionData.getNewVertex() != null
+            && CollectionUtils.isNotEmpty(reconstructionData.getNewVertex().getUpEdges().getEdges())));
+  }
+
+  @Override
   public boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType)
   {
     if (edgeType == UP && inconsistentEdges.size() > 1)
     {
       throw new IllegalArgumentException("there shouldn't be more than one inconsistent Up-Edge");
     }
-
 
     ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(inconsistentEdges, baseVertex, edgeType);
     reconstructionData.getReconstructionEntries().add(reconstructionEntry);

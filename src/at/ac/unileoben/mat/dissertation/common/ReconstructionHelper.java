@@ -17,6 +17,8 @@ public interface ReconstructionHelper
 
   boolean isReconstructionSuitableByLabeling(int currentLayerNo);
 
+  boolean isCorrespondingEdgesCheckForUpEdgesReasonable();
+
   boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType);
 
   void reconstructWithCollectedData();
