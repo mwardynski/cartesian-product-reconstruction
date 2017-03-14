@@ -22,6 +22,9 @@ public class ColoringServiceImpl implements ColoringService
   @Autowired
   Graph graph;
 
+  @Autowired
+  ReconstructionData reconstructionData;
+
   @Override
   public boolean mergeColors(GraphColoring graphColoring, List<Integer> colors)
   {
@@ -90,12 +93,9 @@ public class ColoringServiceImpl implements ColoringService
     int actualIndex = 0;
     for (int i = 0; i < colorAmounts.length; i++)
     {
-      if (colorAmounts[i] > 0)
-      {
-        ColorGroupLocation colorGroupLocation = new ColorGroupLocation(actualIndex, colorAmounts[i]);
-        actualIndex += colorAmounts[i];
-        colorPositionsArray[i] = colorGroupLocation;
-      }
+      ColorGroupLocation colorGroupLocation = new ColorGroupLocation(actualIndex, colorAmounts[i]);
+      actualIndex += colorAmounts[i];
+      colorPositionsArray[i] = colorGroupLocation;
     }
     edgesRef.setColorPositions(new ArrayList<>(Arrays.asList(colorPositionsArray)));
   }
@@ -104,10 +104,6 @@ public class ColoringServiceImpl implements ColoringService
   public List<Integer> getPositionsForColor(EdgesRef edgesRef, int color)
   {
     ColorGroupLocation colorGroupLocation = edgesRef.getColorPositions().get(color);
-    if (colorGroupLocation == null)
-    {
-      return new ArrayList<Integer>();
-    }
     List<Integer> positionsForColor = new ArrayList<Integer>(colorGroupLocation.getLength());
     for (int i = 0; i < colorGroupLocation.getLength(); i++)
     {
@@ -120,7 +116,7 @@ public class ColoringServiceImpl implements ColoringService
   public int getPositionForLabel(EdgesRef edgesRef, Label label)
   {
     ColorGroupLocation colorGroupLocation = edgesRef.getColorPositions().get(label.getColor());
-    if (colorGroupLocation == null || colorGroupLocation.getLength() <= label.getName())
+    if (colorGroupLocation.getLength() <= label.getName())
     {
       return -1;
     }
@@ -163,6 +159,7 @@ public class ColoringServiceImpl implements ColoringService
     }
     if (colorsMerged)
     {
+      reconstructionData.getMergeTags().add(mergeTag);
       graph.getAnalyzeData().addMergeOperation(graphColoring.getActualColors().size(), edges, mergeTag);
     }
     return colorsMerged;

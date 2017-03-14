@@ -146,7 +146,7 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       newVertex.setBfsLayer(newVertexLayer);
 
       newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
-      EdgesRef crossEdgesRef = new EdgesRef(graph.getGraphColoring().getOriginalColorsAmount());
+      EdgesRef crossEdgesRef = new EdgesRef();
       coloringService.setColorAmounts(crossEdgesRef, new int[graph.getGraphColoring().getOriginalColorsAmount()]);
       newVertex.getCrossEdges().setEdgesRef(crossEdgesRef);
 

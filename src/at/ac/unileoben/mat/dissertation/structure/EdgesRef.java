@@ -12,12 +12,6 @@ import java.util.List;
 public class EdgesRef
 {
   List<ColorGroupLocation> colorPositions;
-  int colorsAmount;
-
-  public EdgesRef(int colorsAmount)
-  {
-    this.colorsAmount = colorsAmount;
-  }
 
   public List<ColorGroupLocation> getColorPositions()
   {

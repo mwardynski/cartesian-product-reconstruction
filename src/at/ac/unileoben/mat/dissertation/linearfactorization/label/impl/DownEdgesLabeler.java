@@ -141,7 +141,7 @@ public class DownEdgesLabeler implements EdgesLabeler
 
     int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     colorLengths[colorToLabel] = uDownEdges.size();
-    EdgesRef downEdgesRef = new EdgesRef(1);
+    EdgesRef downEdgesRef = new EdgesRef();
     coloringService.setColorAmounts(downEdgesRef, colorLengths);
     downEdgesGroup.setEdgesRef(downEdgesRef);
   }

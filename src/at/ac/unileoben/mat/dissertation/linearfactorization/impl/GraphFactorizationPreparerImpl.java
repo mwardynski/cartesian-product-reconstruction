@@ -68,7 +68,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     EdgesGroup upEdgesGroup = root.getUpEdges();
     List<Edge> upEdges = upEdgesGroup.getEdges();
 
-    EdgesRef edgesRef = new EdgesRef(upEdges.size());
+    EdgesRef edgesRef = new EdgesRef();
     int[] colorLengths = new int[upEdges.size()];
     for (int i = 0; i < upEdges.size(); i++)
     {
@@ -94,7 +94,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   private void addLabelAndRefToDownEdgesL1(Edge upEdge, int i, int size)
   {
     int[] colorLengths;
-    EdgesRef downEdgesRef = new EdgesRef(1);
+    EdgesRef downEdgesRef = new EdgesRef();
     colorLengths = new int[size];
     for (int j = 0; j < size; j++)
     {
@@ -133,7 +133,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
       crossEdgesAmounts[mergedColor]++;
 
     }
-    EdgesRef crossEdgesRef = new EdgesRef(crossEdgesColorsAmount);
+    EdgesRef crossEdgesRef = new EdgesRef();
     coloringService.setColorAmounts(crossEdgesRef, crossEdgesAmounts);
     crossEdgesGroup.setEdgesRef(crossEdgesRef);
   }

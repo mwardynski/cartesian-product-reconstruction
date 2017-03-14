@@ -44,7 +44,7 @@ public class LabelUtils
         colorsAmount++;
       }
     }
-    EdgesRef edgesRef = new EdgesRef(colorsAmount);
+    EdgesRef edgesRef = new EdgesRef();
     coloringService.setColorsOrderAndAmount(edgesRef, colorsCounter);
     return edgesRef;
   }
