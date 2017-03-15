@@ -98,7 +98,7 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       createNewVertexIfNeeded(reconstructionEntry.getSourceVertex());
 
       EdgeType currentEdgeType = reconstructionEntry.getEdgeType();
-      if (!isCorrectEdgeTypeToAdd(currentEdgeType))
+      if (!isCorrectEdgeTypeToAdd(reconstructionEntry.getSourceVertex().getBfsLayer(), currentEdgeType))
       {
         continue;
       }
@@ -144,14 +144,16 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
 
       int newVertexLayer = baseVertex.getBfsLayer() + 1;
       newVertex.setBfsLayer(newVertexLayer);
-
-      newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
-      EdgesRef crossEdgesRef = new EdgesRef();
-      coloringService.setColorAmounts(crossEdgesRef, new int[graph.getGraphColoring().getOriginalColorsAmount()]);
-      newVertex.getCrossEdges().setEdgesRef(crossEdgesRef);
+      if (newVertexLayer == 1)
+      {
+        newVertex.setUnitLayer(true);
+      }
 
       newVertex.setDownEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      assignEmptyEdgesRefToEdgesGroup(newVertex.getCrossEdges());
       newVertex.setUpEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+
       graph.getVertices().add(newVertexNo, newVertex);
       if (graph.getLayers().size() == newVertexLayer)
       {
@@ -160,6 +162,13 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
       graph.getLayers().get(newVertexLayer).add(newVertex);
       reconstructionData.setNewVertex(newVertex);
     }
+  }
+
+  private void assignEmptyEdgesRefToEdgesGroup(EdgesGroup edgesGroup)
+  {
+    EdgesRef crossEdgesRef = new EdgesRef();
+    coloringService.setColorAmounts(crossEdgesRef, new int[graph.getGraphColoring().getOriginalColorsAmount()]);
+    edgesGroup.setEdgesRef(crossEdgesRef);
   }
 
   private void updateReverseReindexArray(int newVertexNo)
@@ -174,13 +183,13 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     graph.setReverseReindexArray(updatedReverseReindexArray);
   }
 
-  private boolean isCorrectEdgeTypeToAdd(EdgeType currentEdgeType)
+  private boolean isCorrectEdgeTypeToAdd(int sourceVertexLayer, EdgeType currentEdgeType)
   {
-    return (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer()
-            && (currentEdgeType == UP || currentEdgeType == CROSS))
-            || (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer() + 1
+    return (sourceVertexLayer == reconstructionData.getNewVertex().getBfsLayer()
+            && currentEdgeType == CROSS)
+            || (sourceVertexLayer == reconstructionData.getNewVertex().getBfsLayer() + 1
             && currentEdgeType == DOWN)
-            || (reconstructionData.getCurrentLayerNo() == reconstructionData.getNewVertex().getBfsLayer() - 1
+            || (sourceVertexLayer == reconstructionData.getNewVertex().getBfsLayer() - 1
             && currentEdgeType == UP);
   }
 
@@ -191,14 +200,23 @@ public class ReconstructionHelperImpl implements ReconstructionHelper
     Edge newEdge = new Edge(origin, endpoint);
     newEdge.setEdgeType(edgeType);
 
-    Edge inconsistentEdgeOpposite = inconsistentEdge.getOpposite();
+
     Edge newEdgeOpposite = new Edge(endpoint, origin);
     newEdgeOpposite.setEdgeType(getOppositeEdgeType(edgeType));
 
     if (inconsistentEdge.getLabel() != null)
     {
-      edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), inconsistentEdge, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
-      edgeService.addLabel(newEdgeOpposite, inconsistentEdgeOpposite.getLabel().getColor(), inconsistentEdgeOpposite.getLabel().getName(), inconsistentEdgeOpposite, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+      if (inconsistentEdge.getOrigin().getVertexNo() != Integer.MIN_VALUE)
+      {
+        Edge inconsistentEdgeOpposite = inconsistentEdge.getOpposite();
+        edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), inconsistentEdge, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+        edgeService.addLabel(newEdgeOpposite, inconsistentEdgeOpposite.getLabel().getColor(), inconsistentEdgeOpposite.getLabel().getName(), inconsistentEdgeOpposite, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+      }
+      else
+      {
+        edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), null, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+        edgeService.addLabel(newEdgeOpposite, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), null, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+      }
     }
 
     newEdge.setOpposite(newEdgeOpposite);

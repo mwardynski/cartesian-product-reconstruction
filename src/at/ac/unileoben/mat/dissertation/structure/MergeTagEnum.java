@@ -9,7 +9,7 @@ package at.ac.unileoben.mat.dissertation.structure;
  */
 public enum MergeTagEnum
 {
-  PREPARE("Prepare"), LABEL_DOWN("Label: Down-edges"), LABEL_CROSS("Label: Cross-edges"), CONSISTENCY_DOWN("Consistency Check: Down-edges"), CONSISTENCY_CROSS("Consistency Check: Cross-edges"), CONSISTENCY_UP("Consistency Check: Up-edges");
+  PREPARE("Prepare"), LABEL_DOWN("Label: Down-edges"), LABEL_CROSS("Label: Cross-edges"), CONSISTENCY_DOWN("Consistency Check: Down-edges"), CONSISTENCY_CROSS("Consistency Check: Cross-edges"), CONSISTENCY_UP("Consistency Check: Up-edges"), CONSISTENCY_UP_AMOUNT("Consistency Check: Up-edges - Amount");
 
   private String name;
 

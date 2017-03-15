@@ -5,6 +5,8 @@ import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedList;
+
 /**
  * Created by Marcin on 10.03.2017.
  */
@@ -27,6 +29,7 @@ public class ReconstructionBackupLayerServiceImpl implements ReconstructionBacku
   @Override
   public void storeCurrentLayerBackup()
   {
+    reconstructionData.setMergeTags(new LinkedList<>());
     if (reconstructionData.getCurrentBackupLayerNo() < reconstructionData.getCurrentLayerNo())
     {
       reconstructionData.setCurrentBackupLayerNo(reconstructionData.getCurrentLayerNo());

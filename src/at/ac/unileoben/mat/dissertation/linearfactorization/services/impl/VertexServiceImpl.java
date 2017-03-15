@@ -88,7 +88,7 @@ public class VertexServiceImpl implements VertexService
       if (!w.isUnitLayer())
       {
         w.setUnitLayer(true);
-        reconstructionBackupLayerService.addNewVertexToLayerBackup(v);
+        reconstructionBackupLayerService.addNewVertexToLayerBackup(w);
       }
     }
     coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);

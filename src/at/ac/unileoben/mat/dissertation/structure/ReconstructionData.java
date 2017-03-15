@@ -3,6 +3,7 @@ package at.ac.unileoben.mat.dissertation.structure;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -20,6 +21,8 @@ public class ReconstructionData
   int currentBackupLayerNo;
   LayerBackupReconstructionData prevLayerBackup;
   LayerBackupReconstructionData currentLayerBackup;
+  List<MergeTagEnum> mergeTags;
+  boolean currentLayerToBeRefactorized;
 
   public ReconstructionData()
   {
@@ -114,5 +117,25 @@ public class ReconstructionData
   public void setCurrentLayerBackup(LayerBackupReconstructionData currentLayerBackup)
   {
     this.currentLayerBackup = currentLayerBackup;
+  }
+
+  public List<MergeTagEnum> getMergeTags()
+  {
+    return mergeTags;
+  }
+
+  public void setMergeTags(List<MergeTagEnum> mergeTags)
+  {
+    this.mergeTags = mergeTags;
+  }
+
+  public boolean isCurrentLayerToBeRefactorized()
+  {
+    return currentLayerToBeRefactorized;
+  }
+
+  public void setCurrentLayerToBeRefactorized(boolean currentLayerToBeRefactorized)
+  {
+    this.currentLayerToBeRefactorized = currentLayerToBeRefactorized;
   }
 }

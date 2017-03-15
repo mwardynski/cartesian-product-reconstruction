@@ -41,6 +41,11 @@ public class GraphColoring
     return originalColorsAmount;
   }
 
+  public void setOriginalColorsAmount(int originalColorsAmount)
+  {
+    this.originalColorsAmount = originalColorsAmount;
+  }
+
   public List<Integer> getColorsMapping()
   {
     return colorsMapping;

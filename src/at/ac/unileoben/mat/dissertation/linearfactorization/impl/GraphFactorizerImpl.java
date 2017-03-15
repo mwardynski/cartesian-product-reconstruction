@@ -7,6 +7,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdges
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
@@ -49,6 +50,9 @@ public class GraphFactorizerImpl implements GraphFactorizer
   @Autowired
   ReconstructionService reconstructionService;
 
+  @Autowired
+  ReconstructionBackupLayerService reconstructionBackupLayerService;
+
   @Override
   public void factorize()
   {
@@ -56,7 +60,13 @@ public class GraphFactorizerImpl implements GraphFactorizer
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
       reconstructionData.setCurrentLayerNo(currentLayerNo);
+      reconstructionBackupLayerService.storeCurrentLayerBackup();
       factorizeSingleLayer(currentLayerNo);
+      if (reconstructionData.isCurrentLayerToBeRefactorized())
+      {
+        reconstructionData.setCurrentLayerToBeRefactorized(false);
+        currentLayerNo--;
+      }
     }
   }
 
