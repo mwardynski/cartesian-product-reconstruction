@@ -78,7 +78,9 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
             .filter(mergeTag -> mergeTag == MergeTagEnum.CONSISTENCY_UP_AMOUNT)
             .mapToInt(mergeTag -> 1)
             .sum();
-    if (currentLayerNo == 2 && reconstructionData.getMergeTags().size() == consistencyUpAmountTagsQuantity)
+    if (currentLayerNo == 2
+            && currentLayerNo != graph.getLayers().size() - 1
+            && reconstructionData.getMergeTags().size() == consistencyUpAmountTagsQuantity)
     {
       reconstructionData.setCurrentLayerToBeRefactorized(true);
 
