@@ -78,7 +78,10 @@ public class LinearFactorizationImpl implements LinearFactorization
   public Graph factorize(List<Vertex> vertices, Vertex root)
   {
     prepare(vertices, root);
-    reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
+    if (reconstructionData.getOperationOnGraph() == null)
+    {
+      reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
+    }
     factorizeGraph();
     return graph;
   }

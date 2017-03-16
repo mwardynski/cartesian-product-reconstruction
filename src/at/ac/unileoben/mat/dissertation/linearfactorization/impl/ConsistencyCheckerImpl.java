@@ -1,16 +1,15 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
-import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +31,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   ReconstructionData reconstructionData;
 
   @Autowired
-  ReconstructionHelper reconstructionHelper;
+  ReconstructionService reconstructionService;
 
   @Autowired
   EdgeService edgeService;
@@ -44,7 +43,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   VertexService vertexService;
 
   @Autowired
-  ReconstructionBackupLayerService reconstructionBackupLayerService;
+  InPlaceReconstructionSetUpService inPlaceReconstructionSetUpService;
 
   @Override
   public void checkConsistency(int currentLayerNo)
@@ -53,9 +52,9 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     checkPreviousLayerUpEdgesConsistency(previousLayer);
     checkCurrentLayerAllEdgesConsistency(currentLayer);
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FACTORIZE && graph.getGraphColoring().getActualColors().size() == 1)
+    if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
     {
-      setUpReconstructionInPlace(currentLayerNo);
+      inPlaceReconstructionSetUpService.setUpReconstructionInPlace();
       if (!reconstructionData.isCurrentLayerToBeRefactorized())
       {
         checkConsistency(currentLayerNo);
@@ -63,88 +62,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
     else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
     {
-      if (reconstructionHelper.isTopVertexMissingByReconstruction(currentLayerNo))
+      if (reconstructionService.isTopVertexMissingByReconstruction(currentLayerNo))
       {
-        reconstructionHelper.prepareTopVertexReconstruction(currentLayer);
+        reconstructionService.prepareTopVertexReconstruction(currentLayer);
       }
-      reconstructionHelper.reconstructWithCollectedData();
-    }
-  }
-
-  private void setUpReconstructionInPlace(int currentLayerNo)
-  {
-    reconstructionBackupLayerService.recoverAfterCompleteMerge();
-    int consistencyUpAmountTagsQuantity = reconstructionData.getMergeTags().stream()
-            .filter(mergeTag -> mergeTag == MergeTagEnum.CONSISTENCY_UP_AMOUNT)
-            .mapToInt(mergeTag -> 1)
-            .sum();
-    if (currentLayerNo == 2
-            && currentLayerNo != graph.getLayers().size() - 1
-            && reconstructionData.getMergeTags().size() == consistencyUpAmountTagsQuantity)
-    {
-      reconstructionData.setCurrentLayerToBeRefactorized(true);
-
-      Edge templateEdge = new Edge(new Vertex(Integer.MIN_VALUE, null), new Vertex(Integer.MIN_VALUE, null));
-      int newColor = graph.getRoot().getUpEdges().getEdges().size();
-      Label templateLabel = new Label(newColor, 0);
-      templateEdge.setLabel(templateLabel);
-      GraphColoring graphColoring = graph.getGraphColoring();
-      graphColoring.setOriginalColorsAmount(graphColoring.getOriginalColorsAmount() + 1);
-      graphColoring.getActualColors().add(newColor);
-      graphColoring.getColorsMapping().add(newColor);
-
-      for (int i = 0; i <= currentLayerNo; i++)
-      {
-        for (Vertex v : graph.getLayers().get(i))
-        {
-          if (i < currentLayerNo)
-          {
-            if (v.getBfsLayer() != 0)
-            {
-              extendEdgesRefByNewColor(v.getCrossEdges().getEdgesRef().getColorPositions());
-              extendEdgesRefByNewColor(v.getDownEdges().getEdgesRef().getColorPositions());
-            }
-            if (v.getBfsLayer() != currentLayerNo - 1)
-            {
-              extendEdgesRefByNewColor(v.getUpEdges().getEdgesRef().getColorPositions());
-            }
-          }
-
-          if (v.getBfsLayer() == currentLayerNo - 1)
-          {
-            v.getUpEdges().setEdgesRef(null);
-            v.getUpEdges().getEdges().stream().forEach(e -> e.setLabel(null));
-          }
-          if (v.getBfsLayer() == currentLayerNo)
-          {
-            v.getDownEdges().setEdgesRef(null);
-            v.getDownEdges().getEdges().stream().forEach(e -> e.setLabel(null));
-            v.getCrossEdges().setEdgesRef(null);
-            v.getCrossEdges().getEdges().stream().forEach(e -> e.setLabel(null));
-          }
-        }
-      }
-
-      reconstructionHelper.addEdgesToReconstruction(Collections.singletonList(templateEdge), graph.getRoot(), EdgeType.UP);
-      reconstructionHelper.reconstructWithCollectedData();
-    }
-    reconstructionData.setMergeTags(new LinkedList<>());
-
-    reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
-    FactorizationData factorizationData = new FactorizationData(0, null, null, null);
-    factorizationData.setMaxConsistentLayerNo(currentLayerNo - 1);
-    factorizationData.setAfterConsistencyCheck(false);
-    reconstructionData.setResultFactorization(factorizationData);
-  }
-
-  private void extendEdgesRefByNewColor(List<ColorGroupLocation> colorPositions)
-  {
-    if (colorPositions != null && colorPositions.size() < graph.getGraphColoring().getOriginalColorsAmount())
-    {
-      ColorGroupLocation lastColorGroupLocation = colorPositions.get(colorPositions.size() - 1);
-      int newColorGroupLocationIndex = lastColorGroupLocation.getIndex() + lastColorGroupLocation.getLength();
-      ColorGroupLocation newColorGroupLocation = new ColorGroupLocation(newColorGroupLocationIndex, 0);
-      colorPositions.add(newColorGroupLocation);
+      reconstructionService.reconstructWithCollectedData();
     }
   }
 
@@ -255,7 +177,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     if (edgeType != EdgeType.UP
-            || (edgeType == EdgeType.UP && reconstructionHelper.isCorrespondingEdgesCheckForUpEdgesReasonable()))
+            || (edgeType == EdgeType.UP && reconstructionService.isCorrespondingEdgesCheckForUpEdgesReasonable()))
     {
       List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
       inconsistentEdges.addAll(notCorrespondingEdges);
@@ -280,10 +202,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
     }
-    if (reconstructionHelper.isReconstructionSuitableByConsistencyCheck()
+    if (reconstructionService.isReconstructionSuitableByConsistencyCheck()
             && !inconsistentEdges.isEmpty())
     {
-      reconstructionHelper.addEdgesToReconstruction(inconsistentEdges, uv.getOrigin(), edgeType);
+      reconstructionService.addEdgesToReconstruction(inconsistentEdges, uv.getOrigin(), edgeType);
       return new LinkedList<>();
     }
     else

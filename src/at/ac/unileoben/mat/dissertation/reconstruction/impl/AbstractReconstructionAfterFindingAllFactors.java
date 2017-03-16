@@ -1,11 +1,11 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
-import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.ReconstructionAfterFindingAllFactors;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.DetermineFactorsService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.OptionalInt;
 /**
  * Created by mwardynski on 26/11/16.
  */
-public abstract class AbstractReconstructionAfterFindingAllFactors implements ReconstructionAfterFindingAllFactors
+public abstract class AbstractReconstructionAfterFindingAllFactors extends AbstractReconstruction implements ReconstructionAfterFindingAllFactors
 {
 
   @Autowired
@@ -36,18 +36,18 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
   private GraphFactorizer graphFactorizer;
 
   @Autowired
-  private ReconstructionService reconstructionService;
+  private DetermineFactorsService determineFactorsService;
 
   @Autowired
   private ColoringService coloringService;
 
   @Autowired
-  private ReconstructionHelper reconstructionHelper;
+  private ReconstructionService reconstructionService;
 
   @Override
   public FactorizationData findFactors(List<Vertex> vertices)
   {
-    reconstructionHelper.clearReconstructionData();
+    reconstructionService.clearReconstructionData();
     reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
     for (Vertex vertex : vertices)
     {
@@ -89,7 +89,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
 
   private void collectFirstLayerFactors(List<Vertex> vertices, Vertex root)
   {
-    List<List<Vertex>> topUnitLayerVertices = reconstructionService.createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
+    List<List<Vertex>> topUnitLayerVertices = determineFactorsService.createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
     for (Edge e : root.getUpEdges().getEdges())
     {
       int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), e.getLabel().getColor());
@@ -115,7 +115,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     if (vertices.size() + 1 == graphSizeWithFoundFactors)
     {
       FactorizationData currentFactorization = reconstructionData.getCurrentFactorization();
-      reconstructionService.collectFactors(currentFactorization, topUnitLayerVertices);
+      determineFactorsService.collectFactors(currentFactorization, topUnitLayerVertices);
       currentFactorization.setMaxConsistentLayerNo(1);
       currentFactorization.setFactorizationCompleted(true);
     }
@@ -143,7 +143,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors implements Re
     boolean breakProcessing = isSingleFactor() || isLastIncompleteLayer(currentLayer);
     if (breakProcessing)
     {
-      reconstructionService.updateFactorizationResult();
+      determineFactorsService.updateFactorizationResult();
     }
     return breakProcessing;
   }

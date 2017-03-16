@@ -82,8 +82,6 @@ public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractR
       resultProduct = multiplyFactors(resultProduct, secondFactor, vertices);
       reindexResultProduct(resultProduct);
     }
-
-
     return linearFactorization.factorize(resultProduct, null);
   }
 

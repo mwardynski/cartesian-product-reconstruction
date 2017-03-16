@@ -1,25 +1,20 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.*;
 
-import static java.util.stream.Collectors.toList;
+import static at.ac.unileoben.mat.dissertation.structure.EdgeType.*;
 
 /**
- * Created by mwardynski on 12/06/16.
+ * Created by mwardynski on 26/11/16.
  */
 @Component
 public class ReconstructionServiceImpl implements ReconstructionService
@@ -32,211 +27,417 @@ public class ReconstructionServiceImpl implements ReconstructionService
   ReconstructionData reconstructionData;
 
   @Autowired
-  VertexService vertexService;
+  EdgeService edgeService;
+
+  @Autowired
+  LabelUtils labelUtils;
 
   @Autowired
   ColoringService coloringService;
 
-  @Autowired
-  GraphHelper graphHelper;
-
-  public List<List<Vertex>> createTopVerticesList(int originalColorsAmount)
+  @Override
+  public void clearReconstructionData()
   {
-    return IntStream.range(0, originalColorsAmount).mapToObj(i -> new LinkedList<Vertex>()).collect(Collectors.toCollection(ArrayList::new));
+    reconstructionData.setCurrentFactorization(null);
+    reconstructionData.setResultFactorization(null);
+    reconstructionData.setNewVertex(null);
+    reconstructionData.getReconstructionEntries().clear();
   }
 
   @Override
-  public void findReconstructionComponents(int currentLayerNo, boolean afterConsistencyCheck)
+  public boolean isReconstructionSuitableByConsistencyCheck()
   {
-    boolean processCurrentLayer = handleCurrentFactorization(currentLayerNo, afterConsistencyCheck);
-    if (processCurrentLayer)
-    {
-      processCurrentLayer(currentLayerNo);
-    }
-  }
-
-  private boolean handleCurrentFactorization(int currentLayerNo, boolean afterConsistencyCheck)
-  {
-    int actualColorsAmount = graph.getGraphColoring().getActualColors().size();
-    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
-
-    boolean processCurrentLayer = actualColorsAmount != 1;
-    List<FactorizationData.FactorData> currentFactors = currentFactorizationData.getFactors();
-    if (CollectionUtils.isNotEmpty(currentFactors) && currentFactors.size() != actualColorsAmount)
-    {
-      updateFactorizationResult();
-      List<FactorizationData.FactorData> newFactors = new LinkedList<>(currentFactorizationData.getFactors());
-      int collectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight();
-      currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot(),
-              newFactors, currentFactorizationData.getUnitLayerSpecs());
-
-
-      currentFactorizationData.setCollectedFactorsTotalHeight(collectedFactorsTotalHeight);
-
-      reconstructionData.setCurrentFactorization(currentFactorizationData);
-    }
-    else
-    {
-      processCurrentLayer &= !currentFactorizationData.isFactorizationCompleted();
-    }
-    currentFactorizationData.setMaxConsistentLayerNo(currentLayerNo);
-    currentFactorizationData.setAfterConsistencyCheck(afterConsistencyCheck);
-    if (isLastLayerAndCurrentFactorizationCompleted(currentLayerNo, currentFactorizationData))
-    {
-      reconstructionData.setResultFactorization(currentFactorizationData);
-    }
-    return processCurrentLayer;
-  }
-
-  public void updateFactorizationResult()
-  {
-    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
-    if (currentFactorizationData.isFactorizationCompleted())
-    {
-      FactorizationData resultFactorizationData = reconstructionData.getResultFactorization();
-      if (currentFactorizationData.compareTo(resultFactorizationData) > 0)
-      {
-        reconstructionData.setResultFactorization(currentFactorizationData);
-      }
-    }
-  }
-
-  private boolean isLastLayerAndCurrentFactorizationCompleted(int currentLayerNo, FactorizationData currentFactorizationData)
-  {
-    return currentLayerNo == graph.getLayers().size() - 1 && currentFactorizationData.isFactorizationCompleted();
-  }
-
-  private void processCurrentLayer(int currentLayerNo)
-  {
-    FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
-
-    int prevFactorsAmount = currentFactorizationData.getFactors().size();
-    collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
-    collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
-
-    if (currentFactorizationData.getFactors().size() != prevFactorsAmount)
-    {
-      removeOutdatedFactors(currentFactorizationData);
-    }
-
-    if (isFactorizationPossiblyCompleted(currentLayerNo, currentFactorizationData))
-    {
-      currentFactorizationData.setFactorizationCompleted(isCorrectAmountOfVerticesInFactors(currentFactorizationData));
-    }
-  }
-
-  private boolean isFactorizationPossiblyCompleted(int currentLayerNo, FactorizationData currentFactorizationData)
-  {
-    return isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) || (!isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) && areCollectedFactorsOfMaxTotalHeight(currentFactorizationData));
-  }
-
-  private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
-  {
-    return currentLayerNo == factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight();
-  }
-
-
-  private boolean areCollectedFactorsOfMaxTotalHeight(FactorizationData factorizationData)
-  {
-    int factorsHeightDifference = factorizationData.getMaxFactorsHeight() - factorizationData.getCollectedFactorsTotalHeight();
-    return factorsHeightDifference == 0 || factorsHeightDifference == -1;
-  }
-
-  private void collectFactorsFromCurrentLayer(int currentLayerNo, FactorizationData factorizationData)
-  {
-    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
-    List<List<Vertex>> topUnitLayerVertices = createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
-    currentLayer.stream().filter(Vertex::isUnitLayer).forEach(v ->
-    {
-      Edge arbitraryEdge = v.getDownEdges().getEdges().get(0);
-      int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), arbitraryEdge.getLabel().getColor());
-      topUnitLayerVertices.get(arbitraryEdgeColor).add(v);
-    });
-    collectFactors(factorizationData, topUnitLayerVertices);
-  }
-
-  private void collectFactorsFromPreviousLayer(int previousLayerNo, FactorizationData factorizationData)
-  {
-    List<Vertex> previousLayer = vertexService.getGraphLayer(previousLayerNo);
-    List<List<Vertex>> topUnitLayerVertices = createTopVerticesList(graph.getGraphColoring().getOriginalColorsAmount());
-    for (Vertex v : previousLayer)
-    {
-      Edge arbitraryEdge = v.getDownEdges().getEdges().get(0);
-      int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), arbitraryEdge.getLabel().getColor());
-      if (v.isUnitLayer() && topUnitLayerVertices.get(arbitraryEdgeColor) != null)
-      {
-        boolean potentialCompletedFactor = true;
-        for (Edge vUpEdge : v.getUpEdges().getEdges())
-        {
-          Vertex endpointVertex = vUpEdge.getEndpoint();
-          if (endpointVertex.isUnitLayer())
-          {
-            potentialCompletedFactor = false;
-            break;
-          }
-        }
-        if (potentialCompletedFactor)
-        {
-          topUnitLayerVertices.get(arbitraryEdgeColor).add(v);
-        }
-        else
-        {
-          topUnitLayerVertices.set(arbitraryEdgeColor, null);
-        }
-      }
-    }
-    collectFactors(factorizationData, topUnitLayerVertices);
+    return reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && (reconstructionData.getCurrentLayerNo() > reconstructionData.getResultFactorization().getMaxConsistentLayerNo()
+            || (reconstructionData.getCurrentLayerNo() == reconstructionData.getResultFactorization().getMaxConsistentLayerNo()
+            && !reconstructionData.getResultFactorization().isAfterConsistencyCheck()));
   }
 
   @Override
-  public void collectFactors(FactorizationData factorizationData, List<List<Vertex>> topUnitLayerVerticesList)
+  public boolean isReconstructionSuitableByLabeling(int currentLayerNo)
   {
-    for (Integer colorIndex : graph.getGraphColoring().getActualColors())
-    {
-      List<Vertex> topUnitLayerVertices = topUnitLayerVerticesList.get(colorIndex);
-      if (CollectionUtils.isNotEmpty(topUnitLayerVertices))
-      {
-        Vertex unitLayerVertex = topUnitLayerVertices.iterator().next();
-        int mappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), unitLayerVertex.getDownEdges().getEdges().get(0).getLabel().getColor());
-        int bfsLayer = unitLayerVertex.getBfsLayer();
-        FactorizationData.FactorData factorData = new FactorizationData.FactorData(topUnitLayerVertices, bfsLayer, mappedColor);
+    return reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && reconstructionData.getNewVertex() != null
+            && reconstructionData.getNewVertex().getBfsLayer() == currentLayerNo - 1;
+  }
 
-        factorizationData.getFactors().add(0, factorData);
-        factorizationData.setCollectedFactorsTotalHeight(factorizationData.getCollectedFactorsTotalHeight() + bfsLayer);
+  @Override
+  public boolean isCorrespondingEdgesCheckForUpEdgesReasonable()
+  {
+    return reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            || (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && reconstructionData.getNewVertex() == null
+            || (reconstructionData.getNewVertex() != null
+            && CollectionUtils.isNotEmpty(reconstructionData.getNewVertex().getUpEdges().getEdges())));
+  }
+
+  @Override
+  public boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType)
+  {
+    if (edgeType == UP && inconsistentEdges.size() > 1)
+    {
+      throw new IllegalArgumentException("there shouldn't be more than one inconsistent Up-Edge");
+    }
+
+    ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(inconsistentEdges, baseVertex, edgeType);
+    reconstructionData.getReconstructionEntries().add(reconstructionEntry);
+    return true;
+  }
+
+  @Override
+  public void reconstructWithCollectedData()
+  {
+    Set<EdgeType> reconstructedEdgeTypes = EnumSet.noneOf(EdgeType.class);
+
+    boolean isReconstructionAfterConsistencyTest = true;
+    Queue<ReconstructionEntryData> reconstructionEntries = reconstructionData.getReconstructionEntries();
+    while (!reconstructionEntries.isEmpty())
+    {
+      ReconstructionEntryData reconstructionEntry = reconstructionEntries.poll();
+
+      createNewVertexIfNeeded(reconstructionEntry.getSourceVertex());
+
+      EdgeType currentEdgeType = reconstructionEntry.getEdgeType();
+      if (!isCorrectEdgeTypeToAdd(reconstructionEntry.getSourceVertex().getBfsLayer(), currentEdgeType))
+      {
+        continue;
       }
+      reconstructedEdgeTypes.add(currentEdgeType);
+      for (Edge edge : reconstructionEntry.getInconsistentEdges())
+      {
+        if (edge.getLabel() == null)
+        {
+          isReconstructionAfterConsistencyTest = false;
+        }
+        addEdgeToMissingVertex(edge, reconstructionEntry.getSourceVertex(), currentEdgeType);
+      }
+    }
+    if (isReconstructionAfterConsistencyTest)
+    {
+      arrangeNewVertexEdges(reconstructedEdgeTypes);
     }
   }
 
-  private void removeOutdatedFactors(FactorizationData currentFactorizationData)
+  private void createNewVertexIfNeeded(Vertex baseVertex)
   {
-    FactorizationData.FactorData[] higherFactors = new FactorizationData.FactorData[graph.getGraphColoring().getOriginalColorsAmount()];
-    Iterator<FactorizationData.FactorData> factorsIterator = currentFactorizationData.getFactors().iterator();
-    while (factorsIterator.hasNext())
+    Vertex newVertex = reconstructionData.getNewVertex();
+    if (newVertex == null)
     {
-      FactorizationData.FactorData factor = factorsIterator.next();
-      int factorMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), factor.getMappedColor());
-      if (higherFactors[factorMappedColor] != null)
+      int newVertexNo;
+      if (graph.getLayers().size() - baseVertex.getBfsLayer() > 2)
       {
-        FactorizationData.FactorData higherFactor = higherFactors[factorMappedColor];
-        higherFactor.getTopVertices().addAll(factor.getTopVertices());
-        int newCollectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight() - factor.getHeight();
-        currentFactorizationData.setCollectedFactorsTotalHeight(newCollectedFactorsTotalHeight);
-        factorsIterator.remove();
+        newVertexNo = graph.getLayers().get(baseVertex.getBfsLayer() + 2).get(0).getVertexNo();
+        for (int i = newVertexNo; i < graph.getVertices().size(); i++)
+        {
+          Vertex vertex = graph.getVertices().get(i);
+          vertex.setVertexNo(vertex.getVertexNo() + 1);
+        }
       }
       else
       {
-        higherFactors[factorMappedColor] = factor;
+        newVertexNo = graph.getVertices().size();
+      }
+      updateReverseReindexArray(newVertexNo);
+
+
+      newVertex = new Vertex(newVertexNo, new LinkedList<>());
+
+      int newVertexLayer = baseVertex.getBfsLayer() + 1;
+      newVertex.setBfsLayer(newVertexLayer);
+      if (newVertexLayer == 1)
+      {
+        newVertex.setUnitLayer(true);
+      }
+
+      newVertex.setDownEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      newVertex.setCrossEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+      assignEmptyEdgesRefToEdgesGroup(newVertex.getCrossEdges());
+      newVertex.setUpEdges(new EdgesGroup(new ArrayList<>(graph.getVertices().size())));
+
+      graph.getVertices().add(newVertexNo, newVertex);
+      if (graph.getLayers().size() == newVertexLayer)
+      {
+        graph.getLayers().add(new ArrayList<>(1));
+      }
+      graph.getLayers().get(newVertexLayer).add(newVertex);
+      reconstructionData.setNewVertex(newVertex);
+    }
+  }
+
+  private void assignEmptyEdgesRefToEdgesGroup(EdgesGroup edgesGroup)
+  {
+    EdgesRef crossEdgesRef = new EdgesRef();
+    coloringService.setColorAmounts(crossEdgesRef, new int[graph.getGraphColoring().getOriginalColorsAmount()]);
+    edgesGroup.setEdgesRef(crossEdgesRef);
+  }
+
+  private void updateReverseReindexArray(int newVertexNo)
+  {
+    Integer[] reverseReindexArray = graph.getReverseReindexArray();
+    Integer[] updatedReverseReindexArray = Arrays.copyOf(reverseReindexArray, reverseReindexArray.length + 1);
+    for (int i = reverseReindexArray.length - 1; i >= newVertexNo; i--)
+    {
+      updatedReverseReindexArray[i + 1] = updatedReverseReindexArray[i];
+    }
+    updatedReverseReindexArray[newVertexNo] = graph.getVertices().size();
+    graph.setReverseReindexArray(updatedReverseReindexArray);
+  }
+
+  private boolean isCorrectEdgeTypeToAdd(int sourceVertexLayer, EdgeType currentEdgeType)
+  {
+    return (sourceVertexLayer == reconstructionData.getNewVertex().getBfsLayer()
+            && currentEdgeType == CROSS)
+            || (sourceVertexLayer == reconstructionData.getNewVertex().getBfsLayer() + 1
+            && currentEdgeType == DOWN)
+            || (sourceVertexLayer == reconstructionData.getNewVertex().getBfsLayer() - 1
+            && currentEdgeType == UP);
+  }
+
+  private void addEdgeToMissingVertex(Edge inconsistentEdge, Vertex origin, EdgeType edgeType)
+  {
+    Vertex endpoint = reconstructionData.getNewVertex();
+
+    Edge newEdge = new Edge(origin, endpoint);
+    newEdge.setEdgeType(edgeType);
+
+
+    Edge newEdgeOpposite = new Edge(endpoint, origin);
+    newEdgeOpposite.setEdgeType(getOppositeEdgeType(edgeType));
+
+    if (inconsistentEdge.getLabel() != null)
+    {
+      if (inconsistentEdge.getOrigin().getVertexNo() != Integer.MIN_VALUE)
+      {
+        Edge inconsistentEdgeOpposite = inconsistentEdge.getOpposite();
+        edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), inconsistentEdge, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+        edgeService.addLabel(newEdgeOpposite, inconsistentEdgeOpposite.getLabel().getColor(), inconsistentEdgeOpposite.getLabel().getName(), inconsistentEdgeOpposite, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+      }
+      else
+      {
+        edgeService.addLabel(newEdge, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), null, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+        edgeService.addLabel(newEdgeOpposite, inconsistentEdge.getLabel().getColor(), inconsistentEdge.getLabel().getName(), null, new LabelOperationDetail.Builder(LabelOperationEnum.RECONSTRUCTION).build());
+      }
+    }
+
+    newEdge.setOpposite(newEdgeOpposite);
+    newEdgeOpposite.setOpposite(newEdge);
+
+    boolean isInsertionSuccessful = true;
+    switch (edgeType)
+    {
+      case UP:
+        isInsertionSuccessful = insertEdgeIntoExistingEdgesGroup(newEdge, origin.getUpEdges());
+        if (isInsertionSuccessful)
+        {
+          reconstructionData.getNewVertex().getDownEdges().getEdges().add(newEdgeOpposite);
+        }
+        break;
+      case CROSS:
+        isInsertionSuccessful = insertEdgeIntoExistingEdgesGroup(newEdge, origin.getCrossEdges());
+        if (isInsertionSuccessful)
+        {
+          reconstructionData.getNewVertex().getCrossEdges().getEdges().add(newEdgeOpposite);
+        }
+        break;
+      case DOWN:
+        isInsertionSuccessful = insertEdgeIntoExistingEdgesGroup(newEdge, origin.getDownEdges());
+        if (isInsertionSuccessful)
+        {
+          reconstructionData.getNewVertex().getUpEdges().getEdges().add(newEdgeOpposite);
+        }
+        break;
+    }
+    if (isInsertionSuccessful)
+    {
+      reconstructionData.getNewVertex().getEdges().add(newEdgeOpposite);
+      origin.getEdges().add(newEdge);
+    }
+  }
+
+  private EdgeType getOppositeEdgeType(EdgeType edgeType)
+  {
+    return edgeType == CROSS ? CROSS : edgeType == DOWN ? UP : DOWN;
+  }
+
+  private boolean insertEdgeIntoExistingEdgesGroup(Edge newEdge, EdgesGroup edgesGroup)
+  {
+    boolean isInsertionSuccessful = true;
+    EdgesRef edgesRef = edgesGroup.getEdgesRef();
+    if (edgesRef == null)
+    {
+      edgesGroup.getEdges().add(newEdge);
+      return isInsertionSuccessful;
+    }
+
+    List<ColorGroupLocation> colorPositions = edgesRef.getColorPositions();
+
+    List<Edge> edges = edgesGroup.getEdges();
+    int currentEdgesSize = edges.size();
+
+    int edgeColor = newEdge.getLabel().getColor();
+    ColorGroupLocation colorGroupLocationForEdgeColor = colorPositions.get(edgeColor);
+
+    if (colorGroupLocationForEdgeColor != null)
+    {
+      Optional<Integer> newEdgeIndexOptional = calculateIndexForNewEdge(newEdge, edges, colorGroupLocationForEdgeColor);
+      if (newEdgeIndexOptional.isPresent())
+      {
+        int newEdgeIndex = newEdgeIndexOptional.get();
+        colorGroupLocationForEdgeColor.setLength(colorGroupLocationForEdgeColor.getLength() + 1);
+        edges.add(newEdgeIndex, newEdge);
+
+        incrementColorGroupLocationsAfterNewColor(edgeColor, colorPositions, currentEdgesSize);
+      }
+      else
+      {
+        isInsertionSuccessful = false;
+      }
+    }
+    else
+    {
+      ColorGroupLocation newColorGroupLocation = getColorGroupLocationForNewColor(edgeColor, colorPositions, currentEdgesSize);
+      colorPositions.set(edgeColor, newColorGroupLocation);
+      edges.add(newColorGroupLocation.getIndex(), newEdge);
+
+      incrementColorGroupLocationsAfterNewColor(edgeColor, colorPositions, currentEdgesSize);
+    }
+    return isInsertionSuccessful;
+  }
+
+  private Optional<Integer> calculateIndexForNewEdge(Edge newEdge, List<Edge> edges, ColorGroupLocation colorGroupLocationForEdgeColor)
+  {
+    int firstEdgeIndex = colorGroupLocationForEdgeColor.getIndex();
+    int newEdgeIndex = colorGroupLocationForEdgeColor.getIndex() + colorGroupLocationForEdgeColor.getLength();
+    for (int i = firstEdgeIndex; i < newEdgeIndex; i++)
+    {
+      Edge currentEdge = edges.get(i);
+      if (currentEdge.getOrigin() == newEdge.getOrigin() && currentEdge.getEndpoint() == newEdge.getEndpoint())
+      {
+        return Optional.empty();
+      }
+      int currentEdgeName = currentEdge.getLabel().getName();
+      int newEdgeName = newEdge.getLabel().getName();
+      if (newEdgeName < currentEdgeName)
+      {
+        newEdgeIndex = i;
+      }
+      else if (newEdgeName == currentEdgeName)
+      {
+        throw new IllegalStateException("shouldn't happen");
+      }
+    }
+    return Optional.of(newEdgeIndex);
+  }
+
+  private ColorGroupLocation getColorGroupLocationForNewColor(int edgeColor, List<ColorGroupLocation> colorPositions, int currentEdgesSize)
+  {
+    ColorGroupLocation newColorGroupLocation = null;
+    if (currentEdgesSize > 0)
+    {
+      for (int i = edgeColor - 1; i >= 0 && newColorGroupLocation == null; i--)
+      {
+        ColorGroupLocation colorGroupLocation = colorPositions.get(i);
+        if (colorGroupLocation != null)
+        {
+          newColorGroupLocation = new ColorGroupLocation(colorGroupLocation.getIndex() + colorGroupLocation.getLength(), 1);
+        }
+      }
+    }
+    if (newColorGroupLocation == null)
+    {
+      newColorGroupLocation = new ColorGroupLocation(0, 1);
+    }
+    return newColorGroupLocation;
+  }
+
+  private void incrementColorGroupLocationsAfterNewColor(int edgeColor, List<ColorGroupLocation> colorPositions, int currentEdgesSize)
+  {
+    if (currentEdgesSize > 0)
+    {
+      for (int i = edgeColor + 1; i < colorPositions.size(); i++)
+      {
+        ColorGroupLocation colorGroupLocation = colorPositions.get(i);
+        if (colorGroupLocation != null)
+        {
+          colorGroupLocation.setIndex(colorGroupLocation.getIndex() + 1);
+        }
       }
     }
   }
 
-  private boolean isCorrectAmountOfVerticesInFactors(FactorizationData factorizationData)
+  private void arrangeNewVertexEdges(Set<EdgeType> reconstructedEdgeTypes)
   {
-    List<Integer> factorSizes = factorizationData.getFactors().stream().mapToInt(factorData ->
-            graphHelper.getConnectedComponentSizeForColor(factorData.getTopVertices(), graph.getVertices(), factorizationData.getUnitLayerSpecs(), factorData.getMappedColor()))
-            .boxed().collect(toList());
-    Integer amountOfVerticesAfterMultiplication = factorSizes.stream().reduce(1, (i1, i2) -> i1 * i2);
-    return amountOfVerticesAfterMultiplication == graph.getVertices().size() + 1;
+    Vertex newVertex = reconstructionData.getNewVertex();
+
+    Iterator<EdgeType> edgeTypesIt = reconstructedEdgeTypes.iterator();
+    while (edgeTypesIt.hasNext())
+    {
+      EdgeType edgeType = edgeTypesIt.next();
+
+      switch (edgeType)
+      {
+        case UP:
+          labelUtils.sortEdgesAccordingToLabels(newVertex.getDownEdges(), graph.getGraphColoring());
+          break;
+        case CROSS:
+          labelUtils.sortEdgesAccordingToLabels(newVertex.getCrossEdges(), graph.getGraphColoring());
+          break;
+        case DOWN:
+          labelUtils.sortEdgesAccordingToLabels(newVertex.getUpEdges(), graph.getGraphColoring());
+          break;
+      }
+      edgeTypesIt.remove();
+    }
+  }
+
+  @Override
+  public boolean isTopVertexMissingByReconstruction(int currentLayerNo)
+  {
+    return reconstructionData.getNewVertex() == null
+            && CollectionUtils.isEmpty(reconstructionData.getReconstructionEntries())
+            && currentLayerNo == graph.getLayers().size() - 1;
+  }
+
+  @Override
+  public void prepareTopVertexReconstruction(List<Vertex> currentLayer)
+  {
+    for (Vertex u : currentLayer)
+    {
+      Edge uv = u.getDownEdges().getEdges().get(0);
+      int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
+      Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
+      Edge referenceEdge = findReferenceEdgeForMissingTopVertex(uv)
+              .orElseGet(() -> findReferenceEdgeForMissingTopVertex(uw)
+                      .orElseThrow(() -> new IllegalStateException("there must be at lease one up edge for missing layer vertex")));
+      addEdgesToReconstruction(Collections.singletonList(referenceEdge), uv.getOrigin(), EdgeType.UP);
+    }
+  }
+
+  private Optional<Edge> findReferenceEdgeForMissingTopVertex(Edge uv)
+  {
+    Vertex v = uv.getEndpoint();
+    List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
+
+    Optional<Edge> resultEdgeOptional = Optional.empty();
+    for (List<Edge> edges : vDifferentThanUv)
+    {
+      if (edges.size() == 1)
+      {
+        if (!resultEdgeOptional.isPresent())
+        {
+          resultEdgeOptional = Optional.of(edges.get(0));
+        }
+        else
+        {
+          throw new IllegalStateException("there could be only one reference edge pro neighbor for missing top layer vertex");
+        }
+      }
+      else if (edges.size() > 1)
+      {
+        throw new IllegalStateException("there could be only one missing edge pro neighbor for missing top layer vertex");
+      }
+    }
+    return resultEdgeOptional;
   }
 
 }

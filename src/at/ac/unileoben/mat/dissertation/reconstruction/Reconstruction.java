@@ -15,4 +15,6 @@ import java.util.List;
 public interface Reconstruction
 {
   Graph reconstruct(List<Vertex> vertices);
+
+  Graph reconstruct(List<Vertex> vertices, Vertex root);
 }

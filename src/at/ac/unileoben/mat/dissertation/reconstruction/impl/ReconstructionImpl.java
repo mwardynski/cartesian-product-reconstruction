@@ -23,7 +23,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @Component
-public class ReconstructionImpl implements Reconstruction
+public class ReconstructionImpl extends AbstractReconstruction implements Reconstruction
 {
   @Autowired
   Graph graph;

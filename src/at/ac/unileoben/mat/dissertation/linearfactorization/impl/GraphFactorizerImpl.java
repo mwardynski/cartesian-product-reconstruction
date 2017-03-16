@@ -7,8 +7,8 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdges
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.DetermineFactorsService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
 import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
@@ -48,7 +48,7 @@ public class GraphFactorizerImpl implements GraphFactorizer
   ColoringService coloringService;
 
   @Autowired
-  ReconstructionService reconstructionService;
+  DetermineFactorsService determineFactorsService;
 
   @Autowired
   ReconstructionBackupLayerService reconstructionBackupLayerService;
@@ -83,9 +83,9 @@ public class GraphFactorizerImpl implements GraphFactorizer
     }
     else
     {
-      reconstructionService.findReconstructionComponents(currentLayerNo, false);
+      determineFactorsService.findReconstructionComponents(currentLayerNo, false);
       consistencyChecker.checkConsistency(currentLayerNo);
-      reconstructionService.findReconstructionComponents(currentLayerNo, true);
+      determineFactorsService.findReconstructionComponents(currentLayerNo, true);
     }
   }
 }

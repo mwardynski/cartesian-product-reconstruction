@@ -1,20 +1,29 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services;
 
-import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.EdgeType;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
 import java.util.List;
 
 /**
- * Created by mwardynski on 12/06/16.
+ * Created by mwardynski on 26/11/16.
  */
 public interface ReconstructionService
 {
-  List<List<Vertex>> createTopVerticesList(int originalColorsAmount);
+  void clearReconstructionData();
 
-  void updateFactorizationResult();
+  boolean isReconstructionSuitableByConsistencyCheck();
 
-  void findReconstructionComponents(int currentLayerNo, boolean afterConsistencyCheck);
+  boolean isReconstructionSuitableByLabeling(int currentLayerNo);
 
-  void collectFactors(FactorizationData factorizationData, List<List<Vertex>> topUnitLayerVertices);
+  boolean isCorrespondingEdgesCheckForUpEdgesReasonable();
+
+  boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType);
+
+  void reconstructWithCollectedData();
+
+  boolean isTopVertexMissingByReconstruction(int currentLayerNo);
+
+  void prepareTopVertexReconstruction(List<Vertex> currentLayer);
 }

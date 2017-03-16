@@ -1,11 +1,11 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 
-import at.ac.unileoben.mat.dissertation.common.ReconstructionHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.*;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ public class DownEdgesLabeler implements EdgesLabeler
   EdgeLabelingService edgeLabelingService;
 
   @Autowired
-  ReconstructionHelper reconstructionHelper;
+  ReconstructionService reconstructionService;
 
   @Override
   public void labelEdges(int currentLayerNo)
@@ -78,10 +78,10 @@ public class DownEdgesLabeler implements EdgesLabeler
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, layerLabelingData);
 
     List<Vertex> noPivotSquareVerties = layerLabelingData.getNoPivotSquareVerties();
-    if (CollectionUtils.isNotEmpty(noPivotSquareVerties) && reconstructionHelper.isReconstructionSuitableByLabeling(currentLayerNo))
+    if (CollectionUtils.isNotEmpty(noPivotSquareVerties) && reconstructionService.isReconstructionSuitableByLabeling(currentLayerNo))
     {
-      noPivotSquareVerties.forEach(v -> reconstructionHelper.addEdgesToReconstruction(Collections.singletonList(v.getDownEdges().getEdges().get(0)), v, EdgeType.DOWN));
-      reconstructionHelper.reconstructWithCollectedData();
+      noPivotSquareVerties.forEach(v -> reconstructionService.addEdgesToReconstruction(Collections.singletonList(v.getDownEdges().getEdges().get(0)), v, EdgeType.DOWN));
+      reconstructionService.reconstructWithCollectedData();
       labelEdges(currentLayerNo);
 
     }
@@ -102,10 +102,10 @@ public class DownEdgesLabeler implements EdgesLabeler
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     if (uDownEdges.size() == 1)
     {
-      if (reconstructionHelper.isReconstructionSuitableByLabeling(u.getBfsLayer()))
+      if (reconstructionService.isReconstructionSuitableByLabeling(u.getBfsLayer()))
       {
-        reconstructionHelper.addEdgesToReconstruction(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
-        reconstructionHelper.reconstructWithCollectedData();
+        reconstructionService.addEdgesToReconstruction(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
+        reconstructionService.reconstructWithCollectedData();
         assignSingleVertexToFactorizationSteps(u, factorizationSteps);
       }
       else
