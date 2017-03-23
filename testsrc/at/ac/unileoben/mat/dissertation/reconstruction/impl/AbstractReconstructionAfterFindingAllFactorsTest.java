@@ -49,7 +49,16 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
 
           try
           {
-            Graph graph = reconstruction.reconstruct(incompleteVertices);
+            Graph graph;
+            if (factorizationCase.getRootVertexNo() == null)
+            {
+              graph = reconstruction.reconstruct(incompleteVertices);
+            }
+            else
+            {
+              Vertex rootVertex = incompleteVertices.get(factorizationCase.getRootVertexNo());
+              graph = reconstruction.reconstruct(incompleteVertices, rootVertex);
+            }
             assertThat("file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove,
                     graph.getGraphColoring().getActualColors().size(), is(factorizationCase.getAmountOfFactors()));
             assertThat(reconstructionData.getNewVertex(), notNullValue());
