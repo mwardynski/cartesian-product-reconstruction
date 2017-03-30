@@ -178,6 +178,7 @@ public class GraphPrinterImpl implements GraphPrinter
     EdgeData edgeData = new EdgeData();
     edgeData.setOriginNo(edge.getOrigin().getVertexNo());
     edgeData.setEndpointNo(edge.getEndpoint().getVertexNo());
+    edgeData.setEdgeType(edge.getEdgeType().name());
 
     if (edge.getLabel() != null)
     {

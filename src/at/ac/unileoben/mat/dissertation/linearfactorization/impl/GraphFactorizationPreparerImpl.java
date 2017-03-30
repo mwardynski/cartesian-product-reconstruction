@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -23,6 +24,9 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
 {
   @Autowired
   Graph graph;
+
+  @Autowired
+  ReconstructionData reconstructionData;
 
   @Autowired
   ColoringService coloringService;
@@ -120,16 +124,13 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     EdgesGroup crossEdgesGroup = upEdge.getEndpoint().getCrossEdges();
     List<Edge> crossEdges = crossEdgesGroup.getEdges();
     int[] crossEdgesAmounts = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-    int crossEdgesColorsAmount = 0;
+    reconstructionData.setMergeTags(new LinkedList<>());
+
     for (int i = 0; i < crossEdges.size(); i++)
     {
       Edge crossEdge = crossEdges.get(i);
       int mergedColor = mergeCrossEdgesColors(crossEdge, upEdge);
       edgeService.addLabel(crossEdge, mergedColor, crossEdgesAmounts[mergedColor], null, new LabelOperationDetail.Builder(LabelOperationEnum.PREPARE).build());
-      if (crossEdgesAmounts[mergedColor] == 0)
-      {
-        crossEdgesColorsAmount++;
-      }
       crossEdgesAmounts[mergedColor]++;
 
     }

@@ -16,6 +16,7 @@ public class EdgeData
   long endpointNo;
   String forwardEdgeLabel;
   String backwardEdgeLabel;
+  String edgeType;
   String color = EdgeColorEnum.BLACK.toString();
   String style = EdgeStyleEnum.SOLID.toString();
 
@@ -57,6 +58,16 @@ public class EdgeData
   public void setBackwardEdgeLabel(String backwardEdgeLabel)
   {
     this.backwardEdgeLabel = backwardEdgeLabel;
+  }
+
+  public String getEdgeType()
+  {
+    return edgeType;
+  }
+
+  public void setEdgeType(String edgeType)
+  {
+    this.edgeType = edgeType;
   }
 
   public String getColor()

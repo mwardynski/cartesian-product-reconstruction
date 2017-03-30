@@ -9,12 +9,13 @@
 #end
 \node[vertex,fill=\color!\weight] (\name) at \pos {$\label$};
 
-\foreach \source/ \dest/ \col/ \style/ \backwardEdgeLabel/ \forwardEdgeLabel  in {
+\foreach \source/ \dest/ \col/ \style/ \backwardEdgeLabel/ \forwardEdgeLabel/ \bend in {
 #foreach( $edge in $edges )
     #set($separator = "#if($foreach.hasNext),#{else}}#end")
-    $edge.originNo/$edge.endpointNo/$edge.color/$edge.style/{$!{edge.backwardEdgeLabel}}/{$!{edge.forwardEdgeLabel}}$separator
+    #set($bend = "#if($edge.edgeType=='CROSS')20#{else}0#end")
+    $edge.originNo/$edge.endpointNo/$edge.color/$edge.style/{$!{edge.backwardEdgeLabel}}/{$!{edge.forwardEdgeLabel}}/$bend$separator
 #end
-\path[edge,\col,\style] (\source) -- node[backwardEdgeLabel] {$\backwardEdgeLabel$} node[forwardEdgeLabel] {$\forwardEdgeLabel$} (\dest);
+\path[edge,\col,\style] (\source) to[bend left=\bend] node[backwardEdgeLabel] {$\backwardEdgeLabel$} node[forwardEdgeLabel] {$\forwardEdgeLabel$} (\dest);
 
 \end{tikzpicture}
 \end{figure}
