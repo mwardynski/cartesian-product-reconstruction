@@ -4,7 +4,6 @@ import at.ac.unileoben.mat.dissertation.common.FactorizationCase;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.reconstruction.ReconstructionAfterFindingAllFactors;
 import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +13,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import static org.hamcrest.core.IsNull.notNullValue;
 
 /**
  * Created by mwardynski on 24/04/16.
@@ -38,7 +35,6 @@ public class InPlaceReconstructionAfterFindingAllFactorsTest extends AbstractRec
   public void checkExamples()
   {
     checkExamples(reconstruction, examplesList);
-    Assert.assertThat(reconstructionData.getNewVertex(), notNullValue());
   }
 
   static

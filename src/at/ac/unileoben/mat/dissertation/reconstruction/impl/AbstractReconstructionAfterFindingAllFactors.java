@@ -6,6 +6,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.ReconstructionAfterFindingAllFactors;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.DetermineFactorsService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +45,13 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
   @Autowired
   private ReconstructionService reconstructionService;
 
+  @Autowired
+  private ReconstructionBackupLayerService reconstructionBackupLayerService;
+
   @Override
   public FactorizationData findFactors(List<Vertex> vertices)
   {
     reconstructionService.clearReconstructionData();
-    reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
     for (Vertex vertex : vertices)
     {
       findFactorsForRoot(vertices, vertex);
@@ -133,6 +136,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
       else
       {
         reconstructionData.setCurrentLayerNo(currentLayerNo);
+        reconstructionBackupLayerService.storeCurrentLayerBackup();
         graphFactorizer.factorizeSingleLayer(currentLayerNo);
       }
     }

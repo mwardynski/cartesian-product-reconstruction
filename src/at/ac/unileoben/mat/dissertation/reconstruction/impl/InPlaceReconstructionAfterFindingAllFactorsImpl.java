@@ -49,6 +49,7 @@ public class InPlaceReconstructionAfterFindingAllFactorsImpl extends AbstractRec
   @Override
   public Graph reconstruct(List<Vertex> vertices)
   {
+    reconstructionData.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
     FactorizationData factorizationData = findFactors(vertices);
     Graph graph = reconstructWithFoundFactors(vertices, factorizationData);
     graphHelper.revertGraphBfsStructure();
