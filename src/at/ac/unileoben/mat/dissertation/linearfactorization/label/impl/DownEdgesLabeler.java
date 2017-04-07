@@ -131,7 +131,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     {
       edgeService.addLabel(e, colorToLabel, nameCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
     }
-    vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.LABEL_DOWN);
+    vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.LABEL_DOWN);
 
     int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     colorLengths[colorToLabel] = uDownEdges.size();

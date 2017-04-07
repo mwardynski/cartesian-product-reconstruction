@@ -24,5 +24,5 @@ public interface VertexService
 
   Edge getEdgeToVertex(AdjacencyVector vector, Vertex v);
 
-  void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag); //mergeCrossEdges always true
+  void assignVertexToUnitLayerAndMergeColors(Vertex v, MergeTagEnum mergeTag);
 }

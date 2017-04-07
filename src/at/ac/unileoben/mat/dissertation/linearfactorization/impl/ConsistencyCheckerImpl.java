@@ -83,7 +83,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       if (uw == null)
       {
-        vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
+        vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
         continue;
       }
       EnumSet<EdgeType> edgeTypes = EnumSet.of(EdgeType.DOWN, EdgeType.CROSS);
@@ -92,7 +92,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         if (!checkPivotSquares(uv, edgeType).isEmpty() || !checkPivotSquares(uw, edgeType).isEmpty())
         {
           MergeTagEnum mergeTagEnum = edgeType == EdgeType.DOWN ? MergeTagEnum.CONSISTENCY_DOWN : MergeTagEnum.CONSISTENCY_CROSS;
-          vertexService.assignVertexToUnitLayerAndMergeColors(u, true, mergeTagEnum);
+          vertexService.assignVertexToUnitLayerAndMergeColors(u, mergeTagEnum);
           break;
         }
       }
@@ -100,7 +100,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
               && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
               && isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
       {
-        vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP_AMOUNT);
+        vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.CONSISTENCY_UP_AMOUNT);
       }
     }
   }
@@ -165,7 +165,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {
       Vertex endpointVertex = edgeOfGivenColor.getEndpoint();
-      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
+      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, MergeTagEnum.CONSISTENCY_UP);
     }
   }
 

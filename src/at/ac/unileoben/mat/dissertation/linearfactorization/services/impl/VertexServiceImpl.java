@@ -68,7 +68,7 @@ public class VertexServiceImpl implements VertexService
   }
 
   @Override
-  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v, MergeTagEnum mergeTag)
   {
     if (!v.isUnitLayer())
     {
@@ -77,18 +77,14 @@ public class VertexServiceImpl implements VertexService
     }
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
     List<Edge> edgesToRelabel = new LinkedList<>(vDownEdges);
-    if (mergeCrossEdges)
-    {
-      List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
-      edgesToRelabel.addAll(vCrossEdges);
-    }
+    List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
+    edgesToRelabel.addAll(vCrossEdges);
     for (Edge vw : edgesToRelabel)
     {
       Vertex w = vw.getEndpoint();
       if (!w.isUnitLayer())
       {
-        w.setUnitLayer(true);
-        reconstructionBackupLayerService.addNewVertexToLayerBackup(w);
+        assignVertexToUnitLayerAndMergeColors(w, mergeTag);
       }
     }
     coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);

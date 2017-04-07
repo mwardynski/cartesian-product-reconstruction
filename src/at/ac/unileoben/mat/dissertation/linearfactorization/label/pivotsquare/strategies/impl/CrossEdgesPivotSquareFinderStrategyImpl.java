@@ -87,7 +87,7 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
     labelUtils.sortEdgesAccordingToLabels(u.getCrossEdges(), graph.getGraphColoring());
     if (u.isUnitLayer())
     {
-      vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.LABEL_CROSS);
+      vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.LABEL_CROSS);
     }
   }
 }
