@@ -67,12 +67,12 @@ public class DownEdgesLabeler implements EdgesLabeler
     List<Vertex> prePreviousLayer = vertexService.getGraphLayer(currentLayerNo - 2);
     FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer, prePreviousLayer, vertexService.getGraphSize());
 
-    assignVerticesToFactorizationSteps(currentLayer, factorizationSteps);
+    LayerLabelingData layerLabelingData = new LayerLabelingData(previousLayer);
+    assignVerticesToFactorizationSteps(currentLayer, factorizationSteps, layerLabelingData);
 
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
     FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
 
-    LayerLabelingData layerLabelingData = new LayerLabelingData(previousLayer);
 
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase, layerLabelingData);
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, layerLabelingData);
@@ -92,12 +92,12 @@ public class DownEdgesLabeler implements EdgesLabeler
 
   }
 
-  private void assignVerticesToFactorizationSteps(List<Vertex> currentLayer, FactorizationSteps factorizationSteps)
+  private void assignVerticesToFactorizationSteps(List<Vertex> currentLayer, FactorizationSteps factorizationSteps, LayerLabelingData layerLabelingData)
   {
-    currentLayer.forEach(u -> assignSingleVertexToFactorizationSteps(u, factorizationSteps));
+    currentLayer.forEach(u -> assignSingleVertexToFactorizationSteps(u, factorizationSteps, layerLabelingData));
   }
 
-  private void assignSingleVertexToFactorizationSteps(Vertex u, FactorizationSteps factorizationSteps)
+  private void assignSingleVertexToFactorizationSteps(Vertex u, FactorizationSteps factorizationSteps, LayerLabelingData layerLabelingData)
   {
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     if (uDownEdges.size() == 1)
@@ -106,12 +106,11 @@ public class DownEdgesLabeler implements EdgesLabeler
       {
         reconstructionService.addEdgesToReconstruction(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
         reconstructionService.reconstructWithCollectedData();
-        assignSingleVertexToFactorizationSteps(u, factorizationSteps);
+        assignSingleVertexToFactorizationSteps(u, factorizationSteps, layerLabelingData);
       }
       else
       {
-        int colorToLabel = u.getDownEdges().getEdges().get(0).getEndpoint().getDownEdges().getEdges().get(0).getLabel().getColor();
-        setVertexAsUnitLayer(u, colorToLabel);
+        layerLabelingData.getNoPivotSquareVerties().add(u);
       }
     }
     else
