@@ -82,7 +82,8 @@ public class LabelUtils
         colorsCounter[edges.get(0).getLabel().getColor()] = edges.size();
 
         List<Edge> edgesToLabel = new LinkedList<>();
-        boolean[] labelsInUse = new boolean[GraphReaderImpl.MAX_NEIGHBOURS_AMOUNT];
+        Edge[] labelsInUse = new Edge[GraphReaderImpl.MAX_NEIGHBOURS_AMOUNT];
+        int namedEdgesCounter = 0;
         for (Edge edge : edges)
         {
           int edgeName = edge.getLabel().getName();
@@ -92,32 +93,41 @@ public class LabelUtils
           }
           else
           {
-            if (labelsInUse[edgeName])
+            if (labelsInUse[edgeName] != null)
             {
               edgesToLabel.add(edge);
             }
             else
             {
-              labelsInUse[edgeName] = true;
+              labelsInUse[edgeName] = edge;
+              namedEdgesCounter++;
             }
           }
-          sortedEdges.add(edge);
+
         }
 
         Iterator<Edge> edgesToLabelIterator = edgesToLabel.iterator();
         for (int i = 0; i < labelsInUse.length; i++)
         {
-          if (!labelsInUse[i] && edgesToLabelIterator.hasNext())
+          if (labelsInUse[i] != null)
+          {
+            Edge edge = labelsInUse[i];
+            sortedEdges.add(edge);
+            namedEdgesCounter--;
+          }
+          else if (edgesToLabelIterator.hasNext())
           {
             Edge edgeToLabel = edgesToLabelIterator.next();
             edgeToLabel.getLabel().setName(i);
-            if (!edgesToLabelIterator.hasNext())
-            {
-              break;
-            }
+            labelsInUse[i] = edgeToLabel;
+            sortedEdges.add(edgeToLabel);
+          }
+          
+          if (namedEdgesCounter == 0 && !edgesToLabelIterator.hasNext())
+          {
+            break;
           }
         }
-
       }
     }
     EdgesRef downEdgesRef = getEdgesRef(colorsCounter);
