@@ -50,8 +50,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   {
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
-    checkPreviousLayerUpEdgesConsistency(previousLayer);
-    checkCurrentLayerAllEdgesConsistency(currentLayer);
+    if (graph.getGraphColoring().getActualColors().size() != 1)
+    {
+      checkPreviousLayerUpEdgesConsistency(previousLayer);
+      checkCurrentLayerAllEdgesConsistency(currentLayer);
+    }
     if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
     {
       inPlaceReconstructionSetUpService.setUpReconstructionInPlace();

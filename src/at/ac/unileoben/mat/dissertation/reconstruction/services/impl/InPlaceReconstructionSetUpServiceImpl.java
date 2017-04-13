@@ -64,12 +64,14 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   {
     int consistencyUpAmountTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT);
     int labelCrossTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_CROSS);
+    int labelDownTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_DOWN);
     int currentLayerNo = reconstructionData.getCurrentLayerNo();
 
     return currentLayerNo == 2
             && ((reconstructionData.getMergeTags().size() == consistencyUpAmountTagsQuantity
             && currentLayerNo != graph.getLayers().size() - 1)
-            || reconstructionData.getMergeTags().size() == labelCrossTagsQuantity);
+            || reconstructionData.getMergeTags().size() == labelCrossTagsQuantity
+            || reconstructionData.getMergeTags().size() == labelDownTagsQuantity);
   }
 
   private int calculateQuantityOfMergeTag(MergeTagEnum selectedMergeTag)

@@ -40,35 +40,29 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
       try
       {
         List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
-        for (int vertexNumberToRemove = 0; vertexNumberToRemove < vertices.size(); vertexNumberToRemove++)
+        for (int vertexNumberToRemove = 0; vertexNumberToRemove < 1/*vertices.size()*/; vertexNumberToRemove++)
         {
           StopWatch stopWatch = new StopWatch();
           stopWatch.start();
           List<Vertex> incompleteVertices = graphHelper.parseGraph(factorizationCase.getFileName());
           graphFactorizationPreparer.removeVertex(incompleteVertices, vertexNumberToRemove);
 
-          try
+          Graph graph;
+          if (factorizationCase.getRootVertexNo() == null)
           {
-            Graph graph;
-            if (factorizationCase.getRootVertexNo() == null)
-            {
-              graph = reconstruction.reconstruct(incompleteVertices);
-            }
-            else
-            {
-              Vertex rootVertex = incompleteVertices.get(factorizationCase.getRootVertexNo());
-              graph = reconstruction.reconstruct(incompleteVertices, rootVertex);
-            }
-            assertThat("file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove,
-                    graph.getGraphColoring().getActualColors().size(), is(factorizationCase.getAmountOfFactors()));
-            assertThat(reconstructionData.getNewVertex(), notNullValue());
-            System.out.print("OK - file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
+            graph = reconstruction.reconstruct(incompleteVertices);
           }
-          catch (Exception e)
+          else
           {
-            System.out.print("EXCEPTION " + e + ", file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
-            e.printStackTrace();
+            Vertex rootVertex = incompleteVertices.get(factorizationCase.getRootVertexNo());
+            graph = reconstruction.reconstruct(incompleteVertices, rootVertex);
           }
+
+          assertThat("file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove,
+                  graph.getGraphColoring().getActualColors().size(), is(factorizationCase.getAmountOfFactors()));
+          assertThat(reconstructionData.getNewVertex(), notNullValue());
+
+          System.out.print("OK - file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
           stopWatch.stop();
           System.out.println(" [" + stopWatch.getTotalTimeSeconds() + "s]");
           cleanUpReconstructionData();
