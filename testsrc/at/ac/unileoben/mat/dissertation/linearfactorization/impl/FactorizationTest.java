@@ -51,6 +51,7 @@ public class FactorizationTest
         Graph resultGraph = linearFactorization.factorize(vertices, root);
         int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
         assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+        System.out.println("OK - file: " + factorizationCase.getFileName());
       }
       catch (IllegalArgumentException | IllegalStateException e)
       {
@@ -81,6 +82,7 @@ public class FactorizationTest
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
     examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
+    examplesList.add(new FactorizationCase("crossToCross.txt", 2));
     examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 }

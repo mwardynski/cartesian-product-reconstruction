@@ -4,7 +4,9 @@ import at.ac.unileoben.mat.dissertation.common.impl.GraphReaderImpl;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,12 @@ public class LabelUtils
 
   @Autowired
   ColoringService coloringService;
+
+  @Autowired
+  EdgeService edgeService;
+
+  @Autowired
+  VertexService vertexService;
 
   public EdgesRef getEdgesRef(int[] colorsCounter)
   {
@@ -122,7 +130,7 @@ public class LabelUtils
             labelsInUse[i] = edgeToLabel;
             sortedEdges.add(edgeToLabel);
           }
-          
+
           if (namedEdgesCounter == 0 && !edgesToLabelIterator.hasNext())
           {
             break;
@@ -162,5 +170,25 @@ public class LabelUtils
       }
       assignedVerticesIterator.remove();
     }
+  }
+
+
+  public void setVertexAsUnitLayer(Vertex u, int colorToLabel, EdgeType edgeType)
+  {
+    EdgesGroup edgesGroup = edgeService.getEdgeGroupForEdgeType(u, edgeType);
+    List<Edge> uEdges = edgesGroup.getEdges();
+    int nameCounter = 0;
+    for (Edge e : uEdges)
+    {
+      edgeService.addLabel(e, colorToLabel, nameCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
+    }
+    MergeTagEnum mergeTagEnum = edgeType == EdgeType.DOWN ? MergeTagEnum.LABEL_DOWN : MergeTagEnum.LABEL_CROSS;
+    vertexService.assignVertexToUnitLayerAndMergeColors(u, mergeTagEnum);
+
+    int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
+    colorLengths[colorToLabel] = uEdges.size();
+    EdgesRef edgesRef = new EdgesRef();
+    coloringService.setColorAmounts(edgesRef, colorLengths);
+    edgesGroup.setEdgesRef(edgesRef);
   }
 }

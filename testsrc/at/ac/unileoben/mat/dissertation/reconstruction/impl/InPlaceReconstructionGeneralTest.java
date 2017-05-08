@@ -48,5 +48,6 @@ public class InPlaceReconstructionGeneralTest extends AbstractReconstructionAfte
     examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2, 0));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3, 0));
     examplesList.add(new FactorizationCase("breakExample.txt", 2, 0));
+    examplesList.add(new FactorizationCase("crossToCross.txt", 2, 0));
   }
 }

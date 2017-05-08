@@ -131,7 +131,8 @@ public class EdgeServiceImpl implements EdgeService
     return edgesOfGivenColors;
   }
 
-  private EdgesGroup getEdgeGroupForEdgeType(Vertex v, EdgeType edgeType)
+  @Override
+  public EdgesGroup getEdgeGroupForEdgeType(Vertex v, EdgeType edgeType)
   {
     if (edgeType == EdgeType.DOWN)
     {

@@ -53,6 +53,9 @@ public class CrossEdgesLabeler implements EdgesLabeler
     }
 
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
-    labelUtils.singleFindPivotSquarePhase(crossEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, null, null);
+    FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
+
+    labelUtils.singleFindPivotSquarePhase(crossEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase, null);
+    labelUtils.singleFindPivotSquarePhase(crossEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, null);
   }
 }

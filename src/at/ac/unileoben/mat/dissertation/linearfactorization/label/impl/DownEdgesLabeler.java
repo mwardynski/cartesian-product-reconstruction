@@ -121,24 +121,6 @@ public class DownEdgesLabeler implements EdgesLabeler
     }
   }
 
-  private void setVertexAsUnitLayer(Vertex u, int colorToLabel)
-  {
-    EdgesGroup downEdgesGroup = u.getDownEdges();
-    List<Edge> uDownEdges = downEdgesGroup.getEdges();
-    int nameCounter = 0;
-    for (Edge e : uDownEdges)
-    {
-      edgeService.addLabel(e, colorToLabel, nameCounter++, null, new LabelOperationDetail.Builder(LabelOperationEnum.UNIT_LAYER_FOLLOWING).build());
-    }
-    vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.LABEL_DOWN);
-
-    int[] colorLengths = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-    colorLengths[colorToLabel] = uDownEdges.size();
-    EdgesRef downEdgesRef = new EdgesRef();
-    coloringService.setColorAmounts(downEdgesRef, colorLengths);
-    downEdgesGroup.setEdgesRef(downEdgesRef);
-  }
-
   private void labelDownEdgesWithFoundPivotSquares(LayerLabelingData layerLabelingData, List<Vertex> currentLayer)
   {
     List<Vertex> noPivotSquareVerties = layerLabelingData.getNoPivotSquareVerties();
@@ -187,7 +169,7 @@ public class DownEdgesLabeler implements EdgesLabeler
   {
     Edge firstEdge = edgeService.getFirstEdge(v, EdgeType.DOWN);
     Edge edgeWithColorToLabel = edgeService.getFirstEdge(firstEdge.getEndpoint(), EdgeType.DOWN);
-    setVertexAsUnitLayer(v, edgeWithColorToLabel.getLabel().getColor());
+    labelUtils.setVertexAsUnitLayer(v, edgeWithColorToLabel.getLabel().getColor(), EdgeType.DOWN);
   }
 
   private List<Edge> labelDownEdgesForGivenLabelingBaseEdge(List<Edge> edges, Edge uv, AdjacencyVector adjacencyVector)

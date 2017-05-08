@@ -25,6 +25,8 @@ public interface EdgeService
 
   List<Edge> getAllEdgesOfColors(Vertex v, List<Integer> colors, EdgeType edgeType);
 
+  EdgesGroup getEdgeGroupForEdgeType(Vertex v, EdgeType edgeType);
+
   List<Edge> getAllEdgesOfColor(Vertex v, int color);
 
   List<Edge> getFurtherEdgesOfGivenTypeAndDifferentEndpoint(Edge e, Vertex endPoint, EdgeType edgeType);

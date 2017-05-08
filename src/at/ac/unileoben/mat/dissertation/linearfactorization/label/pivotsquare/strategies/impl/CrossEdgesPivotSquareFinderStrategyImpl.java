@@ -3,7 +3,9 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.s
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +35,18 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
   @Autowired
   LabelUtils labelUtils;
 
+  @Autowired
+  FactorizationStepService factorizationStepService;
+
+  @Autowired
+  ColoringService coloringService;
+
   @Override
   public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
   {
-    List<Edge> uCrossEdges = u.getCrossEdges().getEdges();
+    EdgesGroup crossEdgesGroup = u.getCrossEdges();
+    List<Edge> uCrossEdges = crossEdgesGroup.getEdges();
+    boolean allEdgesFactorized = true;
     for (Edge uv : uCrossEdges)
     {
       if (uv.getLabel() != null)
@@ -61,8 +71,9 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
 
         continue;
       }
+
       Vertex v = uv.getEndpoint();
-      Edge uw = edgeService.getFirstEdge(u, EdgeType.DOWN);
+      Edge uw = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u);
       Edge vx = edgeService.getEdgeByLabel(v, uw.getLabel(), EdgeType.DOWN);
       Edge wx = null;
       if (vx != null)
@@ -70,6 +81,7 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
         Vertex x = vx.getEndpoint();
         wx = vertexService.getEdgeToVertex(wAdjacencyVector, x);
       }
+
       if (wx != null && wx.getLabel() != null)
       {
         Label wxLabel = wx.getLabel();
@@ -79,15 +91,48 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
       }
       else
       {
-        Label uwLabel = uw.getLabel();
-        int uwColor = uwLabel.getColor();
-        edgeService.addLabel(uv, uwColor, -1, null, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(uw).build());
+        allEdgesFactorized = false;
       }
     }
-    labelUtils.sortEdgesAccordingToLabels(u.getCrossEdges(), graph.getGraphColoring());
-    if (u.isUnitLayer())
+
+    if (!allEdgesFactorized)
     {
-      vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.LABEL_CROSS);
+      Edge uwp = findFirstLayerEdgeOfDifferentColor(u, thisPhase);
+      if (nextPhase != null && uwp != null && !u.isUnitLayer())
+      {
+        addNextPhaseForVertex(u, nextPhase, uwp);
+      }
+      else
+      {
+        labelUnitLayerVertex(u, thisPhase);
+      }
     }
+
+    if (allEdgesFactorized)
+    {
+      labelUtils.sortEdgesAccordingToLabels(crossEdgesGroup, graph.getGraphColoring());
+    }
+  }
+
+  private Edge findFirstLayerEdgeOfDifferentColor(Vertex u, FactorizationStep thisPhase)
+  {
+    Edge uw = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u);
+    int uwColor = uw.getLabel().getColor();
+    int uwMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uwColor);
+    return edgeService.getEdgeOfDifferentColor(u, uwMappedColor, graph.getGraphColoring());
+  }
+
+  private void addNextPhaseForVertex(Vertex u, FactorizationStep nextPhase, Edge uwp)
+  {
+    Vertex wp = uwp.getEndpoint();
+    factorizationStepService.assignFirstLayerEdgeForVertexInFactorizationStep(nextPhase, u, uwp);
+    factorizationStepService.addVertex(nextPhase, wp, u);
+  }
+
+  private void labelUnitLayerVertex(Vertex u, FactorizationStep thisPhase)
+  {
+    Edge uw = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u);
+    int uwColor = uw.getLabel().getColor();
+    labelUtils.setVertexAsUnitLayer(u, uwColor, EdgeType.CROSS);
   }
 }

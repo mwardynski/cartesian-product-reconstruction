@@ -50,6 +50,7 @@ public class FactorizationStepServiceImpl implements FactorizationStepService
     Vertex u = uw.getOrigin();
     Vertex w = uw.getEndpoint();
     addVertex(factorizationSteps.getFindSquareFirstPhase(), w, u);
+    assignFirstLayerEdgeForVertexInFactorizationStep(factorizationSteps.getFindSquareFirstPhase(), u, uw);
   }
 
   @Override

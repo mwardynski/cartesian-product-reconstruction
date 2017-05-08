@@ -53,6 +53,7 @@ public class InPlaceReconstructionAfterFindingAllFactorsTest extends AbstractRec
     examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
     examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
     examplesList.add(new FactorizationCase("breakExample.txt", 2));
+    examplesList.add(new FactorizationCase("crossToCross.txt", 2));
     //not working
 //    examplesList.add(new FactorizationCase("handP2.txt", 2));
 //    examplesList.add(new FactorizationCase("handP3.txt", 2));
