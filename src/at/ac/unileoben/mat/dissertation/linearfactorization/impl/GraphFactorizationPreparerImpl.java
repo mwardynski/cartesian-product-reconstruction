@@ -4,6 +4,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPr
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -123,6 +124,10 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   {
     EdgesGroup crossEdgesGroup = upEdge.getEndpoint().getCrossEdges();
     List<Edge> crossEdges = crossEdgesGroup.getEdges();
+    if (CollectionUtils.isEmpty(crossEdges))
+    {
+      return;
+    }
     int[] crossEdgesAmounts = new int[graph.getGraphColoring().getOriginalColorsAmount()];
     reconstructionData.setMergeTags(new LinkedList<>());
 

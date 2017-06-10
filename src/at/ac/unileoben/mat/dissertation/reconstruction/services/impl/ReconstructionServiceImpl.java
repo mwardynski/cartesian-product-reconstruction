@@ -62,6 +62,12 @@ public class ReconstructionServiceImpl implements ReconstructionService
   }
 
   @Override
+  public boolean isNewVertex(Vertex vertex)
+  {
+    return reconstructionData.getNewVertex() == vertex;
+  }
+
+  @Override
   public boolean isCorrespondingEdgesCheckForUpEdgesReasonable()
   {
     return reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION

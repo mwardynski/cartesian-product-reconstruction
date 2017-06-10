@@ -7,10 +7,12 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringSer
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.FactorizationStepService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,6 +29,9 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
   Graph graph;
 
   @Autowired
+  ReconstructionService reconstructionService;
+
+  @Autowired
   EdgeService edgeService;
 
   @Autowired
@@ -41,12 +46,23 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
   @Autowired
   ColoringService coloringService;
 
+  @Autowired
+  ReconstructionData reconstructionData;
+
   @Override
   public void findPivotSquare(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep thisPhase, FactorizationStep nextPhase, LayerLabelingData layerLabelingData)
+  {
+
+    boolean allEdgesFactorized = factorizeCrossEdgesOfSingleVertex(u, wAdjacencyVector, thisPhase);
+    finalizeCrossEdgesFactorization(u, thisPhase, nextPhase, allEdgesFactorized);
+  }
+
+  private boolean factorizeCrossEdgesOfSingleVertex(Vertex u, AdjacencyVector wAdjacencyVector, FactorizationStep thisPhase)
   {
     EdgesGroup crossEdgesGroup = u.getCrossEdges();
     List<Edge> uCrossEdges = crossEdgesGroup.getEdges();
     boolean allEdgesFactorized = true;
+    boolean someEdgesReconstructed = false;
     for (Edge uv : uCrossEdges)
     {
       if (uv.getLabel() != null)
@@ -87,14 +103,41 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
         Label wxLabel = wx.getLabel();
         int wxColor = wxLabel.getColor();
         edgeService.addLabel(uv, wxColor, -1, wx, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
-        continue;
+      }
+      else if (vx != null && isEdgeToReconstruct(vx, u.getBfsLayer()))
+      {
+        Vertex w = uw.getEndpoint();
+        reconstructionService.addEdgesToReconstruction(Arrays.asList(uv), w, EdgeType.CROSS);
+        someEdgesReconstructed = true;
       }
       else
       {
         allEdgesFactorized = false;
       }
     }
+    if (someEdgesReconstructed)
+    {
+      reconstructionService.reconstructWithCollectedData();
+      Vertex w = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u).getEndpoint();
+      wAdjacencyVector.setVector(labelUtils.calculateAdjacencyVector(graph.getVertices().size(), w));
 
+      Edge colorEdge = w.getDownEdges().getEdges().get(0);
+      labelUnitLayerVertex(w, colorEdge);
+      labelUnitLayerVertex(reconstructionData.getNewVertex(), colorEdge);
+
+      Vertex newVertex = reconstructionData.getNewVertex();
+      Edge newVertexDownEdge = newVertex.getDownEdges().getEdges().get(0);
+      coloringService.mergeColorsForEdges(Arrays.asList(colorEdge, newVertexDownEdge), MergeTagEnum.LABEL_CROSS);
+
+
+      factorizeCrossEdgesOfSingleVertex(u, wAdjacencyVector, thisPhase);
+    }
+
+    return allEdgesFactorized;
+  }
+
+  private void finalizeCrossEdgesFactorization(Vertex u, FactorizationStep thisPhase, FactorizationStep nextPhase, boolean allEdgesFactorized)
+  {
     if (!allEdgesFactorized)
     {
       Edge uwp = findFirstLayerEdgeOfDifferentColor(u, thisPhase);
@@ -104,12 +147,14 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
       }
       else
       {
-        labelUnitLayerVertex(u, thisPhase);
+        Edge uw = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u);
+        labelUnitLayerVertex(u, uw);
       }
     }
 
     if (allEdgesFactorized)
     {
+      EdgesGroup crossEdgesGroup = u.getCrossEdges();
       labelUtils.sortEdgesAccordingToLabels(crossEdgesGroup, graph.getGraphColoring());
     }
   }
@@ -129,10 +174,15 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
     factorizationStepService.addVertex(nextPhase, wp, u);
   }
 
-  private void labelUnitLayerVertex(Vertex u, FactorizationStep thisPhase)
+  private void labelUnitLayerVertex(Vertex u, Edge colorEdge)
   {
-    Edge uw = factorizationStepService.getFirstLayerEdgeForVertexInFactorizationStep(thisPhase, u);
-    int uwColor = uw.getLabel().getColor();
-    labelUtils.setVertexAsUnitLayer(u, uwColor, EdgeType.CROSS);
+    int color = colorEdge.getLabel().getColor();
+    labelUtils.setVertexAsUnitLayer(u, color, EdgeType.CROSS);
+  }
+
+  private boolean isEdgeToReconstruct(Edge edge, int currentBfsLayer)
+  {
+    return reconstructionService.isNewVertex(edge.getEndpoint())
+            && reconstructionService.isReconstructionSuitableByLabeling(currentBfsLayer);
   }
 }

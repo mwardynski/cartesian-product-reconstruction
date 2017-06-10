@@ -17,6 +17,8 @@ public interface ReconstructionService
 
   boolean isReconstructionSuitableByLabeling(int currentLayerNo);
 
+  boolean isNewVertex(Vertex vertex);
+
   boolean isCorrespondingEdgesCheckForUpEdgesReasonable();
 
   boolean addEdgesToReconstruction(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType);

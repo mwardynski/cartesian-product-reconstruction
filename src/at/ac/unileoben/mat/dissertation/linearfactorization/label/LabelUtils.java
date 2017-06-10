@@ -151,7 +151,7 @@ public class LabelUtils
       {
         continue;
       }
-      AdjacencyVector xAdjacencyVector = new AdjacencyVector(graph.getVertices().size(), x);
+      AdjacencyVector xAdjacencyVector = new AdjacencyVector(calculateAdjacencyVector(graph.getVertices().size(), x));
       findPivotSquareForReferenceVertex(pivotSquareFinderStrategy, x, xAdjacencyVector, thisPhase, nextPhase, layerLabelingData);
     }
   }
@@ -190,5 +190,15 @@ public class LabelUtils
     EdgesRef edgesRef = new EdgesRef();
     coloringService.setColorAmounts(edgesRef, colorLengths);
     edgesGroup.setEdgesRef(edgesRef);
+  }
+
+  public Edge[] calculateAdjacencyVector(int graphSize, Vertex originVertex)
+  {
+    Edge[] vector = new Edge[graphSize];
+    for (Edge edge : originVertex.getEdges())
+    {
+      vector[edge.getEndpoint().getVertexNo()] = edge;
+    }
+    return vector;
   }
 }

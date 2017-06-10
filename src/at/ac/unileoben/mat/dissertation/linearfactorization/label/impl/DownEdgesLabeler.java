@@ -138,7 +138,7 @@ public class DownEdgesLabeler implements EdgesLabeler
       if (group != null)
       {
         Vertex groupVertex = group.getGroupCommonVertex();
-        AdjacencyVector adjacencyVector = new AdjacencyVector(graph.getVertices().size(), groupVertex);
+        AdjacencyVector adjacencyVector = new AdjacencyVector(labelUtils.calculateAdjacencyVector(graph.getVertices().size(), groupVertex));
         List<EdgeLabelingSubgroup> edgeLabelingSubgroups = group.getEdgeLabelingSubgroups();
         for (EdgeLabelingSubgroup subgroup : edgeLabelingSubgroups)
         {

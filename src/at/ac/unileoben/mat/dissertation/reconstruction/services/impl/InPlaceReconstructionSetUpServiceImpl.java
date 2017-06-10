@@ -118,8 +118,11 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   {
     if (v.getBfsLayer() != 0)
     {
-      extendEdgesRefByNewColor(v.getCrossEdges().getEdgesRef().getColorPositions());
       extendEdgesRefByNewColor(v.getDownEdges().getEdgesRef().getColorPositions());
+      if (v.getCrossEdges().getEdgesRef() != null)
+      {
+        extendEdgesRefByNewColor(v.getCrossEdges().getEdgesRef().getColorPositions());
+      }
     }
     if (v.getBfsLayer() != reconstructionData.getCurrentLayerNo() - 1)
     {

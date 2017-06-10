@@ -95,15 +95,18 @@ public class EdgeServiceImpl implements EdgeService
       resultEdges.add(new LinkedList<>());
     }
 
-    for (int i = 0; i < edgesRef.getColorPositions().size(); i++)
+    if (CollectionUtils.isNotEmpty(allGroupEdges))
     {
-      if (coloringService.getCurrentColorMapping(graphColoring, i) != coloringService.getCurrentColorMapping(graphColoring, color))
+      for (int i = 0; i < edgesRef.getColorPositions().size(); i++)
       {
-        List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, i);
-        for (int edgePosition : positionsForColor)
+        if (coloringService.getCurrentColorMapping(graphColoring, i) != coloringService.getCurrentColorMapping(graphColoring, color))
         {
-          Edge edge = allGroupEdges.get(edgePosition);
-          resultEdges.get(edge.getLabel().getColor()).add(edge);
+          List<Integer> positionsForColor = coloringService.getPositionsForColor(edgesRef, i);
+          for (int edgePosition : positionsForColor)
+          {
+            Edge edge = allGroupEdges.get(edgePosition);
+            resultEdges.get(edge.getLabel().getColor()).add(edge);
+          }
         }
       }
     }
