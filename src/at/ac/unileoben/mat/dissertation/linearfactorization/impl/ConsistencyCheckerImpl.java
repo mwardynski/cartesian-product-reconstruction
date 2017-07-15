@@ -7,10 +7,12 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexServi
 import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -208,8 +210,33 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     if (reconstructionService.isReconstructionSuitableByConsistencyCheck()
             && !inconsistentEdges.isEmpty())
     {
-      reconstructionService.addEdgesToReconstruction(inconsistentEdges, uv.getOrigin(), edgeType);
-      return new LinkedList<>();
+      List<Edge> edgesToReconstruct = inconsistentEdges;
+      inconsistentEdges = new LinkedList<>();
+      if (edgeType == EdgeType.UP && edgesToReconstruct.size() > 1)
+      {
+        boolean[] uMappedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+        for (List<Edge> uEdges : uDifferentThanUv)
+        {
+          if (CollectionUtils.isNotEmpty(uEdges))
+          {
+            int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uEdges.get(0).getLabel().getColor());
+            uMappedColors[edgeColorMapping] = true;
+          }
+        }
+
+        for (Iterator<Edge> edgesToReconstructIt = edgesToReconstruct.iterator(); edgesToReconstructIt.hasNext(); )
+        {
+          Edge edge = edgesToReconstructIt.next();
+          int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), edge.getLabel().getColor());
+          if (!uMappedColors[edgeColorMapping])
+          {
+            inconsistentEdges.add(edge);
+            edgesToReconstructIt.remove();
+          }
+        }
+      }
+      reconstructionService.addEdgesToReconstruction(edgesToReconstruct, uv.getOrigin(), edgeType);
+      return inconsistentEdges;
     }
     else
     {

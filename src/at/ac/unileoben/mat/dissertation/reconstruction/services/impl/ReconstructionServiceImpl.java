@@ -95,8 +95,9 @@ public class ReconstructionServiceImpl implements ReconstructionService
   {
     Set<EdgeType> reconstructedEdgeTypes = EnumSet.noneOf(EdgeType.class);
 
-    boolean isReconstructionAfterConsistencyTest = true;
+    boolean isReconstructionAfterConsistencyTest = false;
     Queue<ReconstructionEntryData> reconstructionEntries = reconstructionData.getReconstructionEntries();
+    List<Edge> rejectedEdges = new LinkedList<>();
     while (!reconstructionEntries.isEmpty())
     {
       ReconstructionEntryData reconstructionEntry = reconstructionEntries.poll();
@@ -106,17 +107,22 @@ public class ReconstructionServiceImpl implements ReconstructionService
       EdgeType currentEdgeType = reconstructionEntry.getEdgeType();
       if (!isCorrectEdgeTypeToAdd(reconstructionEntry.getSourceVertex().getBfsLayer(), currentEdgeType))
       {
+        rejectedEdges.addAll(reconstructionEntry.getInconsistentEdges());
         continue;
       }
       reconstructedEdgeTypes.add(currentEdgeType);
       for (Edge edge : reconstructionEntry.getInconsistentEdges())
       {
-        if (edge.getLabel() == null)
+        if (edge.getLabel() != null)
         {
-          isReconstructionAfterConsistencyTest = false;
+          isReconstructionAfterConsistencyTest = true;
         }
         addEdgeToMissingVertex(edge, reconstructionEntry.getSourceVertex(), currentEdgeType);
       }
+    }
+    if (CollectionUtils.isNotEmpty(rejectedEdges))
+    {
+      coloringService.mergeColorsForEdges(rejectedEdges, MergeTagEnum.RECONSTRUCTION_REJECTED_EDGES);
     }
     if (isReconstructionAfterConsistencyTest)
     {
@@ -269,7 +275,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
   {
     boolean isInsertionSuccessful = true;
     EdgesRef edgesRef = edgesGroup.getEdgesRef();
-    if (edgesRef == null)
+    if (edgesRef == null || newEdge.getLabel() == null)
     {
       edgesGroup.getEdges().add(newEdge);
       return isInsertionSuccessful;
