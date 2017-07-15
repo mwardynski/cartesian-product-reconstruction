@@ -102,7 +102,8 @@ public class CrossEdgesPivotSquareFinderStrategyImpl implements PivotSquareFinde
       {
         Label wxLabel = wx.getLabel();
         int wxColor = wxLabel.getColor();
-        edgeService.addLabel(uv, wxColor, -1, wx, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
+        int wxName = wxLabel.getName();
+        edgeService.addLabel(uv, wxColor, wxName, wx, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(wx).pivotSquareFirstEdge(uw).pivotSquareFirstEdgeCounterpart(vx).build());
       }
       else if (vx != null && isEdgeToReconstruct(vx, u.getBfsLayer()))
       {

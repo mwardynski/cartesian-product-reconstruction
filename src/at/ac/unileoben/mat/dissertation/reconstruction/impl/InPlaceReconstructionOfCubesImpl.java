@@ -49,7 +49,7 @@ public class InPlaceReconstructionOfCubesImpl extends AbstractReconstruction imp
       root = vertices.get(Integer.parseInt(args[1]));
     }
 
-    Reconstruction inPlaceReconstructionOfCubes = applicationContext.getBean(InPlaceReconstructionOfCubesImpl.class);
+    Reconstruction inPlaceReconstructionOfCubes = (Reconstruction) applicationContext.getBean("inPlaceReconstructionOfCubesImpl");
     Graph resultGraph = inPlaceReconstructionOfCubes.reconstruct(vertices, root);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);
