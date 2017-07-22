@@ -1,5 +1,7 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services.impl;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.EdgeLabelingGroup;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.EdgeLabelingSubgroup;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeLabelingService;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
@@ -9,9 +11,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import static at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData.EdgeLabelingGroup;
-import static at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData.EdgeLabelingGroup.EdgeLabelingSubgroup;
 
 /**
  * Created with IntelliJ IDEA.

@@ -45,7 +45,7 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
       reconstructionData.setCurrentLayerToBeRefactorized(true);
 
       Edge exampleEdge = createExampleEdgeForRefactoring();
-      addNewColotToGraphColoring(exampleEdge.getLabel().getColor());
+      addNewColorToGraphColoring(exampleEdge.getLabel().getColor());
       extendEdgesRefAndRevertLabeling();
 
       reconstructionService.addEdgesToReconstruction(Collections.singletonList(exampleEdge), graph.getRoot(), EdgeType.UP);
@@ -91,7 +91,7 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     return exampleEdge;
   }
 
-  private void addNewColotToGraphColoring(int newColor)
+  private void addNewColorToGraphColoring(int newColor)
   {
     GraphColoring graphColoring = graph.getGraphColoring();
     graphColoring.setOriginalColorsAmount(graphColoring.getOriginalColorsAmount() + 1);

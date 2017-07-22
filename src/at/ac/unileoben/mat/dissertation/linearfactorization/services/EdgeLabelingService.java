@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.EdgeLabelingSubgroup;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
@@ -19,5 +20,5 @@ public interface EdgeLabelingService
 
   void addEdgeLabelingGroup(List<Edge> edges, LayerLabelingData layerLabelingData);
 
-  void addEdgeLabelingSubgroup(LayerLabelingData.EdgeLabelingGroup.EdgeLabelingSubgroup edgeLabelingSubgroup, LayerLabelingData layerLabelingData);
+  void addEdgeLabelingSubgroup(EdgeLabelingSubgroup edgeLabelingSubgroup, LayerLabelingData layerLabelingData);
 }
