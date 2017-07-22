@@ -10,12 +10,12 @@ import java.util.Optional;
 public class EdgeLabelingWrapper
 {
   Edge edge;
-  Optional<EdgeLabelingReconstruction> scnd;
+  Optional<EdgeLabelingReconstruction> potentialEdgeReconstruction;
 
-  public EdgeLabelingWrapper(Edge edge, Optional<EdgeLabelingReconstruction> scnd)
+  public EdgeLabelingWrapper(Edge edge, Optional<EdgeLabelingReconstruction> potentialEdgeReconstruction)
   {
     this.edge = edge;
-    this.scnd = scnd;
+    this.potentialEdgeReconstruction = potentialEdgeReconstruction;
   }
 
   public Edge getEdge()
@@ -23,8 +23,8 @@ public class EdgeLabelingWrapper
     return edge;
   }
 
-  public Optional<EdgeLabelingReconstruction> getScnd()
+  public Optional<EdgeLabelingReconstruction> getPotentialEdgeReconstruction()
   {
-    return scnd;
+    return potentialEdgeReconstruction;
   }
 }

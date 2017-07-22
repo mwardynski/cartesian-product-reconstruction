@@ -2,9 +2,7 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.label.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.EdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
-import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.EdgeLabelingGroup;
-import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.EdgeLabelingSubgroup;
-import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.LayerLabelingData;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.data.*;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.pivotsquare.strategies.PivotSquareFinderStrategy;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.*;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
@@ -13,10 +11,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -128,9 +124,9 @@ public class DownEdgesLabeler implements EdgesLabeler
       for (Vertex v : noPivotSquareVerties)
       {
         labelUnitLayerVertex(v);
-
       }
     }
+    boolean rerunLabeling = false;
     EdgeLabelingGroup[] edgeLabelingGroups = layerLabelingData.getEdgeLabelingGroups();
     for (EdgeLabelingGroup group : edgeLabelingGroups)
     {
@@ -141,7 +137,7 @@ public class DownEdgesLabeler implements EdgesLabeler
         List<EdgeLabelingSubgroup> edgeLabelingSubgroups = group.getEdgeLabelingSubgroups();
         for (EdgeLabelingSubgroup subgroup : edgeLabelingSubgroups)
         {
-          List<Edge> notLabeledEdges = labelDownEdgesForGivenLabelingBaseEdge(subgroup.getOtherEdges(), subgroup.getFirstLabelingBaseEdge(), adjacencyVector);
+          List<EdgeLabelingWrapper> notLabeledEdges = labelDownEdgesForGivenLabelingBaseEdge(subgroup.getOtherEdges(), subgroup.getFirstLabelingBaseEdge(), adjacencyVector);
           if (CollectionUtils.isNotEmpty(notLabeledEdges))
           {
             if (subgroup.getSecondLabelingBaseEdge() != null)
@@ -151,12 +147,32 @@ public class DownEdgesLabeler implements EdgesLabeler
             }
             else
             {
-              Vertex v = subgroup.getFirstLabelingBaseEdge().getOrigin();
-              labelUnitLayerVertex(v);
+              rerunLabeling = true;
+              for (EdgeLabelingWrapper notLabeledEdge : notLabeledEdges)
+              {
+                if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION && notLabeledEdge.getPotentialEdgeReconstruction().isPresent())
+                {
+                  EdgeLabelingReconstruction edgeLabelingReconstruction = notLabeledEdge.getPotentialEdgeReconstruction().get();
+                  reconstructionService.addEdgesToReconstruction(Collections.singletonList(edgeLabelingReconstruction.getEdge()), edgeLabelingReconstruction.getVertex(), EdgeType.DOWN);
+                }
+                else
+                {
+                  Vertex v = subgroup.getFirstLabelingBaseEdge().getOrigin();
+                  layerLabelingData.getNoPivotSquareVerties().add(v);
+                }
+              }
             }
           }
         }
       }
+    }
+    if (rerunLabeling)
+    {
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+      {
+        reconstructionService.reconstructWithCollectedData();
+      }
+      labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);
     }
     for (Vertex v : currentLayer)
     {
@@ -171,12 +187,18 @@ public class DownEdgesLabeler implements EdgesLabeler
     labelUtils.setVertexAsUnitLayer(v, edgeWithColorToLabel.getLabel().getColor(), EdgeType.DOWN);
   }
 
-  private List<Edge> labelDownEdgesForGivenLabelingBaseEdge(List<Edge> edges, Edge uv, AdjacencyVector adjacencyVector)
+  private List<EdgeLabelingWrapper> labelDownEdgesForGivenLabelingBaseEdge(List<EdgeLabelingWrapper> wrappedEdges, Edge uv, AdjacencyVector adjacencyVector)
   {
-    List<Edge> notLabeledEdges = new LinkedList<>();
+    List<EdgeLabelingWrapper> notLabeledEdges = new LinkedList<>();
 
-    for (Edge uy : edges)
+    for (EdgeLabelingWrapper wrappedEdge : wrappedEdges)
     {
+      Edge uy = wrappedEdge.getEdge();
+      if (uy.getLabel() != null)
+      {
+        continue;
+      }
+      boolean noAdjacencyVectorMatchForNewVertex = false;
       Vertex y = uy.getEndpoint();
       Edge yz = edgeService.getEdgeByLabel(y, uv.getLabel(), EdgeType.DOWN);
       if (yz != null)
@@ -193,10 +215,23 @@ public class DownEdgesLabeler implements EdgesLabeler
             edgeService.addLabel(uy, vzLabel.getColor(), vzLabel.getName(), vz, new LabelOperationDetail.Builder(LabelOperationEnum.PIVOT_SQUARE_FOLLOWING).sameColorEdge(vz).pivotSquareFirstEdge(uv).pivotSquareFirstEdgeCounterpart(yz).build());
           }
         }
+        else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION && reconstructionData.getNewVertex() == z)
+        {
+          noAdjacencyVectorMatchForNewVertex = true;
+        }
       }
       if (uy.getLabel() == null)
       {
-        notLabeledEdges.add(uy);
+        if (noAdjacencyVectorMatchForNewVertex)
+        {
+          EdgeLabelingReconstruction edgeLabelingReconstruction = new EdgeLabelingReconstruction(uy, uv.getEndpoint());
+          EdgeLabelingWrapper edgeLabelingWrapper = new EdgeLabelingWrapper(uy, Optional.of(edgeLabelingReconstruction));
+          notLabeledEdges.add(edgeLabelingWrapper);
+        }
+        else
+        {
+          notLabeledEdges.add(wrappedEdge);
+        }
       }
     }
     return notLabeledEdges;

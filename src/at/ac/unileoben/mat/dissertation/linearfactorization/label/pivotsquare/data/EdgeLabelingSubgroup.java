@@ -12,7 +12,20 @@ import java.util.stream.Collectors;
  */
 public class EdgeLabelingSubgroup
 {
-  public EdgeLabelingSubgroup(Edge edge1, Edge edge2, List<Edge> otherEdges)
+  public EdgeLabelingSubgroup(Edge edge1, Edge edge2, Collection<Edge> otherEdges)
+  {
+    this(edge1, edge2);
+    List<EdgeLabelingWrapper> wrappedEdges = otherEdges.stream().map(e -> new EdgeLabelingWrapper(e, Optional.empty())).collect(Collectors.toList());
+    this.otherEdges = wrappedEdges;
+  }
+
+  public EdgeLabelingSubgroup(Edge edge1, Edge edge2, List<EdgeLabelingWrapper> wrappedEdges)
+  {
+    this(edge1, edge2);
+    this.otherEdges = wrappedEdges;
+  }
+
+  private EdgeLabelingSubgroup(Edge edge1, Edge edge2)
   {
     if (edge2 != null && edge2.getEndpoint().getVertexNo() < edge1.getEndpoint().getVertexNo())
     {
@@ -24,12 +37,11 @@ public class EdgeLabelingSubgroup
       this.firstLabelingBaseEdge = edge1;
       this.secondLabelingBaseEdge = edge2;
     }
-    this.otherEdges = otherEdges;
   }
 
   private Edge firstLabelingBaseEdge;
   private Edge secondLabelingBaseEdge;
-  private List<Edge> otherEdges;
+  private List<EdgeLabelingWrapper> otherEdges;
 
   public Edge getFirstLabelingBaseEdge()
   {
@@ -41,7 +53,7 @@ public class EdgeLabelingSubgroup
     return secondLabelingBaseEdge;
   }
 
-  public List<Edge> getOtherEdges()
+  public List<EdgeLabelingWrapper> getOtherEdges()
   {
     return otherEdges;
   }
