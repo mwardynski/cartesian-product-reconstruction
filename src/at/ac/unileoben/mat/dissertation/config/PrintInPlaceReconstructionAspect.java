@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.config;
 
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
+import at.ac.unileoben.mat.dissertation.printout.impl.GraphPrinterImpl;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -38,19 +39,27 @@ public class PrintInPlaceReconstructionAspect
   {
     if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
     {
-      graphPrinter.createLayerSnapshot();
+      graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_DONE);
+    }
+  }
+
+  @Before("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..))")
+  public void addLabeledNotNecessarilyConsistentGraphLayerSnapshot(JoinPoint joinPoint)
+  {
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_BEFORE_CONSISTENCY_CHECK);
     }
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..))")
-  public void addGraphLayerSnapshot(JoinPoint joinPoint)
+  public void addLabeledAndConsistentGraphLayerSnapshot(JoinPoint joinPoint)
   {
     if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
     {
-      graphPrinter.createLayerSnapshot();
+      graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_DONE);
     }
   }
-
 
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService.mergeColorsForEdges(..)) && args(edges,mergeTag)")
   private void mergeColorsOperation(List<Edge> edges, MergeTagEnum mergeTag)

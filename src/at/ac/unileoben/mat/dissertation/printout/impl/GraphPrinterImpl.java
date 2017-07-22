@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 public class GraphPrinterImpl implements GraphPrinter
 {
   public static final double EDGE_LENGTH = 1.0;
+  public static final String LAYER_BEFORE_CONSISTENCY_CHECK = "LAYER - BEFORE CONSISTENCY CHECK";
   public static final String LAYER_DONE = "LAYER - DONE";
   public static final String LABEL_PREFIX = "LABEL - ";
   public static final String MERGE_PREFIX = "MERGE - ";
@@ -78,7 +79,7 @@ public class GraphPrinterImpl implements GraphPrinter
   }
 
   @Override
-  public void createLayerSnapshot()
+  public void createLayerSnapshot(String label)
   {
     createSnapshot(LAYER_DONE, () -> prepareEdges(Collections.emptyList()));
   }

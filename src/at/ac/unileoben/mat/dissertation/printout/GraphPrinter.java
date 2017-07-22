@@ -17,7 +17,7 @@ public interface GraphPrinter
 {
   void printFactorization();
 
-  void createLayerSnapshot();
+  void createLayerSnapshot(String label);
 
   void createMergeSnapshot(List<Edge> edges, MergeTagEnum mergeTag);
 

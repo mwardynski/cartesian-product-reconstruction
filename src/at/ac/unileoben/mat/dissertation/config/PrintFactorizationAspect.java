@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.config;
 
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
+import at.ac.unileoben.mat.dissertation.printout.impl.GraphPrinterImpl;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -33,13 +34,19 @@ public class PrintFactorizationAspect
   @Before("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer.factorize(..))")
   public void addGraphInitialSnapshot(JoinPoint joinPoint)
   {
-    graphPrinter.createLayerSnapshot();
+    graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_DONE);
+  }
+
+  @Before("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..))")
+  public void addLabeledNotNecessarilyConsistentGraphLayerSnapshot(JoinPoint joinPoint)
+  {
+    graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_BEFORE_CONSISTENCY_CHECK);
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..))")
-  public void addGraphLayerSnapshot(JoinPoint joinPoint)
+  public void addLabeledAndConsistentGraphLayerSnapshot(JoinPoint joinPoint)
   {
-    graphPrinter.createLayerSnapshot();
+    graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_DONE);
   }
 
 
