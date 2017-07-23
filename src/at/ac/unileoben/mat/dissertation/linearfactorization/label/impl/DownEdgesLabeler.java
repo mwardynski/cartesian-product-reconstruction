@@ -60,10 +60,17 @@ public class DownEdgesLabeler implements EdgesLabeler
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     List<Vertex> prePreviousLayer = vertexService.getGraphLayer(currentLayerNo - 2);
-    FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayer, prePreviousLayer, vertexService.getGraphSize());
+    labelEdgesForSelectedVertices(currentLayer, previousLayer, prePreviousLayer);
 
-    LayerLabelingData layerLabelingData = new LayerLabelingData(previousLayer);
-    assignVerticesToFactorizationSteps(currentLayer, factorizationSteps, layerLabelingData);
+  }
+
+  public void labelEdgesForSelectedVertices(List<Vertex> selectedVertices, List<Vertex> previousLayerVertices, List<Vertex> prePreviousLayerVertices)
+  {
+    int currentLayerNo = selectedVertices.get(0).getBfsLayer();
+    FactorizationSteps factorizationSteps = new FactorizationSteps(previousLayerVertices, prePreviousLayerVertices, vertexService.getGraphSize());
+
+    LayerLabelingData layerLabelingData = new LayerLabelingData(previousLayerVertices);
+    assignVerticesToFactorizationSteps(selectedVertices, factorizationSteps, layerLabelingData);
 
     FactorizationStep findSquareFirstPhase = factorizationSteps.getFindSquareFirstPhase();
     FactorizationStep findSquareSecondPhase = factorizationSteps.getFindSquareSecondPhase();
@@ -78,14 +85,13 @@ public class DownEdgesLabeler implements EdgesLabeler
       noPivotSquareVerties.forEach(v -> reconstructionService.addEdgesToReconstruction(Collections.singletonList(v.getDownEdges().getEdges().get(0)), v, EdgeType.DOWN));
       reconstructionService.reconstructWithCollectedData();
       labelEdges(currentLayerNo);
-
     }
     else
     {
-      labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);
+      labelDownEdgesWithFoundPivotSquares(layerLabelingData, selectedVertices);
     }
-
   }
+
 
   private void assignVerticesToFactorizationSteps(List<Vertex> currentLayer, FactorizationSteps factorizationSteps, LayerLabelingData layerLabelingData)
   {

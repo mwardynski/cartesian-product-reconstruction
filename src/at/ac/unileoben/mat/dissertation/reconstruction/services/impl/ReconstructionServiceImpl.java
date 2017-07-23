@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.LabelUtils;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdgesLabeler;
+import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
@@ -34,6 +36,12 @@ public class ReconstructionServiceImpl implements ReconstructionService
 
   @Autowired
   ColoringService coloringService;
+
+  @Autowired
+  DownEdgesLabeler downEdgesLabeler;
+
+  @Autowired
+  UpEdgesLabeler upEdgesLabeler;
 
   @Override
   public void clearReconstructionData()
@@ -263,6 +271,13 @@ public class ReconstructionServiceImpl implements ReconstructionService
     {
       reconstructionData.getNewVertex().getEdges().add(newEdgeOpposite);
       origin.getEdges().add(newEdge);
+    }
+
+    if (edgeType == DOWN && reconstructionData.getCurrentLayerNo() > newEdge.getOrigin().getBfsLayer())
+    {
+      int bfsLayer = newEdge.getOrigin().getBfsLayer();
+      downEdgesLabeler.labelEdgesForSelectedVertices(Collections.singletonList(newEdge.getOrigin()), graph.getLayers().get(bfsLayer - 1), graph.getLayers().get(bfsLayer - 2));
+      upEdgesLabeler.labelEdgesForSelectedVertices(Collections.singletonList(newEdge.getEndpoint()));
     }
   }
 

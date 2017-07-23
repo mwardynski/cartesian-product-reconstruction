@@ -36,7 +36,12 @@ public class UpEdgesLabeler implements EdgesLabeler
   public void labelEdges(int currentLayerNo)
   {
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo - 1);
-    for (Vertex u : currentLayer)
+    labelEdgesForSelectedVertices(currentLayer);
+  }
+
+  public void labelEdgesForSelectedVertices(List<Vertex> selectedVertices)
+  {
+    for (Vertex u : selectedVertices)
     {
       List<Edge> uUpEdges = u.getUpEdges().getEdges();
       for (int i = 0; i < uUpEdges.size(); i++)
