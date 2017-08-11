@@ -124,10 +124,10 @@ public class DownEdgesLabeler implements EdgesLabeler
 
   private void labelDownEdgesWithFoundPivotSquares(LayerLabelingData layerLabelingData, List<Vertex> currentLayer)
   {
-    List<Vertex> noPivotSquareVerties = layerLabelingData.getNoPivotSquareVerties();
-    if (CollectionUtils.isNotEmpty(noPivotSquareVerties))
+    List<Vertex> noPivotSquareVertices = layerLabelingData.getNoPivotSquareVerties();
+    if (CollectionUtils.isNotEmpty(noPivotSquareVertices))
     {
-      for (Vertex v : noPivotSquareVerties)
+      for (Vertex v : noPivotSquareVertices)
       {
         labelUnitLayerVertex(v);
       }
@@ -178,12 +178,27 @@ public class DownEdgesLabeler implements EdgesLabeler
       {
         reconstructionService.reconstructWithCollectedData();
       }
+      updateEdgesLabelingForCurrentLayer(currentLayer);
       labelDownEdgesWithFoundPivotSquares(layerLabelingData, currentLayer);
     }
     for (Vertex v : currentLayer)
     {
       labelUtils.sortEdgesAccordingToLabels(v.getDownEdges(), graph.getGraphColoring());
     }
+  }
+
+  private void updateEdgesLabelingForCurrentLayer(List<Vertex> currentLayer)
+  {
+    currentLayer.stream().forEach(v -> v.getDownEdges().getEdges()
+            .stream().forEach(e ->
+            {
+              Edge squareMatchingEdge = e.getSquareMatchingEdge();
+              if (squareMatchingEdge != null)
+              {
+                Label squareMatchingEdgeLabel = squareMatchingEdge.getLabel();
+                e.setLabel(new Label(squareMatchingEdgeLabel.getColor(), squareMatchingEdgeLabel.getName()));
+              }
+            }));
   }
 
   private void labelUnitLayerVertex(Vertex v)
