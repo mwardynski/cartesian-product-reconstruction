@@ -15,6 +15,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -141,42 +142,46 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
         uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       }
-      List<Edge> uvInconsistentEdges = checkPivotSquares(uv, EdgeType.UP);
-      List<Edge> uwInconsistentEdges = null;
+      List<InconsistentEdge> uvInconsistentEdges = checkPivotSquares(uv, EdgeType.UP);
+      List<InconsistentEdge> uwInconsistentEdges = null;
       if (uw != null)
       {
         uwInconsistentEdges = checkPivotSquares(uw, EdgeType.UP);
       }
-      if (uvInconsistentEdges != null && !uvInconsistentEdges.isEmpty())
+      if (CollectionUtils.isNotEmpty(uvInconsistentEdges))
       {
         handleInconsistentUpEdges(uv, uvInconsistentEdges);
       }
-      if (uwInconsistentEdges != null && !uwInconsistentEdges.isEmpty())
+      if (CollectionUtils.isNotEmpty(uwInconsistentEdges))
       {
         handleInconsistentUpEdges(uw, uwInconsistentEdges);
       }
     }
   }
 
-  private void handleInconsistentUpEdges(Edge uv, List<Edge> inconsistentEdges)
+  private void handleInconsistentUpEdges(Edge uv, List<InconsistentEdge> inconsistentEdges)
   {
-    List<Edge> edgesToRelabel = new LinkedList<Edge>(inconsistentEdges);
+    boolean allEdgesInconsistentBeacauseOfLabel = inconsistentEdges.stream()
+            .map(inconsistentEdge -> inconsistentEdge.getInconsistentEdgeTag())
+            .allMatch(inconsistentEdgeTag -> inconsistentEdgeTag == InconsistentEdgeTag.NO_EDGE_FOR_LABEL);
+    List<Edge> edgesToRelabel = inconsistentEdges.stream().map(inconsistentEdge -> inconsistentEdge.getEdge()).collect(Collectors.toList());
     edgesToRelabel.add(uv);
     List<Integer> colors = coloringService.getColorsForEdges(graph.getGraphColoring(), edgesToRelabel);
-    coloringService.mergeColorsForEdges(edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
+    MergeTagEnum mergeTag = allEdgesInconsistentBeacauseOfLabel ? MergeTagEnum.CONSISTENCY_UP_LABELS : MergeTagEnum.CONSISTENCY_UP;
+    coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
 
     Vertex u = uv.getOrigin();
     List<Edge> allUpEdgesOfGivenColors = edgeService.getAllEdgesOfColors(u, colors, EdgeType.UP);
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {
       Vertex endpointVertex = edgeOfGivenColor.getEndpoint();
-      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, MergeTagEnum.CONSISTENCY_UP);
+      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, mergeTag);
     }
   }
 
-  private List<Edge> checkPivotSquares(Edge uv, EdgeType edgeType)
+  private List<InconsistentEdge> checkPivotSquares(Edge uv, EdgeType edgeType)
   {
-    List<Edge> inconsistentEdges = new LinkedList<>();
+    List<InconsistentEdge> inconsistentEdges = new LinkedList<>();
     Vertex u = uv.getOrigin();
     Vertex v = uv.getEndpoint();
     List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
@@ -185,7 +190,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
             || (edgeType == EdgeType.UP && reconstructionService.isCorrespondingEdgesCheckForUpEdgesReasonable()))
     {
       List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
-      inconsistentEdges.addAll(notCorrespondingEdges);
+      notCorrespondingEdges.stream().forEach(edge -> inconsistentEdges.add(new InconsistentEdge(edge, InconsistentEdgeTag.NOT_CORRESPONDING_EDGE)));
     }
     for (List<Edge> uzForColor : uDifferentThanUv)
     {
@@ -195,7 +200,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge vzp = edgeService.getEdgeByLabel(v, uzLabel, edgeType);
         if (vzp == null)
         {
-          inconsistentEdges.add(uz);
+          inconsistentEdges.add(new InconsistentEdge(uz, InconsistentEdgeTag.NO_EDGE_FOR_LABEL));
           continue;
         }
         Vertex z = uz.getEndpoint();
@@ -203,15 +208,18 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge zzp = edgeService.getEdgeByLabel(z, uv.getLabel(), EdgeType.DOWN);
         if (zzp == null || !zzp.getEndpoint().equals(zp))
         {
-          inconsistentEdges.add(uz);
+          inconsistentEdges.add(new InconsistentEdge(uz, InconsistentEdgeTag.PARALLEL_EDGE_PROBLEM));
         }
       }
     }
     if (reconstructionService.isReconstructionSuitableByConsistencyCheck()
             && !inconsistentEdges.isEmpty())
     {
-      List<Edge> edgesToReconstruct = inconsistentEdges;
-      inconsistentEdges = new LinkedList<>();
+      List<InconsistentEdge> edgesToAssign = inconsistentEdges;
+      List<InconsistentEdge> edgesToRefactor = new LinkedList<>();
+      List<InconsistentEdge> edgesToReconstruct = new LinkedList<>();
+      assigtInconsistentEdgesToRefactorOrReconstruction(edgesToAssign, edgesToRefactor, edgesToReconstruct);
+
       if (edgeType == EdgeType.UP && edgesToReconstruct.size() > 1)
       {
         boolean[] uMappedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
@@ -224,23 +232,44 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
           }
         }
 
-        for (Iterator<Edge> edgesToReconstructIt = edgesToReconstruct.iterator(); edgesToReconstructIt.hasNext(); )
+        for (Iterator<InconsistentEdge> edgesToReconstructIt = edgesToReconstruct.iterator(); edgesToReconstructIt.hasNext(); )
         {
-          Edge edge = edgesToReconstructIt.next();
-          int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), edge.getLabel().getColor());
+          InconsistentEdge inconsistentEdge = edgesToReconstructIt.next();
+          int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), inconsistentEdge.getEdge().getLabel().getColor());
           if (!uMappedColors[edgeColorMapping])
           {
-            inconsistentEdges.add(edge);
+            edgesToRefactor.add(inconsistentEdge);
             edgesToReconstructIt.remove();
           }
         }
       }
-      reconstructionService.addEdgesToReconstruction(edgesToReconstruct, uv.getOrigin(), edgeType);
-      return inconsistentEdges;
+      if (CollectionUtils.isNotEmpty(edgesToReconstruct))
+      {
+        List<Edge> edgesToReconstructSimpleList = edgesToReconstruct.stream().map(InconsistentEdge::getEdge).collect(Collectors.toList());
+        reconstructionService.addEdgesToReconstruction(edgesToReconstructSimpleList, uv.getOrigin(), edgeType);
+      }
+      return edgesToRefactor;
     }
     else
     {
       return inconsistentEdges;
+    }
+  }
+
+  private void assigtInconsistentEdgesToRefactorOrReconstruction(List<InconsistentEdge> edgesToAssign, List<InconsistentEdge> edgesToRefactor, List<InconsistentEdge> edgesToReconstruct)
+  {
+    for (Iterator<InconsistentEdge> edgesToAssignIt = edgesToAssign.iterator(); edgesToAssignIt.hasNext(); )
+    {
+      InconsistentEdge inconsistentEdge = edgesToAssignIt.next();
+      if (inconsistentEdge.getInconsistentEdgeTag() == InconsistentEdgeTag.NO_EDGE_FOR_LABEL)
+      {
+        edgesToRefactor.add(inconsistentEdge);
+      }
+      else
+      {
+        edgesToReconstruct.add(inconsistentEdge);
+      }
+      edgesToAssignIt.remove();
     }
   }
 

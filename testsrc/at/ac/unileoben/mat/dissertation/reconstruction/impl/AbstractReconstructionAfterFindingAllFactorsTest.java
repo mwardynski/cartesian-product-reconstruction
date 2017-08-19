@@ -32,7 +32,6 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
   @Autowired
   GraphFactorizationPreparer graphFactorizationPreparer;
 
-
   void checkExamples(Reconstruction reconstruction, List<FactorizationCase> examplesList)
   {
     for (FactorizationCase factorizationCase : examplesList)
@@ -40,7 +39,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
       try
       {
         List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
-        for (int vertexNumberToRemove = 0; vertexNumberToRemove < 1/*vertices.size()*/; vertexNumberToRemove++)
+        for (int vertexNumberToRemove = 0; vertexNumberToRemove < vertices.size(); vertexNumberToRemove++)
         {
           StopWatch stopWatch = new StopWatch();
           stopWatch.start();

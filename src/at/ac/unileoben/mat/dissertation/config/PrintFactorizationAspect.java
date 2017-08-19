@@ -95,4 +95,10 @@ public class PrintFactorizationAspect
     graphPrinter.printFactorization();
   }
 
+  @AfterThrowing("execution(* at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction.reconstruct(..))")
+  public void printGraphOnFailure()
+  {
+    graphPrinter.printFactorization();
+  }
+
 }

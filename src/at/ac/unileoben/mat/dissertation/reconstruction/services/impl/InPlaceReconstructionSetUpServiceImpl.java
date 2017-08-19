@@ -63,15 +63,18 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   private boolean isMissingVertexInFirstLayer()
   {
     int consistencyUpAmountTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT);
+    int consistencyUpLabelTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_LABELS);
     int labelCrossTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_CROSS);
     int labelDownTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_DOWN);
     int currentLayerNo = reconstructionData.getCurrentLayerNo();
 
+    int mergeTagsCount = reconstructionData.getMergeTags().size();
     return currentLayerNo == 2
-            && ((reconstructionData.getMergeTags().size() == consistencyUpAmountTagsQuantity
+            && ((mergeTagsCount == consistencyUpAmountTagsQuantity
             && currentLayerNo != graph.getLayers().size() - 1)
-            || reconstructionData.getMergeTags().size() == labelCrossTagsQuantity
-            || reconstructionData.getMergeTags().size() == labelDownTagsQuantity);
+            || mergeTagsCount == consistencyUpLabelTagsQuantity
+            || mergeTagsCount == labelCrossTagsQuantity
+            || mergeTagsCount == labelDownTagsQuantity);
   }
 
   private int calculateQuantityOfMergeTag(MergeTagEnum selectedMergeTag)
