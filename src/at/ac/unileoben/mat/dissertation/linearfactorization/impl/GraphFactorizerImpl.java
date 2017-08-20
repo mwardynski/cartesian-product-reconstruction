@@ -15,6 +15,8 @@ import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 /**
  * Created with IntelliJ IDEA.
  * User: marcin
@@ -62,10 +64,11 @@ public class GraphFactorizerImpl implements GraphFactorizer
       reconstructionData.setCurrentLayerNo(currentLayerNo);
       reconstructionBackupLayerService.storeCurrentLayerBackup();
       factorizeSingleLayer(currentLayerNo);
-      if (reconstructionData.isCurrentLayerToBeRefactorized())
+      if (reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
       {
-        reconstructionData.setCurrentLayerToBeRefactorized(false);
-        currentLayerNo--;
+        currentLayerNo = reconstructionData.getLayerNoToRefactorizeFromOptional().get() - 1;
+        reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.empty());
+        layersAmount = graph.getLayers().size();
       }
     }
   }

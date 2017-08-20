@@ -12,6 +12,7 @@ import org.springframework.util.StopWatch;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -80,8 +81,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
     reconstructionData.setMergeTags(null);
     reconstructionData.setCurrentLayerBackup(null);
     reconstructionData.setPrevLayerBackup(null);
-    reconstructionData.setCurrentLayerToBeRefactorized(false);
-    reconstructionData.setCurrentBackupLayerNo(0);
+    reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.empty());
     reconstructionData.setResultFactorization(null);
     reconstructionData.setCurrentFactorization(null);
     reconstructionData.setOperationOnGraph(null);

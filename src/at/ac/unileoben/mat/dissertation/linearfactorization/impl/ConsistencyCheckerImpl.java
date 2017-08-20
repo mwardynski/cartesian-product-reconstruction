@@ -6,6 +6,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionShiftLayerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Autowired
   InPlaceReconstructionSetUpService inPlaceReconstructionSetUpService;
 
+  @Autowired
+  ReconstructionShiftLayerService reconstructionShiftLayerService;
+
   @Override
   public void checkConsistency(int currentLayerNo)
   {
@@ -61,10 +65,14 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
     {
       inPlaceReconstructionSetUpService.setUpReconstructionInPlace();
-      if (!reconstructionData.isCurrentLayerToBeRefactorized())
+      if (!reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
       {
         checkConsistency(currentLayerNo);
       }
+    }
+    else if (reconstructionShiftLayerService.isVertexToShiftAvailable())
+    {
+      reconstructionShiftLayerService.shiftVertex();
     }
     else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
     {

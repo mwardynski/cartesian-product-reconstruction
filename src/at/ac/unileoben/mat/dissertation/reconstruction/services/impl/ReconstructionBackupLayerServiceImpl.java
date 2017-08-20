@@ -30,12 +30,15 @@ public class ReconstructionBackupLayerServiceImpl implements ReconstructionBacku
   public void storeCurrentLayerBackup()
   {
     reconstructionData.setMergeTags(new LinkedList<>());
-    if (reconstructionData.getCurrentBackupLayerNo() < reconstructionData.getCurrentLayerNo())
+    if (reconstructionData.getPrevLayerBackup() == null || reconstructionData.getPrevLayerBackup().getLayerNo() < reconstructionData.getCurrentLayerNo())
     {
-      reconstructionData.setCurrentBackupLayerNo(reconstructionData.getCurrentLayerNo());
       reconstructionData.setPrevLayerBackup(reconstructionData.getCurrentLayerBackup());
-      reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(new GraphColoring(graph.getGraphColoring())));
     }
+    else
+    {
+      reconstructionData.setPrevLayerBackup(null);
+    }
+    reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(reconstructionData.getCurrentLayerNo(), new GraphColoring(graph.getGraphColoring())));
   }
 
   @Override
@@ -43,18 +46,18 @@ public class ReconstructionBackupLayerServiceImpl implements ReconstructionBacku
   {
     LayerBackupReconstructionData currentLayerBackup = reconstructionData.getCurrentLayerBackup();
     currentLayerBackup.getNewUnitLayerVertices().forEach(v -> v.setUnitLayer(false));
-    reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(currentLayerBackup.getGraphColoring()));
+    reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(currentLayerBackup.getLayerNo(), currentLayerBackup.getGraphColoring()));
 
     LayerBackupReconstructionData prevLayerBackup = reconstructionData.getPrevLayerBackup();
     if (prevLayerBackup != null)
     {
       prevLayerBackup.getNewUnitLayerVertices().forEach(v -> v.setUnitLayer(false));
-      reconstructionData.setPrevLayerBackup(new LayerBackupReconstructionData(prevLayerBackup.getGraphColoring()));
-      graph.setGraphColoring(prevLayerBackup.getGraphColoring());
+      reconstructionData.setPrevLayerBackup(new LayerBackupReconstructionData(prevLayerBackup.getLayerNo(), prevLayerBackup.getGraphColoring()));
+      graph.setGraphColoring(new GraphColoring(prevLayerBackup.getGraphColoring()));
     }
     else
     {
-      graph.setGraphColoring(currentLayerBackup.getGraphColoring());
+      graph.setGraphColoring(new GraphColoring(currentLayerBackup.getGraphColoring()));
     }
   }
 }

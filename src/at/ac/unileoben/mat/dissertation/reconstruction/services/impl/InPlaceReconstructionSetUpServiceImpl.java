@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Marcin on 16.03.2017.
@@ -22,6 +24,9 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
 
   @Autowired
   ReconstructionData reconstructionData;
+
+  @Autowired
+  EdgeService edgeService;
 
   @Autowired
   ReconstructionService reconstructionService;
@@ -42,7 +47,7 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     reconstructionBackupLayerService.recoverAfterCompleteMerge();
     if (isMissingVertexInFirstLayer())
     {
-      reconstructionData.setCurrentLayerToBeRefactorized(true);
+      reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(reconstructionData.getCurrentLayerNo()));
 
       Edge exampleEdge = createExampleEdgeForRefactoring();
       addNewColorToGraphColoring(exampleEdge.getLabel().getColor());
@@ -138,14 +143,14 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     if (v.getBfsLayer() == reconstructionData.getCurrentLayerNo() - 1)
     {
       v.getUpEdges().setEdgesRef(null);
-      v.getUpEdges().getEdges().stream().forEach(e -> e.setLabel(null));
+      v.getUpEdges().getEdges().stream().forEach(edgeService::clearEdgeLabeling);
     }
     if (v.getBfsLayer() == reconstructionData.getCurrentLayerNo())
     {
       v.getDownEdges().setEdgesRef(null);
-      v.getDownEdges().getEdges().stream().forEach(e -> e.setLabel(null));
+      v.getDownEdges().getEdges().stream().forEach(edgeService::clearEdgeLabeling);
       v.getCrossEdges().setEdgesRef(null);
-      v.getCrossEdges().getEdges().stream().forEach(e -> e.setLabel(null));
+      v.getCrossEdges().getEdges().stream().forEach(edgeService::clearEdgeLabeling);
     }
   }
 

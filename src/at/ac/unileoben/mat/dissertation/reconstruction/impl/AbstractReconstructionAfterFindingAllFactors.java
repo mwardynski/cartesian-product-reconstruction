@@ -4,6 +4,7 @@ import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.reconstruction.ReconstructionAfterFindingAllFactors;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.DetermineFactorsService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
@@ -29,6 +30,9 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
 
   @Autowired
   private GraphHelper graphHelper;
+
+  @Autowired
+  private EdgeService edgeService;
 
   @Autowired
   private GraphFactorizationPreparer graphFactorizationPreparer;
@@ -83,10 +87,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
     for (Vertex vertex : vertices)
     {
       vertex.setUnitLayer(false);
-      for (Edge edge : vertex.getEdges())
-      {
-        edge.setLabel(null);
-      }
+      vertex.getEdges().stream().forEach(edgeService::clearEdgeLabeling);
     }
   }
 

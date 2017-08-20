@@ -25,6 +25,8 @@ public interface ReconstructionService
 
   void reconstructWithCollectedData();
 
+  int findVertexNoForNewVertexAndReindexFollowers(int newVertexBfsLayer);
+
   boolean isTopVertexMissingByReconstruction(int currentLayerNo);
 
   void prepareTopVertexReconstruction(List<Vertex> currentLayer);

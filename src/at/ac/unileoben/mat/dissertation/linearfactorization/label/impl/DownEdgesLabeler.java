@@ -11,7 +11,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -79,12 +82,14 @@ public class DownEdgesLabeler implements EdgesLabeler
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareFirstPhase, findSquareSecondPhase, layerLabelingData);
     labelUtils.singleFindPivotSquarePhase(downEdgesPivotSquareFinderStrategyImpl, findSquareSecondPhase, null, layerLabelingData);
 
-    List<Vertex> noPivotSquareVerties = layerLabelingData.getNoPivotSquareVerties();
-    if (CollectionUtils.isNotEmpty(noPivotSquareVerties) && reconstructionService.isReconstructionSuitableByLabeling(currentLayerNo))
+    List<Vertex> noPivotSquareVertices = layerLabelingData.getNoPivotSquareVerties();
+    if (CollectionUtils.isNotEmpty(noPivotSquareVertices)
+            && reconstructionService.isReconstructionSuitableByLabeling(currentLayerNo)
+            && noPivotSquareVertices.stream().filter(v -> !v.isUnitLayer()).findAny().isPresent())
     {
-      noPivotSquareVerties.forEach(v -> reconstructionService.addEdgesToReconstruction(Collections.singletonList(v.getDownEdges().getEdges().get(0)), v, EdgeType.DOWN));
+      noPivotSquareVertices.forEach(v -> reconstructionService.addEdgesToReconstruction(Collections.singletonList(v.getDownEdges().getEdges().get(0)), v, EdgeType.DOWN));
       reconstructionService.reconstructWithCollectedData();
-      labelEdges(currentLayerNo);
+      labelEdgesForSelectedVertices(selectedVertices, previousLayerVertices, prePreviousLayerVertices);
     }
     else
     {
@@ -103,16 +108,7 @@ public class DownEdgesLabeler implements EdgesLabeler
     List<Edge> uDownEdges = u.getDownEdges().getEdges();
     if (uDownEdges.size() == 1)
     {
-      if (reconstructionService.isReconstructionSuitableByLabeling(u.getBfsLayer()))
-      {
-        reconstructionService.addEdgesToReconstruction(new ArrayList<>(uDownEdges), u, EdgeType.DOWN);
-        reconstructionService.reconstructWithCollectedData();
-        assignSingleVertexToFactorizationSteps(u, factorizationSteps, layerLabelingData);
-      }
-      else
-      {
-        layerLabelingData.getNoPivotSquareVerties().add(u);
-      }
+      layerLabelingData.getNoPivotSquareVerties().add(u);
     }
     else
     {

@@ -30,4 +30,6 @@ public interface EdgeService
   List<Edge> getAllEdgesOfColor(Vertex v, int color);
 
   List<Edge> getFurtherEdgesOfGivenTypeAndDifferentEndpoint(Edge e, Vertex endPoint, EdgeType edgeType);
+
+  void clearEdgeLabeling(Edge edge);
 }

@@ -146,12 +146,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
       int newVertexNo;
       if (graph.getLayers().size() - baseVertex.getBfsLayer() > 2)
       {
-        newVertexNo = graph.getLayers().get(baseVertex.getBfsLayer() + 2).get(0).getVertexNo();
-        for (int i = newVertexNo; i < graph.getVertices().size(); i++)
-        {
-          Vertex vertex = graph.getVertices().get(i);
-          vertex.setVertexNo(vertex.getVertexNo() + 1);
-        }
+        newVertexNo = findVertexNoForNewVertexAndReindexFollowers(baseVertex.getBfsLayer() + 1);
       }
       else
       {
@@ -182,6 +177,18 @@ public class ReconstructionServiceImpl implements ReconstructionService
       graph.getLayers().get(newVertexLayer).add(newVertex);
       reconstructionData.setNewVertex(newVertex);
     }
+  }
+
+  @Override
+  public int findVertexNoForNewVertexAndReindexFollowers(int newVertexBfsLayer)
+  {
+    int newVertexNo = graph.getLayers().get(newVertexBfsLayer + 1).get(0).getVertexNo();
+    for (int i = newVertexNo; i < graph.getVertices().size(); i++)
+    {
+      Vertex vertex = graph.getVertices().get(i);
+      vertex.setVertexNo(vertex.getVertexNo() + 1);
+    }
+    return newVertexNo;
   }
 
   private void assignEmptyEdgesRefToEdgesGroup(EdgesGroup edgesGroup)
@@ -273,7 +280,8 @@ public class ReconstructionServiceImpl implements ReconstructionService
       origin.getEdges().add(newEdge);
     }
 
-    if (edgeType == DOWN && reconstructionData.getCurrentLayerNo() > newEdge.getOrigin().getBfsLayer())
+    if (edgeType == DOWN && reconstructionData.getCurrentLayerNo() > newEdge.getOrigin().getBfsLayer()
+            && reconstructionData.getLayerNoToRefactorizeFromOptional().orElse(graph.getLayers().size()) > newEdge.getOrigin().getBfsLayer())
     {
       int bfsLayer = newEdge.getOrigin().getBfsLayer();
       downEdgesLabeler.labelEdgesForSelectedVertices(Collections.singletonList(newEdge.getOrigin()), graph.getLayers().get(bfsLayer - 1), graph.getLayers().get(bfsLayer - 2));

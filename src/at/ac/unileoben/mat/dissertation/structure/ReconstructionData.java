@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 
 /**
@@ -22,7 +23,8 @@ public class ReconstructionData
   LayerBackupReconstructionData prevLayerBackup;
   LayerBackupReconstructionData currentLayerBackup;
   List<MergeTagEnum> mergeTags;
-  boolean currentLayerToBeRefactorized;
+  Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
+  Vertex shiftVertex;
 
   public ReconstructionData()
   {
@@ -89,16 +91,6 @@ public class ReconstructionData
     this.currentLayerNo = currentLayerNo;
   }
 
-  public int getCurrentBackupLayerNo()
-  {
-    return currentBackupLayerNo;
-  }
-
-  public void setCurrentBackupLayerNo(int currentBackupLayerNo)
-  {
-    this.currentBackupLayerNo = currentBackupLayerNo;
-  }
-
   public LayerBackupReconstructionData getPrevLayerBackup()
   {
     return prevLayerBackup;
@@ -129,13 +121,23 @@ public class ReconstructionData
     this.mergeTags = mergeTags;
   }
 
-  public boolean isCurrentLayerToBeRefactorized()
+  public Optional<Integer> getLayerNoToRefactorizeFromOptional()
   {
-    return currentLayerToBeRefactorized;
+    return layerNoToRefactorizeFromOptional;
   }
 
-  public void setCurrentLayerToBeRefactorized(boolean currentLayerToBeRefactorized)
+  public void setLayerNoToRefactorizeFromOptional(Optional<Integer> layerNoToRefactorizeFromOptional)
   {
-    this.currentLayerToBeRefactorized = currentLayerToBeRefactorized;
+    this.layerNoToRefactorizeFromOptional = layerNoToRefactorizeFromOptional;
+  }
+
+  public Vertex getShiftVertex()
+  {
+    return shiftVertex;
+  }
+
+  public void setShiftVertex(Vertex shiftVertex)
+  {
+    this.shiftVertex = shiftVertex;
   }
 }

@@ -178,4 +178,11 @@ public class EdgeServiceImpl implements EdgeService
     }
     return furtherEdges;
   }
+
+  @Override
+  public void clearEdgeLabeling(Edge edge)
+  {
+    edge.setLabel(null);
+    edge.setSquareMatchingEdge(null);
+  }
 }
