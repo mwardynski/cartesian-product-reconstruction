@@ -19,12 +19,13 @@ public class ReconstructionData
   Vertex newVertex;
   Queue<ReconstructionEntryData> reconstructionEntries;
   int currentLayerNo;
-  int currentBackupLayerNo;
   LayerBackupReconstructionData prevLayerBackup;
   LayerBackupReconstructionData currentLayerBackup;
   List<MergeTagEnum> mergeTags;
+  int missingVertexToBeCreatedLaterLayer;
   Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
   Vertex shiftVertex;
+
 
   public ReconstructionData()
   {
@@ -119,6 +120,16 @@ public class ReconstructionData
   public void setMergeTags(List<MergeTagEnum> mergeTags)
   {
     this.mergeTags = mergeTags;
+  }
+
+  public int getMissingVertexToBeCreatedLaterLayer()
+  {
+    return missingVertexToBeCreatedLaterLayer;
+  }
+
+  public void setMissingVertexToBeCreatedLaterLayer(int missingVertexToBeCreatedLaterLayer)
+  {
+    this.missingVertexToBeCreatedLaterLayer = missingVertexToBeCreatedLaterLayer;
   }
 
   public Optional<Integer> getLayerNoToRefactorizeFromOptional()

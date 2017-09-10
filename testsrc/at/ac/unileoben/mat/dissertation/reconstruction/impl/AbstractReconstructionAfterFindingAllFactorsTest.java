@@ -70,7 +70,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
       }
       catch (IllegalArgumentException | IllegalStateException e)
       {
-        System.out.println("ERROR");
+        System.out.println("ERROR: " + e.getClass());
       }
     }
   }

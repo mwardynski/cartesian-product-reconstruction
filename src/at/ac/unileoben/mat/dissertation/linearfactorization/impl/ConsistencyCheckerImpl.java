@@ -12,10 +12,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +83,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
 
   private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
   {
+    if (reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
+    {
+      return;
+    }
     for (Vertex u : layer)
     {
       if (u.isUnitLayer())
@@ -111,16 +112,19 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
       if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
-              && isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION)
       {
-        vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.CONSISTENCY_UP_AMOUNT);
+        int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
+        if (upEdgesAmountDifference != 0)
+        {
+          vertexService.assignVertexToUnitLayerAndMergeColors(u, upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
+        }
       }
     }
   }
 
 
-  private boolean isUpEdgesAmountNotAppropriateBetweenLayers(Vertex u, Edge uv, Edge uw)
+  private int calculateUpEdgesAmountDifference(Vertex u, Edge uv, Edge uw)
   {
     Vertex v = uv.getEndpoint();
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
@@ -136,7 +140,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       }
       upEdgesTotalSize += upEdgesSize;
     }
-    return u.getUpEdges().getEdges().size() != upEdgesTotalSize;
+    return u.getUpEdges().getEdges().size() - upEdgesTotalSize;
   }
 
   private void checkPreviousLayerUpEdgesConsistency(List<Vertex> layer)
@@ -151,18 +155,28 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       }
       List<InconsistentEdge> uvInconsistentEdges = checkPivotSquares(uv, EdgeType.UP);
-      List<InconsistentEdge> uwInconsistentEdges = null;
+      List<InconsistentEdge> uwInconsistentEdges = new LinkedList<>();
       if (uw != null)
       {
         uwInconsistentEdges = checkPivotSquares(uw, EdgeType.UP);
       }
-      if (CollectionUtils.isNotEmpty(uvInconsistentEdges))
+
+      Optional<Vertex> correspondingVertexOptional = inPlaceReconstructionSetUpService.findCorrespondingVertexToMissingVertexToBeCreatedLater(uvInconsistentEdges, uwInconsistentEdges);
+      if (correspondingVertexOptional.isPresent())
       {
-        handleInconsistentUpEdges(uv, uvInconsistentEdges);
+        inPlaceReconstructionSetUpService.reconstructMissingVertexToBeCreatedLater(correspondingVertexOptional.get());
+        break;
       }
-      if (CollectionUtils.isNotEmpty(uwInconsistentEdges))
+      else
       {
-        handleInconsistentUpEdges(uw, uwInconsistentEdges);
+        if (CollectionUtils.isNotEmpty(uwInconsistentEdges))
+        {
+          handleInconsistentUpEdges(uw, uwInconsistentEdges);
+        }
+        if (CollectionUtils.isNotEmpty(uvInconsistentEdges))
+        {
+          handleInconsistentUpEdges(uv, uvInconsistentEdges);
+        }
       }
     }
   }

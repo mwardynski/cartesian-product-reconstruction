@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
@@ -12,6 +13,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by Marcin on 16.03.2017.
@@ -26,13 +29,16 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   ReconstructionData reconstructionData;
 
   @Autowired
-  EdgeService edgeService;
-
-  @Autowired
   ReconstructionService reconstructionService;
 
   @Autowired
   ReconstructionBackupLayerService reconstructionBackupLayerService;
+
+  @Autowired
+  EdgeService edgeService;
+
+  @Autowired
+  VertexService vertexService;
 
   @Override
   public boolean isInPlaceReconstructionToBeStarted()
@@ -56,6 +62,10 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
       reconstructionService.addEdgesToReconstruction(Collections.singletonList(exampleEdge), graph.getRoot(), EdgeType.UP);
       reconstructionService.reconstructWithCollectedData();
     }
+    else if (isMissingVertexInCurrentLayerToBeCreatedLater())
+    {
+      reconstructionData.setMissingVertexToBeCreatedLaterLayer(reconstructionData.getCurrentLayerNo());
+    }
     reconstructionData.setMergeTags(new LinkedList<>());
 
     reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
@@ -67,7 +77,7 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
 
   private boolean isMissingVertexInFirstLayer()
   {
-    int consistencyUpAmountTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT);
+    int consistencyUpAmountBelowTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW);
     int consistencyUpLabelTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_LABELS);
     int labelCrossTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_CROSS);
     int labelDownTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_DOWN);
@@ -75,11 +85,19 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
 
     int mergeTagsCount = reconstructionData.getMergeTags().size();
     return currentLayerNo == 2
-            && ((mergeTagsCount == consistencyUpAmountTagsQuantity
+            && ((mergeTagsCount == consistencyUpAmountBelowTagsQuantity
             && currentLayerNo != graph.getLayers().size() - 1)
             || mergeTagsCount == consistencyUpLabelTagsQuantity
             || mergeTagsCount == labelCrossTagsQuantity
             || mergeTagsCount == labelDownTagsQuantity);
+  }
+
+  private boolean isMissingVertexInCurrentLayerToBeCreatedLater()
+  {
+    int consistencyUpAmountAboveTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
+    int mergeTagsCount = reconstructionData.getMergeTags().size();
+
+    return mergeTagsCount == consistencyUpAmountAboveTagsQuantity;
   }
 
   private int calculateQuantityOfMergeTag(MergeTagEnum selectedMergeTag)
@@ -163,6 +181,84 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
       ColorGroupLocation newColorGroupLocation = new ColorGroupLocation(newColorGroupLocationIndex, 0);
       colorPositions.add(newColorGroupLocation);
     }
+  }
+
+  @Override
+  public Optional<Vertex> findCorrespondingVertexToMissingVertexToBeCreatedLater(List<InconsistentEdge> uvInconsistentEdges, List<InconsistentEdge> uwInconsistentEdges)
+  {
+    Optional<Vertex> result = Optional.empty();
+
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && reconstructionData.getMissingVertexToBeCreatedLaterLayer() != 0)
+    {
+      List<Edge> inconsistentEdges = Stream.concat(
+              uvInconsistentEdges.stream().map(InconsistentEdge::getEdge),
+              uwInconsistentEdges.stream().map(InconsistentEdge::getEdge)
+      ).collect(Collectors.toList());
+
+      if (countDistinctEndpoints(inconsistentEdges) == 1)
+      {
+        result = Optional.of(inconsistentEdges.get(0).getEndpoint());
+      }
+    }
+
+    return result;
+  }
+
+  private long countDistinctEndpoints(List<Edge> inconsistentEdges)
+  {
+    return inconsistentEdges.stream().map(edge -> edge.getEndpoint())
+            .distinct().count();
+  }
+
+  @Override
+  public void reconstructMissingVertexToBeCreatedLater(Vertex correspondingVertex)
+  {
+    reconstructionService.removeAllReconstructionEntries();
+
+    List<Vertex> layerToComplementVertices = graph.getLayers().get(reconstructionData.getMissingVertexToBeCreatedLaterLayer());
+    Optional<Vertex> additionalVertexTwinOptional = layerToComplementVertices.stream()
+            .filter(v -> correspondingVertex.getDownEdges().getEdgesRef().equals(v.getDownEdges().getEdgesRef()))
+            .findAny();
+
+    additionalVertexTwinOptional.ifPresent(
+            additionalVertexTwin ->
+            {
+              additionalVertexTwin.getDownEdges().getEdges().stream()
+                      .forEach(edge -> prepareDownEdgesOfMissingVertexToBeCreatedLaterForReconstruction(correspondingVertex, edge));
+
+              reconstructionService.reconstructWithCollectedData();
+              vertexService.assignVertexToUnitLayerAndMergeColors(additionalVertexTwin, MergeTagEnum.CONSISTENCY_ADDITIONAL_VERTEX);
+              vertexService.assignVertexToUnitLayerAndMergeColors(reconstructionData.getNewVertex(), MergeTagEnum.CONSISTENCY_ADDITIONAL_VERTEX);
+              reconstructionData.setMissingVertexToBeCreatedLaterLayer(0);
+
+
+              graph.getLayers().get(reconstructionData.getCurrentLayerNo()).stream()
+                      .forEach(v -> clearEdgesLabelingForVertex(v));
+              reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(reconstructionData.getCurrentLayerNo()));
+            }
+
+    );
+  }
+
+  private void prepareDownEdgesOfMissingVertexToBeCreatedLaterForReconstruction(Vertex correspondingVertex, Edge edge)
+  {
+    Edge correspondingEdge = edgeService.getEdgeByLabel(correspondingVertex, edge.getLabel(), EdgeType.DOWN);
+    Label correspondingEdgeLabel = correspondingEdge.getLabel();
+    Label correspondingEdgeOppositeLabel = correspondingEdge.getOpposite().getLabel();
+
+    Edge newEdgeTemplate = new Edge(edge.getEndpoint(), edge.getOrigin());
+    Label newEdgeTemplateLabel = new Label(correspondingEdgeOppositeLabel.getColor(), correspondingEdgeOppositeLabel.getName());
+    newEdgeTemplate.setLabel(newEdgeTemplateLabel);
+
+    Edge newEdgeTemplateOpposite = new Edge(edge.getOrigin(), edge.getEndpoint());
+    Label newEdgeTemplateOppositeLabel = new Label(correspondingEdgeLabel.getColor(), correspondingEdgeLabel.getName());
+    newEdgeTemplateOpposite.setLabel(newEdgeTemplateOppositeLabel);
+
+    newEdgeTemplate.setOpposite(newEdgeTemplateOpposite);
+    newEdgeTemplateOpposite.setOpposite(newEdgeTemplate);
+
+    reconstructionService.addEdgesToReconstruction(Collections.singletonList(newEdgeTemplate), newEdgeTemplate.getOrigin(), EdgeType.UP);
   }
 
 }

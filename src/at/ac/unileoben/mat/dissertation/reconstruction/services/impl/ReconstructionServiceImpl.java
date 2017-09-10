@@ -50,6 +50,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
     reconstructionData.setResultFactorization(null);
     reconstructionData.setNewVertex(null);
     reconstructionData.getReconstructionEntries().clear();
+    reconstructionData.setMissingVertexToBeCreatedLaterLayer(0);
   }
 
   @Override
@@ -96,6 +97,12 @@ public class ReconstructionServiceImpl implements ReconstructionService
     ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(inconsistentEdges, baseVertex, edgeType);
     reconstructionData.getReconstructionEntries().add(reconstructionEntry);
     return true;
+  }
+
+  @Override
+  public void removeAllReconstructionEntries()
+  {
+    reconstructionData.setReconstructionEntries(new LinkedList<>());
   }
 
   @Override

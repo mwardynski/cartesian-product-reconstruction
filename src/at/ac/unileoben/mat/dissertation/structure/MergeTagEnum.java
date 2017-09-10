@@ -16,7 +16,9 @@ public enum MergeTagEnum
   CONSISTENCY_CROSS("Consistency Check: Cross-edges"),
   CONSISTENCY_UP("Consistency Check: Up-edges"),
   CONSISTENCY_UP_LABELS("Consistency Check: Up-edges labels"),
-  CONSISTENCY_UP_AMOUNT("Consistency Check: Up-edges - Amount"),
+  CONSISTENCY_UP_AMOUNT_BELOW("Consistency Check: Up-edges - Amount Below"),
+  CONSISTENCY_UP_AMOUNT_ABOVE("Consistency Check: Up-edges - Amount Above"),
+  CONSISTENCY_ADDITIONAL_VERTEX("Consistency Check: Additional vertex"),
   RECONSTRUCTION_REJECTED_EDGES("Consistency Check - Reconstruction: Rejected edges");
 
   private String name;

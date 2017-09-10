@@ -28,4 +28,21 @@ public class EdgesRef
   {
     return colorPositions.toString();
   }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (this == o)
+    {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass())
+    {
+      return false;
+    }
+
+    EdgesRef edgesRef = (EdgesRef) o;
+
+    return colorPositions.toString().equals(edgesRef.colorPositions.toString());
+  }
 }
