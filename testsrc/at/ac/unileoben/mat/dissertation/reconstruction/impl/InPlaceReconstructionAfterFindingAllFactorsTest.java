@@ -42,7 +42,7 @@ public class InPlaceReconstructionAfterFindingAllFactorsTest extends AbstractRec
 
     examplesList.add(new FactorizationCase("newExCart.txt", 2));
     examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
+    examplesList.add(new FactorizationCase("breakExample2_K2xS2.txt", 2));
     examplesList.add(new FactorizationCase("breakExample3.txt", 3));
     examplesList.add(new FactorizationCase("breakExample4.txt", 2));
     examplesList.add(new FactorizationCase("g1", 2));

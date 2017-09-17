@@ -63,7 +63,7 @@ public class FactorizationTest
   {
     examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
     examplesList.add(new FactorizationCase("breakExample.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
+    examplesList.add(new FactorizationCase("breakExample2_K2xS2.txt", 2));
     examplesList.add(new FactorizationCase("breakExample3.txt", 3));
     examplesList.add(new FactorizationCase("breakExample4.txt", 2));
     examplesList.add(new FactorizationCase("c.txt", 3));

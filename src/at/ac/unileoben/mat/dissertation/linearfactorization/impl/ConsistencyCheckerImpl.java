@@ -169,13 +169,13 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       }
       else
       {
-        if (CollectionUtils.isNotEmpty(uwInconsistentEdges))
-        {
-          handleInconsistentUpEdges(uw, uwInconsistentEdges);
-        }
         if (CollectionUtils.isNotEmpty(uvInconsistentEdges))
         {
           handleInconsistentUpEdges(uv, uvInconsistentEdges);
+        }
+        if (CollectionUtils.isNotEmpty(uwInconsistentEdges))
+        {
+          handleInconsistentUpEdges(uw, uwInconsistentEdges);
         }
       }
     }
@@ -240,7 +240,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       List<InconsistentEdge> edgesToAssign = inconsistentEdges;
       List<InconsistentEdge> edgesToRefactor = new LinkedList<>();
       List<InconsistentEdge> edgesToReconstruct = new LinkedList<>();
-      assigtInconsistentEdgesToRefactorOrReconstruction(edgesToAssign, edgesToRefactor, edgesToReconstruct);
+      assignInconsistentEdgesToRefactorOrReconstruction(edgesToAssign, edgesToRefactor, edgesToReconstruct);
 
       if (edgeType == EdgeType.UP && edgesToReconstruct.size() > 1)
       {
@@ -253,6 +253,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
             uMappedColors[edgeColorMapping] = true;
           }
         }
+        collectNotCorrespondingColors(uDifferentThanUv, uMappedColors);
 
         for (Iterator<InconsistentEdge> edgesToReconstructIt = edgesToReconstruct.iterator(); edgesToReconstructIt.hasNext(); )
         {
@@ -278,7 +279,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
   }
 
-  private void assigtInconsistentEdgesToRefactorOrReconstruction(List<InconsistentEdge> edgesToAssign, List<InconsistentEdge> edgesToRefactor, List<InconsistentEdge> edgesToReconstruct)
+  private void assignInconsistentEdgesToRefactorOrReconstruction(List<InconsistentEdge> edgesToAssign, List<InconsistentEdge> edgesToRefactor, List<InconsistentEdge> edgesToReconstruct)
   {
     for (Iterator<InconsistentEdge> edgesToAssignIt = edgesToAssign.iterator(); edgesToAssignIt.hasNext(); )
     {
@@ -293,6 +294,21 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       }
       edgesToAssignIt.remove();
     }
+  }
+
+  private boolean collectNotCorrespondingColors(List<List<Edge>> groupedByColorEdges, boolean[] existingMappedColors)
+  {
+    boolean existingMappedColorsNotEmpty = false;
+    for (List<Edge> sameColorEdges : groupedByColorEdges)
+    {
+      if (CollectionUtils.isNotEmpty(sameColorEdges))
+      {
+        int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), sameColorEdges.get(0).getLabel().getColor());
+        existingMappedColors[edgeColorMapping] = true;
+        existingMappedColorsNotEmpty = true;
+      }
+    }
+    return existingMappedColorsNotEmpty;
   }
 
   private List<Edge> getNotCorrespondingEdgesRegardingColor(List<List<Edge>> uEdges, List<List<Edge>> vEdges)

@@ -30,33 +30,13 @@ import static org.junit.Assert.assertThat;
 @ContextConfiguration(classes = {FactorizationConfig.class})
 public class ReconstructionTest
 {
+  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
   @Autowired
   GraphHelper graphHelper;
-
   @Autowired
   Reconstruction reconstruction;
-
   @Autowired
   GraphFactorizationPreparer graphFactorizationPreparer;
-
-  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
-
-  static
-  {
-//    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
-//    examplesList.add(new FactorizationCase("breakExample.txt", 2));
-//    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
-//    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
-//    examplesList.add(new FactorizationCase("breakExample4.txt", 2)); //FIXME not working
-//    examplesList.add(new FactorizationCase("c.txt", 3));
-//    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
-//    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
-//    examplesList.add(new FactorizationCase("g1", 2));
-//    examplesList.add(new FactorizationCase("newExCart.txt", 2)); //FIXME not working
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2)); //FIXME not working
-//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-//    examplesList.add(new FactorizationCase("victory.txt", 3));
-  }
 
   @Test
   public void checkExamples()
@@ -80,5 +60,22 @@ public class ReconstructionTest
       {
       }
     }
+  }
+
+  static
+  {
+//    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample2_K2xS2.txt", 2));
+//    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
+//    examplesList.add(new FactorizationCase("breakExample4.txt", 2)); //FIXME not working
+//    examplesList.add(new FactorizationCase("c.txt", 3));
+//    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
+//    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
+//    examplesList.add(new FactorizationCase("g1", 2));
+//    examplesList.add(new FactorizationCase("newExCart.txt", 2)); //FIXME not working
+    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2)); //FIXME not working
+//    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
+//    examplesList.add(new FactorizationCase("victory.txt", 3));
   }
 }
