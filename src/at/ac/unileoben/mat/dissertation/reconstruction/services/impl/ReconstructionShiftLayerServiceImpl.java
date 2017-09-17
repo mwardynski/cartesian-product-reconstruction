@@ -66,11 +66,13 @@ public class ReconstructionShiftLayerServiceImpl implements ReconstructionShiftL
     Vertex shiftVertex = reconstructionData.getShiftVertex();
     int shiftVertexCurrentBfsLayerNo = shiftVertex.getBfsLayer();
     int shiftVertexNewBfsLayerNo = shiftVertexCurrentBfsLayerNo - 2;
-    int shiftVertexNewNumber = reconstructionService.findVertexNoForNewVertexAndReindexFollowers(shiftVertexNewBfsLayerNo);
+    int reindexShiftVertexNo = graph.getReverseReindexArray()[shiftVertex.getVertexNo()];
+    int shiftVertexNewNo = reconstructionService.findVertexNoForNewVertexAndReindexFollowers(shiftVertexNewBfsLayerNo);
+    updateReverseReindexArrayForShiftVertex(shiftVertexNewNo, reindexShiftVertexNo);
 
     modifyGraphLayersForShiftVertex(shiftVertex, shiftVertexCurrentBfsLayerNo, shiftVertexNewBfsLayerNo);
     clearLabelingOfCertainEdges(shiftVertexNewBfsLayerNo);
-    updateShiftVertex(shiftVertex, shiftVertexNewBfsLayerNo, shiftVertexNewNumber);
+    updateShiftVertex(shiftVertex, shiftVertexNewBfsLayerNo, shiftVertexNewNo);
 
     reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(shiftVertexNewBfsLayerNo));
 
@@ -78,6 +80,18 @@ public class ReconstructionShiftLayerServiceImpl implements ReconstructionShiftL
     reconstructionService.addEdgesToReconstruction(Collections.singletonList(exampleEdge), shiftVertex, EdgeType.DOWN);
     reconstructionService.reconstructWithCollectedData();
 
+  }
+
+  private void updateReverseReindexArrayForShiftVertex(int shiftVertexNo, int reindexShiftVertexNo)
+  {
+    Integer[] reverseReindexArray = graph.getReverseReindexArray();
+    Integer[] updatedReverseReindexArray = Arrays.copyOf(reverseReindexArray, reverseReindexArray.length);
+    for (int i = reverseReindexArray.length - 2; i >= shiftVertexNo; i--)
+    {
+      updatedReverseReindexArray[i + 1] = updatedReverseReindexArray[i];
+    }
+    updatedReverseReindexArray[shiftVertexNo] = reindexShiftVertexNo;
+    graph.setReverseReindexArray(updatedReverseReindexArray);
   }
 
   private void modifyGraphLayersForShiftVertex(Vertex shiftVertex, int shiftVertexCurrentBfsLayerNo, int shiftVertexNewBfsLayerNo)
