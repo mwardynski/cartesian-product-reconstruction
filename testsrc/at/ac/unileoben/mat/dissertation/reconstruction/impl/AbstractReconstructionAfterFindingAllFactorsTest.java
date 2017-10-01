@@ -68,7 +68,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
           cleanUpReconstructionData();
         }
       }
-      catch (IllegalArgumentException | IllegalStateException e)
+      catch (Throwable e)
       {
         System.out.println("ERROR: " + e.getClass());
       }

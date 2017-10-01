@@ -42,6 +42,7 @@ public class GraphPrinterImpl implements GraphPrinter
   public static final String LAYER_DONE = "LAYER - DONE";
   public static final String LABEL_PREFIX = "LABEL - ";
   public static final String MERGE_PREFIX = "MERGE - ";
+  public static final String RECONSTRUCTION_RECOVERY = "RECONSTRUCTION RECOVERY";
 
   @Autowired
   Graph graph;
@@ -81,7 +82,7 @@ public class GraphPrinterImpl implements GraphPrinter
   @Override
   public void createLayerSnapshot(String label)
   {
-    createSnapshot(LAYER_DONE, () -> prepareEdges(Collections.emptyList()));
+    createSnapshot(label, () -> prepareEdges(Collections.emptyList()));
   }
 
   @Override
