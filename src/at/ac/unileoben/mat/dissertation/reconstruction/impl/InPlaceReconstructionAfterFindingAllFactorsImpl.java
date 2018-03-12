@@ -40,7 +40,7 @@ public class InPlaceReconstructionAfterFindingAllFactorsImpl extends AbstractRec
     List<Vertex> vertices = graphHelper.parseGraph(args[0]);
 
 
-    ReconstructionAfterFindingAllFactors reconstruction = applicationContext.getBean(InPlaceReconstructionAfterFindingAllFactorsImpl.class);
+    ReconstructionAfterFindingAllFactors reconstruction = (ReconstructionAfterFindingAllFactors) applicationContext.getBean("inPlaceReconstructionAfterFindingAllFactorsImpl");
     Graph resultGraph = reconstruction.reconstruct(vertices);
     int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
     System.out.println(amountOfFactors);

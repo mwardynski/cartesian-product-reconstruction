@@ -49,6 +49,12 @@ public class PrintFactorizationAspect
     graphPrinter.createLayerSnapshot(GraphPrinterImpl.LAYER_DONE);
   }
 
+  @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.impl.InPlaceReconstructionSetUpServiceImpl.setUpReconstructionInPlace(..))")
+  public void addPreparedForReconstructionGraphLayerSnapshot(JoinPoint joinPoint)
+  {
+    graphPrinter.createLayerSnapshot(GraphPrinterImpl.RECONSTRUCTION_RECOVERY);
+  }
+
 
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService.mergeColorsForEdges(..)) && args(edges,mergeTag)")
   private void mergeColorsOperation(List<Edge> edges, MergeTagEnum mergeTag)
