@@ -12,4 +12,5 @@ public interface ConsistencyChecker
   void checkConsistency(int currentLayerNo);
 
 
+  boolean checkConsistencyDuringReconstruction(int currentLayerNo);
 }

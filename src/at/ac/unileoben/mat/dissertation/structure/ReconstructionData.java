@@ -25,11 +25,13 @@ public class ReconstructionData
   int missingVertexToBeCreatedLaterLayer;
   Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
   Vertex shiftVertex;
+  MissingInFirstLayerReconstructionData missingInFirstLayerReconstructionData;
 
 
   public ReconstructionData()
   {
     reconstructionEntries = new LinkedList<>();
+    missingInFirstLayerReconstructionData = new MissingInFirstLayerReconstructionData();
   }
 
   public FactorizationData getCurrentFactorization()
@@ -150,5 +152,15 @@ public class ReconstructionData
   public void setShiftVertex(Vertex shiftVertex)
   {
     this.shiftVertex = shiftVertex;
+  }
+
+  public MissingInFirstLayerReconstructionData getMissingInFirstLayerReconstructionData()
+  {
+    return missingInFirstLayerReconstructionData;
+  }
+
+  public void setMissingInFirstLayerReconstructionData(MissingInFirstLayerReconstructionData missingInFirstLayerReconstructionData)
+  {
+    this.missingInFirstLayerReconstructionData = missingInFirstLayerReconstructionData;
   }
 }

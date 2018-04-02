@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created with IntelliJ IDEA.
@@ -57,7 +58,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     if (graph.getGraphColoring().getActualColors().size() != 1)
     {
       checkPreviousLayerUpEdgesConsistency(previousLayer);
-      checkCurrentLayerAllEdgesConsistency(currentLayer);
+      boolean amountConsistencyCheck = reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION;
+
+      checkCurrentLayerAllEdgesConsistency(currentLayer, amountConsistencyCheck);
     }
     if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
     {
@@ -81,7 +85,21 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
   }
 
-  private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
+  @Override
+  public boolean checkConsistencyDuringReconstruction(int currentLayerNo)
+  {
+    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
+    if (graph.getGraphColoring().getActualColors().size() != 1)
+    {
+      checkPreviousLayerUpEdgesConsistency(previousLayer);
+      boolean amountConsistencyCheck = currentLayerNo > reconstructionData.getNewVertex().getBfsLayer();
+      checkCurrentLayerAllEdgesConsistency(currentLayer, amountConsistencyCheck);
+    }
+    return graph.getGraphColoring().getActualColors().size() != 1;
+  }
+
+  private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer, boolean amountConsistencyCheck)
   {
     if (reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
     {
@@ -111,16 +129,39 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
           break;
         }
       }
-      if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+      if (amountConsistencyCheck)
       {
-        int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
-        if (upEdgesAmountDifference != 0)
-        {
-          vertexService.assignVertexToUnitLayerAndMergeColors(u, upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
-        }
+        amountConsistencyCheck(layer, u, uv, uw);
       }
     }
+  }
+
+  private void amountConsistencyCheck(List<Vertex> layer, Vertex u, Edge uv, Edge uw)
+  {
+    storeCurrentLayerUnitLayerVerticesAmountBeforeAmountCheck(layer);
+    int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
+    if (upEdgesAmountDifference != 0)
+    {
+      MergeTagEnum mergeTag = upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE;
+      if (inPlaceReconstructionSetUpService.checkCurrentLayerUnitLayerVerticesValidity())
+      {
+        IntStream.range(0, Math.abs(upEdgesAmountDifference))
+                .forEach(i -> reconstructionData.getMissingInFirstLayerReconstructionData().getAmountMergeTags().add(mergeTag));
+
+      }
+      else
+      {
+        vertexService.assignVertexToUnitLayerAndMergeColors(u, mergeTag);
+      }
+    }
+  }
+
+  private void storeCurrentLayerUnitLayerVerticesAmountBeforeAmountCheck(List<Vertex> layer)
+  {
+    int currentLayerUnitLayerVerticesAmount = layer.stream()
+            .mapToInt(v -> v.isUnitLayer() ? 1 : 0)
+            .sum();
+    reconstructionData.getMissingInFirstLayerReconstructionData().setCurrentLayerUnitLayerVerticesAmountBeforeAmountCheck(currentLayerUnitLayerVerticesAmount);
   }
 
 
@@ -230,7 +271,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge zzp = edgeService.getEdgeByLabel(z, uv.getLabel(), EdgeType.DOWN);
         if (zzp == null || !zzp.getEndpoint().equals(zp))
         {
-          inconsistentEdges.add(new InconsistentEdge(uz, InconsistentEdgeTag.PARALLEL_EDGE_PROBLEM));
+          inconsistentEdges.add(new InconsistentEdge(uz/*uv???*/, InconsistentEdgeTag.PARALLEL_EDGE_PROBLEM));
         }
       }
     }
@@ -245,6 +286,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       if (edgeType == EdgeType.UP && edgesToReconstruct.size() > 1)
       {
         boolean[] uMappedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+        /*NOT NEEDE BEGIN*/
         for (List<Edge> uEdges : uDifferentThanUv)
         {
           if (CollectionUtils.isNotEmpty(uEdges))
@@ -253,6 +295,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
             uMappedColors[edgeColorMapping] = true;
           }
         }
+        /*NOT NEEDE END*/
         collectNotCorrespondingColors(uDifferentThanUv, uMappedColors);
 
         for (Iterator<InconsistentEdge> edgesToReconstructIt = edgesToReconstruct.iterator(); edgesToReconstructIt.hasNext(); )

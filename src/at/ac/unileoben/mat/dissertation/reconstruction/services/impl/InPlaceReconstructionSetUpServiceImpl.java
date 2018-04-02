@@ -9,10 +9,7 @@ import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,6 +47,8 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   @Override
   public void setUpReconstructionInPlace()
   {
+    printOutMergeStatistics(reconstructionData.getCurrentLayerNo());
+
     reconstructionBackupLayerService.recoverAfterCompleteMerge();
     if (isMissingVertexInFirstLayer())
     {
@@ -75,6 +74,30 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     reconstructionData.setResultFactorization(factorizationData);
   }
 
+  private void printOutMergeStatistics(int currentLayerNo)
+  {
+    int mergeTagsCount = reconstructionData.getMergeTags().size();
+
+    List<MergeTagEnum> mergeTagEnums = Arrays.asList(
+            MergeTagEnum.PREPARE,
+            MergeTagEnum.LABEL_DOWN,
+            MergeTagEnum.LABEL_CROSS,
+            MergeTagEnum.CONSISTENCY_DOWN,
+            MergeTagEnum.CONSISTENCY_CROSS,
+            MergeTagEnum.CONSISTENCY_UP,
+            MergeTagEnum.CONSISTENCY_UP_LABELS,
+            MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW,
+            MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE,
+            MergeTagEnum.CONSISTENCY_ADDITIONAL_VERTEX,
+            MergeTagEnum.RECONSTRUCTION_REJECTED_EDGES);
+
+    System.out.println("Starting to reconstruct in layer: " + currentLayerNo);
+    mergeTagEnums.stream()
+            .forEach(mergeTag -> System.out.println(mergeTag + " to ALL: " +
+                    calculateQuantityOfMergeTag(mergeTag) + "/" + mergeTagsCount));
+    reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(isMissingVertexInFirstLayer());
+  }
+
   private boolean isMissingVertexInFirstLayer()
   {
     int consistencyUpAmountBelowTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW);
@@ -84,12 +107,26 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     int currentLayerNo = reconstructionData.getCurrentLayerNo();
 
     int mergeTagsCount = reconstructionData.getMergeTags().size();
-    return currentLayerNo == 2
+
+    boolean missingVetexInFirstLayerPossible = currentLayerNo == 2
             && ((mergeTagsCount == consistencyUpAmountBelowTagsQuantity
-            && currentLayerNo != graph.getLayers().size() - 1)
+            && !checkCurrentLayerUnitLayerVerticesValidity())
+//            && currentLayerNo != graph.getLayers().size() - 1)
             || mergeTagsCount == consistencyUpLabelTagsQuantity
             || mergeTagsCount == labelCrossTagsQuantity
             || mergeTagsCount == labelDownTagsQuantity);
+    reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayerPossible(missingVetexInFirstLayerPossible);
+    return missingVetexInFirstLayerPossible;
+  }
+
+  @Override
+  public boolean checkCurrentLayerUnitLayerVerticesValidity()
+  {
+    int currentLayerNo = reconstructionData.getCurrentLayerNo();
+    int currentLayerRelevantUnitLayerVerticesAmount = reconstructionData.getMissingInFirstLayerReconstructionData().getCurrentLayerUnitLayerVerticesAmountBeforeAmountCheck();
+    return currentLayerRelevantUnitLayerVerticesAmount <= 1 ||
+            (graph.getLayers().size() - 1 > currentLayerNo
+                    && graph.getLayers().get(currentLayerNo + 1).size() + 1 >= currentLayerRelevantUnitLayerVerticesAmount);
   }
 
   private boolean isMissingVertexInCurrentLayerToBeCreatedLater()

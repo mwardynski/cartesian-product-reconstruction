@@ -5,6 +5,7 @@ import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.MissingInFirstLayerReconstructionData;
 import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +76,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
     }
   }
 
-  private void cleanUpReconstructionData()
+  void cleanUpReconstructionData()
   {
     reconstructionData.setNewVertex(null);
     reconstructionData.setMergeTags(null);
@@ -87,6 +88,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
     reconstructionData.setOperationOnGraph(null);
     reconstructionData.setCurrentLayerNo(0);
     reconstructionData.setReconstructionEntries(new LinkedList<>());
+    reconstructionData.setMissingInFirstLayerReconstructionData(new MissingInFirstLayerReconstructionData());
   }
 
 }

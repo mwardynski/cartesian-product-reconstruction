@@ -15,6 +15,8 @@ public interface InPlaceReconstructionSetUpService
 
   void setUpReconstructionInPlace();
 
+  boolean checkCurrentLayerUnitLayerVerticesValidity();
+
   Optional<Vertex> findCorrespondingVertexToMissingVertexToBeCreatedLater(List<InconsistentEdge> uvInconsistentEdges, List<InconsistentEdge> uwInconsistentEdges);
 
   void reconstructMissingVertexToBeCreatedLater(Vertex correspondingVertex);

@@ -12,6 +12,7 @@ import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBa
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
 import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -89,6 +90,28 @@ public class GraphFactorizerImpl implements GraphFactorizer
       determineFactorsService.findReconstructionComponents(currentLayerNo, false);
       consistencyChecker.checkConsistency(currentLayerNo);
       determineFactorsService.findReconstructionComponents(currentLayerNo, true);
+    }
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      checkConsistencyDuringReconstruction(currentLayerNo);
+    }
+  }
+
+  private void checkConsistencyDuringReconstruction(int currentLayerNo)
+  {
+    boolean consistencyCheckSuccess = true;
+    Vertex newVertex = reconstructionData.getNewVertex();
+    if (newVertex != null
+            && currentLayerNo - newVertex.getBfsLayer() <= 2)
+    {
+      reconstructionData.setOperationOnGraph(OperationOnGraph.CONSISTENCY_CHECK_DURING_RECONSTRUCTION);
+      consistencyCheckSuccess = consistencyChecker.checkConsistencyDuringReconstruction(currentLayerNo);
+      reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
+    }
+    if (!consistencyCheckSuccess)
+    {
+      reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(true);
+      reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(graph.getLayers().size()));
     }
   }
 }
