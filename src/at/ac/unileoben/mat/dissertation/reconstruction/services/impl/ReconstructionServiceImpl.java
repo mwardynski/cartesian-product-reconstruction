@@ -94,9 +94,63 @@ public class ReconstructionServiceImpl implements ReconstructionService
       throw new IllegalArgumentException("there shouldn't be more than one inconsistent Up-Edge");
     }
 
-    ReconstructionEntryData reconstructionEntry = new ReconstructionEntryData(inconsistentEdges, baseVertex, edgeType);
-    reconstructionData.getReconstructionEntries().add(reconstructionEntry);
+    Optional<ReconstructionEntryData> reconstructionEntryOptional = createReconstructionEntry(inconsistentEdges, baseVertex, edgeType);
+    reconstructionEntryOptional.ifPresent(reconstructionEntry -> reconstructionData.getReconstructionEntries().add(reconstructionEntry));
+
     return true;
+  }
+
+  private Optional<ReconstructionEntryData> createReconstructionEntry(List<Edge> inconsistentEdges, Vertex baseVertex, EdgeType edgeType)
+  {
+    Optional<ReconstructionEntryData> reconstructionEntryDataOptional = Optional.empty();
+
+    if (isInconsistentEdgeAlreadyReconstructed(inconsistentEdges, edgeType))
+    {
+      return reconstructionEntryDataOptional;
+    }
+    else if (isPossibleTransformationFromUpToDownEdge(baseVertex, edgeType))
+    {
+      Vertex inconsistentUpEdgeOriginVertex = inconsistentEdges.get(0).getOrigin();
+      Optional<Edge> downEdgeFromNewVertexOptional = reconstructionData.getNewVertex().getDownEdges().getEdges().stream()
+              .filter(e -> inconsistentUpEdgeOriginVertex.equals(e.getEndpoint()))
+              .findAny();
+
+      if (downEdgeFromNewVertexOptional.isPresent())
+      {
+        Edge upEdgeToNewVertex = downEdgeFromNewVertexOptional.get().getOpposite();
+        Edge edgeByLabel = edgeService.getEdgeByLabel(baseVertex, upEdgeToNewVertex.getLabel(), edgeType);
+        if (edgeByLabel != null)
+        {
+          reconstructionEntryDataOptional = Optional.of(new ReconstructionEntryData(
+                  Collections.singletonList(inconsistentEdges.get(0).getOpposite()),
+                  edgeByLabel.getEndpoint(), DOWN));
+        }
+
+      }
+    }
+    else
+    {
+      reconstructionEntryDataOptional = Optional.of(new ReconstructionEntryData(inconsistentEdges, baseVertex, edgeType));
+    }
+    return reconstructionEntryDataOptional;
+
+  }
+
+  private boolean isInconsistentEdgeAlreadyReconstructed(List<Edge> inconsistentEdges, EdgeType edgeType)
+  {
+    boolean inconsistentEdgeAlreadyReconstructed = false;
+    Label inconsistentEdgeLabel = inconsistentEdges.get(0).getLabel();
+    if (inconsistentEdgeLabel != null && reconstructionData.getNewVertex() != null)
+    {
+      Edge edgeByLabel = edgeService.getEdgeByLabel(reconstructionData.getNewVertex(), inconsistentEdgeLabel, edgeType);
+      inconsistentEdgeAlreadyReconstructed = edgeByLabel != null;
+    }
+    return inconsistentEdgeAlreadyReconstructed;
+  }
+
+  private boolean isPossibleTransformationFromUpToDownEdge(Vertex baseVertex, EdgeType edgeType)
+  {
+    return edgeType == UP && reconstructionData.getNewVertex() != null && baseVertex.getBfsLayer() == reconstructionData.getNewVertex().getBfsLayer();
   }
 
   @Override
@@ -122,8 +176,15 @@ public class ReconstructionServiceImpl implements ReconstructionService
       EdgeType currentEdgeType = reconstructionEntry.getEdgeType();
       if (!isCorrectEdgeTypeToAdd(reconstructionEntry.getSourceVertex().getBfsLayer(), currentEdgeType))
       {
+        System.out.print("rejected: ");
+        printOutEdgeToReconstruct(reconstructionEntry);
         rejectedEdges.addAll(reconstructionEntry.getInconsistentEdges());
         continue;
+      }
+      else
+      {
+        System.out.print("accepted: ");
+        printOutEdgeToReconstruct(reconstructionEntry);
       }
       reconstructedEdgeTypes.add(currentEdgeType);
       for (Edge edge : reconstructionEntry.getInconsistentEdges())
@@ -143,6 +204,19 @@ public class ReconstructionServiceImpl implements ReconstructionService
     {
       arrangeNewVertexEdges(reconstructedEdgeTypes);
     }
+  }
+
+  private void printOutEdgeToReconstruct(ReconstructionEntryData reconstructionEntryData)
+  {
+    StringBuilder sb = new StringBuilder(reconstructionEntryData.getEdgeType().toString());
+    sb.append(" - ");
+    reconstructionEntryData.getInconsistentEdges().stream().forEach(e -> sb.append(e.toString() + " - "));
+    sb.append("V: ").append(reconstructionEntryData.getSourceVertex().toString());
+    if (reconstructionData.getNewVertex() != null)
+    {
+      sb.append(" - M: " + reconstructionData.getNewVertex());
+    }
+    System.out.println(sb.toString());
   }
 
   private void createNewVertexIfNeeded(Vertex baseVertex)
