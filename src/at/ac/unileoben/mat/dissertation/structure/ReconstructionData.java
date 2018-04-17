@@ -17,6 +17,7 @@ public class ReconstructionData
   FactorizationData resultFactorization;
   OperationOnGraph operationOnGraph;
   Vertex newVertex;
+  Edge[] newVertexNeighbors;
   Queue<ReconstructionEntryData> reconstructionEntries;
   int currentLayerNo;
   LayerBackupReconstructionData prevLayerBackup;
@@ -72,6 +73,16 @@ public class ReconstructionData
   public void setNewVertex(Vertex newVertex)
   {
     this.newVertex = newVertex;
+  }
+
+  public Edge[] getNewVertexNeighbors()
+  {
+    return newVertexNeighbors;
+  }
+
+  public void setNewVertexNeighbors(Edge[] newVertexNeighbors)
+  {
+    this.newVertexNeighbors = newVertexNeighbors;
   }
 
   public Queue<ReconstructionEntryData> getReconstructionEntries()

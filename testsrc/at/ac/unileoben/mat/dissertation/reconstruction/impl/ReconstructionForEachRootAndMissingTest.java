@@ -65,7 +65,7 @@ public class ReconstructionForEachRootAndMissingTest extends AbstractReconstruct
     for (FactorizationCase factorizationCase : examplesList)
     {
       List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
-      for (int vertexNumberToRemove = 11; vertexNumberToRemove < 12/*vertices.size()*/; vertexNumberToRemove++)
+      for (int vertexNumberToRemove = 0; vertexNumberToRemove < vertices.size(); vertexNumberToRemove++)
       {
         Vertex vertexToRemove = vertices.get(vertexNumberToRemove);
         graphHelper.prepareGraphBfsStructure(vertices, vertexToRemove);
@@ -75,7 +75,7 @@ public class ReconstructionForEachRootAndMissingTest extends AbstractReconstruct
         graphHelper.revertGraphBfsStructure();
 
 
-        for (int rootVertexNo = 3; rootVertexNo < 4/*vertices.size() - 1*/; rootVertexNo++)
+        for (int rootVertexNo = 0; rootVertexNo < vertices.size() - 1; rootVertexNo++)
         {
           try
           {

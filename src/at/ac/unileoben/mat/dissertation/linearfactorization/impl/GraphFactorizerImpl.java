@@ -59,8 +59,7 @@ public class GraphFactorizerImpl implements GraphFactorizer
   @Override
   public void factorize()
   {
-    int layersAmount = graph.getLayers().size();
-    for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
+    for (int currentLayerNo = 2; currentLayerNo < graph.getLayers().size(); currentLayerNo++)
     {
       reconstructionData.setCurrentLayerNo(currentLayerNo);
       reconstructionBackupLayerService.storeCurrentLayerBackup();
@@ -69,7 +68,6 @@ public class GraphFactorizerImpl implements GraphFactorizer
       {
         currentLayerNo = reconstructionData.getLayerNoToRefactorizeFromOptional().get() - 1;
         reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.empty());
-        layersAmount = graph.getLayers().size();
       }
     }
   }
@@ -91,7 +89,8 @@ public class GraphFactorizerImpl implements GraphFactorizer
       consistencyChecker.checkConsistency(currentLayerNo);
       determineFactorsService.findReconstructionComponents(currentLayerNo, true);
     }
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
+            && !reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
     {
       checkConsistencyDuringReconstruction(currentLayerNo);
     }

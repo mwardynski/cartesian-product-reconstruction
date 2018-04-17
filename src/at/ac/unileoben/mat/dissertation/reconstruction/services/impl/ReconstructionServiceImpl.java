@@ -104,29 +104,9 @@ public class ReconstructionServiceImpl implements ReconstructionService
   {
     Optional<ReconstructionEntryData> reconstructionEntryDataOptional = Optional.empty();
 
-    if (isInconsistentEdgeAlreadyReconstructed(inconsistentEdges, edgeType))
+    if (reconstructionData.getNewVertex() != null && reconstructionData.getNewVertex() == baseVertex)
     {
       return reconstructionEntryDataOptional;
-    }
-    else if (isPossibleTransformationFromUpToDownEdge(baseVertex, edgeType))
-    {
-      Vertex inconsistentUpEdgeOriginVertex = inconsistentEdges.get(0).getOrigin();
-      Optional<Edge> downEdgeFromNewVertexOptional = reconstructionData.getNewVertex().getDownEdges().getEdges().stream()
-              .filter(e -> inconsistentUpEdgeOriginVertex.equals(e.getEndpoint()))
-              .findAny();
-
-      if (downEdgeFromNewVertexOptional.isPresent())
-      {
-        Edge upEdgeToNewVertex = downEdgeFromNewVertexOptional.get().getOpposite();
-        Edge edgeByLabel = edgeService.getEdgeByLabel(baseVertex, upEdgeToNewVertex.getLabel(), edgeType);
-        if (edgeByLabel != null)
-        {
-          reconstructionEntryDataOptional = Optional.of(new ReconstructionEntryData(
-                  Collections.singletonList(inconsistentEdges.get(0).getOpposite()),
-                  edgeByLabel.getEndpoint(), DOWN));
-        }
-
-      }
     }
     else
     {
@@ -136,17 +116,17 @@ public class ReconstructionServiceImpl implements ReconstructionService
 
   }
 
-  private boolean isInconsistentEdgeAlreadyReconstructed(List<Edge> inconsistentEdges, EdgeType edgeType)
+  private boolean isInconsistentEdgeAlreadyReconstructed(Vertex baseVertex)
   {
     boolean inconsistentEdgeAlreadyReconstructed = false;
-    Label inconsistentEdgeLabel = inconsistentEdges.get(0).getLabel();
-    if (inconsistentEdgeLabel != null && reconstructionData.getNewVertex() != null)
+    if (reconstructionData.getNewVertexNeighbors() != null
+            && reconstructionData.getNewVertexNeighbors()[baseVertex.getVertexNo()] != null)
     {
-      Edge edgeByLabel = edgeService.getEdgeByLabel(reconstructionData.getNewVertex(), inconsistentEdgeLabel, edgeType);
-      inconsistentEdgeAlreadyReconstructed = edgeByLabel != null;
+      inconsistentEdgeAlreadyReconstructed = true;
     }
     return inconsistentEdgeAlreadyReconstructed;
   }
+
 
   private boolean isPossibleTransformationFromUpToDownEdge(Vertex baseVertex, EdgeType edgeType)
   {
@@ -174,7 +154,8 @@ public class ReconstructionServiceImpl implements ReconstructionService
       createNewVertexIfNeeded(reconstructionEntry.getSourceVertex());
 
       EdgeType currentEdgeType = reconstructionEntry.getEdgeType();
-      if (!isCorrectEdgeTypeToAdd(reconstructionEntry.getSourceVertex().getBfsLayer(), currentEdgeType))
+      if (!isInconsistentEdgeAlreadyReconstructed(reconstructionEntry.getSourceVertex()) &&
+              !isCorrectEdgeTypeToAdd(reconstructionEntry.getSourceVertex().getBfsLayer(), currentEdgeType))
       {
         System.out.print("rejected: ");
         printOutEdgeToReconstruct(reconstructionEntry);
@@ -257,6 +238,7 @@ public class ReconstructionServiceImpl implements ReconstructionService
       }
       graph.getLayers().get(newVertexLayer).add(newVertex);
       reconstructionData.setNewVertex(newVertex);
+      reconstructionData.setNewVertexNeighbors(new Edge[graph.getVertices().size()]);
     }
   }
 
@@ -359,6 +341,12 @@ public class ReconstructionServiceImpl implements ReconstructionService
     {
       reconstructionData.getNewVertex().getEdges().add(newEdgeOpposite);
       origin.getEdges().add(newEdge);
+      reconstructionData.getNewVertexNeighbors()[origin.getVertexNo()] = newEdgeOpposite;
+      System.out.println("ins successful: " + newEdge);
+    }
+    else
+    {
+      System.out.println("ins failed: " + newEdge);
     }
 
     if (edgeType == DOWN && reconstructionData.getCurrentLayerNo() > newEdge.getOrigin().getBfsLayer()

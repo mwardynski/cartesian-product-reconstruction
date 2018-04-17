@@ -79,6 +79,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
   void cleanUpReconstructionData()
   {
     reconstructionData.setNewVertex(null);
+    reconstructionData.setNewVertexNeighbors(null);
     reconstructionData.setMergeTags(null);
     reconstructionData.setCurrentLayerBackup(null);
     reconstructionData.setPrevLayerBackup(null);
