@@ -41,7 +41,8 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   public boolean isInPlaceReconstructionToBeStarted()
   {
     return reconstructionData.getOperationOnGraph() == OperationOnGraph.PRE_IN_PLACE_RECONSTRUCTION
-            && graph.getGraphColoring().getActualColors().size() == 1;
+            && graph.getGraphColoring().getActualColors().size() == 1
+            && !reconstructionData.getMissingInFirstLayerReconstructionData().isMissingInFirstLayer();
   }
 
   @Override

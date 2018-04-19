@@ -74,6 +74,7 @@ public class VertexServiceImpl implements VertexService
     {
       v.setUnitLayer(true);
       reconstructionBackupLayerService.addNewVertexToLayerBackup(v);
+
     }
     List<Edge> vDownEdges = v.getDownEdges().getEdges();
     List<Edge> edgesToRelabel = new LinkedList<>(vDownEdges);
@@ -88,6 +89,26 @@ public class VertexServiceImpl implements VertexService
       }
     }
     coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
+    updateFactorHeights(v);
+  }
+
+  private void updateFactorHeights(Vertex v)
+  {
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.PRE_IN_PLACE_RECONSTRUCTION)
+    {
+      Label unitLayerEdgeLabel = v.getDownEdges().getEdges().get(0).getLabel();
+      if (unitLayerEdgeLabel != null)
+      {
+        int unitLayerColor = unitLayerEdgeLabel.getColor();
+        int unitLayerMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), unitLayerColor);
+
+        int[] factorHeights = reconstructionData.getFactorHeights();
+        if (factorHeights[unitLayerMappedColor] < v.getBfsLayer())
+        {
+          factorHeights[unitLayerMappedColor] = v.getBfsLayer();
+        }
+      }
+    }
   }
 
 }

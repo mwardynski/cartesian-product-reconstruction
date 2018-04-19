@@ -27,6 +27,7 @@ public class ReconstructionData
   Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
   Vertex shiftVertex;
   MissingInFirstLayerReconstructionData missingInFirstLayerReconstructionData;
+  int[] factorHeights;
 
 
   public ReconstructionData()
@@ -173,5 +174,15 @@ public class ReconstructionData
   public void setMissingInFirstLayerReconstructionData(MissingInFirstLayerReconstructionData missingInFirstLayerReconstructionData)
   {
     this.missingInFirstLayerReconstructionData = missingInFirstLayerReconstructionData;
+  }
+
+  public int[] getFactorHeights()
+  {
+    return factorHeights;
+  }
+
+  public void setFactorHeights(int[] factorHeights)
+  {
+    this.factorHeights = factorHeights;
   }
 }

@@ -17,6 +17,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Created with IntelliJ IDEA.
@@ -91,9 +92,20 @@ public class LinearFactorizationImpl implements LinearFactorization
     checkGraphCorrectness(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
     graphFactorizationPreparer.arrangeFirstLayerEdges();
+    prepareAuxiliaryReconstructionData(root);
     if (graph.getLayers().size() < 3)
     {
       throw new IllegalStateException(graphCorrectnessChecker.NOT_HIGH_ENOUGH);
+    }
+  }
+
+  private void prepareAuxiliaryReconstructionData(Vertex root)
+  {
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.PRE_IN_PLACE_RECONSTRUCTION)
+    {
+      int[] factorsHeight = new int[root.getUpEdges().getEdges().size()];
+      IntStream.range(0, factorsHeight.length).forEach(i -> factorsHeight[i] = 1);
+      reconstructionData.setFactorHeights(factorsHeight);
     }
   }
 

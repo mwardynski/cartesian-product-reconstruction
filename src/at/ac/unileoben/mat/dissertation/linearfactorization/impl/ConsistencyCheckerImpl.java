@@ -83,6 +83,13 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       }
       reconstructionService.reconstructWithCollectedData();
     }
+    else
+    {
+      FactorizationData factorizationData = new FactorizationData(0, null, null, null);
+      factorizationData.setMaxConsistentLayerNo(reconstructionData.getCurrentLayerNo());
+      factorizationData.setAfterConsistencyCheck(true);
+      reconstructionData.setResultFactorization(factorizationData);
+    }
   }
 
   @Override
@@ -109,6 +116,24 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     {
       if (u.isUnitLayer())
       {
+        if (reconstructionData.getOperationOnGraph() == OperationOnGraph.PRE_IN_PLACE_RECONSTRUCTION)
+        {
+          int factorsPossibleHeight = graph.getGraphColoring().getActualColors().stream()
+                  .mapToInt(actualColor -> reconstructionData.getFactorHeights()[actualColor])
+                  .sum();
+          if (graph.getGraphColoring().getActualColors().size() != 1 && factorsPossibleHeight == graph.getLayers().size() - 1)
+          {
+            int unitLayerColor = u.getDownEdges().getEdges().get(0).getLabel().getColor();
+            List<List<Edge>> allEdgesOfDifferentColorThanCurrentUnitLayer = edgeService.getAllEdgesOfDifferentColor(graph.getRoot(), unitLayerColor, graph.getGraphColoring(), EdgeType.UP);
+
+            int quantityOfOtherUnitLayerUpEdgesFromRoot = allEdgesOfDifferentColorThanCurrentUnitLayer.stream().mapToInt(list -> list.size()).sum();
+            if (u.getUpEdges().getEdges().size() > quantityOfOtherUnitLayerUpEdgesFromRoot)
+            {
+              reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(true);
+            }
+
+          }
+        }
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);

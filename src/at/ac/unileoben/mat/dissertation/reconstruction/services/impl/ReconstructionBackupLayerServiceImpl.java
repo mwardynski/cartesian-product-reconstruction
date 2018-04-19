@@ -49,7 +49,7 @@ public class ReconstructionBackupLayerServiceImpl implements ReconstructionBacku
     reconstructionData.setCurrentLayerBackup(new LayerBackupReconstructionData(currentLayerBackup.getLayerNo(), currentLayerBackup.getGraphColoring()));
 
     LayerBackupReconstructionData prevLayerBackup = reconstructionData.getPrevLayerBackup();
-    if (prevLayerBackup != null)
+    if (prevLayerBackup != null && reconstructionData.getResultFactorization().getMaxConsistentLayerNo() < prevLayerBackup.getLayerNo())
     {
       prevLayerBackup.getNewUnitLayerVertices().forEach(v -> v.setUnitLayer(false));
       reconstructionData.setPrevLayerBackup(new LayerBackupReconstructionData(prevLayerBackup.getLayerNo(), prevLayerBackup.getGraphColoring()));
