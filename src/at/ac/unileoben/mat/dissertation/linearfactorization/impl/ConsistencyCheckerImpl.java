@@ -53,6 +53,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Override
   public void checkConsistency(int currentLayerNo)
   {
+    boolean missingInFirstLayerDefined = reconstructionData.getMissingInFirstLayerReconstructionData().getMissingInFirstLayer().isPresent();
+    if (missingInFirstLayerDefined)
+    {
+      return;
+    }
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     if (graph.getGraphColoring().getActualColors().size() != 1)
@@ -62,6 +67,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
               && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION;
 
       checkCurrentLayerAllEdgesConsistency(currentLayer, amountConsistencyCheck);
+    }
+    missingInFirstLayerDefined = reconstructionData.getMissingInFirstLayerReconstructionData().getMissingInFirstLayer().isPresent();
+    if (missingInFirstLayerDefined)
+    {
+      return;
     }
     if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
     {
@@ -129,7 +139,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
             int quantityOfOtherUnitLayerUpEdgesFromRoot = allEdgesOfDifferentColorThanCurrentUnitLayer.stream().mapToInt(list -> list.size()).sum();
             if (u.getUpEdges().getEdges().size() > quantityOfOtherUnitLayerUpEdgesFromRoot)
             {
-              reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(true);
+              reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(true));
             }
 
           }

@@ -89,6 +89,12 @@ public class GraphFactorizerImpl implements GraphFactorizer
       consistencyChecker.checkConsistency(currentLayerNo);
       determineFactorsService.findReconstructionComponents(currentLayerNo, true);
     }
+    Optional<Boolean> missingInFirstLayerOptional = reconstructionData.getMissingInFirstLayerReconstructionData().getMissingInFirstLayer();
+    if (missingInFirstLayerOptional.isPresent())
+    {
+      reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(graph.getLayers().size() + 1));
+      return;
+    }
     if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
             && !reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
     {
@@ -111,7 +117,7 @@ public class GraphFactorizerImpl implements GraphFactorizer
     {
       if (reconstructionData.getMissingInFirstLayerReconstructionData().isMissingInFirstLayerPossible())
       {
-        reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(true);
+        reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(true));
       }
       reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(graph.getLayers().size()));
     }

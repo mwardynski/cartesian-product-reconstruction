@@ -42,7 +42,7 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   {
     return reconstructionData.getOperationOnGraph() == OperationOnGraph.PRE_IN_PLACE_RECONSTRUCTION
             && graph.getGraphColoring().getActualColors().size() == 1
-            && !reconstructionData.getMissingInFirstLayerReconstructionData().isMissingInFirstLayer();
+            && !reconstructionData.getMissingInFirstLayerReconstructionData().getMissingInFirstLayer().isPresent();
   }
 
   @Override
@@ -96,7 +96,8 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     mergeTagEnums.stream()
             .forEach(mergeTag -> System.out.println(mergeTag + " to ALL: " +
                     calculateQuantityOfMergeTag(mergeTag) + "/" + mergeTagsCount));
-    reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(isMissingVertexInFirstLayer());
+    boolean missingVertexInFirstLayer = isMissingVertexInFirstLayer();
+    reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(missingVertexInFirstLayer));
   }
 
   private boolean isMissingVertexInFirstLayer()

@@ -2,17 +2,19 @@ package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class MissingInFirstLayerReconstructionData
 {
 
   boolean missingInFirstLayerPossible;
-  boolean missingInFirstLayer;
+  Optional<Boolean> missingInFirstLayer;
   int currentLayerUnitLayerVerticesAmountBeforeAmountCheck;
   List<MergeTagEnum> amountMergeTags;
 
   public MissingInFirstLayerReconstructionData()
   {
+    missingInFirstLayer = Optional.empty();
     amountMergeTags = new LinkedList<>();
   }
 
@@ -26,12 +28,12 @@ public class MissingInFirstLayerReconstructionData
     this.missingInFirstLayerPossible = missingInFirstLayerPossible;
   }
 
-  public boolean isMissingInFirstLayer()
+  public Optional<Boolean> getMissingInFirstLayer()
   {
     return missingInFirstLayer;
   }
 
-  public void setMissingInFirstLayer(boolean missingInFirstLayer)
+  public void setMissingInFirstLayer(Optional<Boolean> missingInFirstLayer)
   {
     this.missingInFirstLayer = missingInFirstLayer;
   }
