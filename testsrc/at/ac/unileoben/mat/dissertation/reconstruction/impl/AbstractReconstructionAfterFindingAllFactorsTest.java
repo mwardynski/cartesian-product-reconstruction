@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -60,7 +59,6 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
 
           assertThat("file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove,
                   graph.getGraphColoring().getActualColors().size(), is(factorizationCase.getAmountOfFactors()));
-          assertThat(reconstructionData.getNewVertex(), notNullValue());
 
           System.out.print("OK - file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
           stopWatch.stop();

@@ -56,6 +56,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
   public FactorizationData findFactors(List<Vertex> vertices)
   {
     reconstructionService.clearReconstructionData();
+    reconstructionData.setOperationOnGraph(OperationOnGraph.RECONSTRUCT);
     for (Vertex vertex : vertices)
     {
       findFactorsForRoot(vertices, vertex);
