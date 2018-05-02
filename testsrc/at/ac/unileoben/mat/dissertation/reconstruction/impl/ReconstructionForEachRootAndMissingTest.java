@@ -88,8 +88,9 @@ public class ReconstructionForEachRootAndMissingTest extends AbstractReconstruct
             Vertex rootVertex = incompleteVertices.get(rootVertexNo);
             reconstruction.reconstruct(incompleteVertices, rootVertex);
 
-            System.out.println("Missing in first layer: " + reconstructionData.getMissingInFirstLayerReconstructionData().isMissingInFirstLayer());
-            if (reconstructionData.getMissingInFirstLayerReconstructionData().isMissingInFirstLayer() != vertexToRemoveNeighbors.contains(rootVertexNo))
+            Optional<Boolean> missingInFirstLayerOptional = reconstructionData.getMissingInFirstLayerReconstructionData().getMissingInFirstLayer();
+            System.out.println("Missing in first layer: " + (missingInFirstLayerOptional.isPresent() && missingInFirstLayerOptional.get()));
+            if (missingInFirstLayerOptional.isPresent() && missingInFirstLayerOptional.get() != vertexToRemoveNeighbors.contains(rootVertexNo))
             {
               System.out.println("WRONG L1 RECONSTRUCTION");
             }

@@ -17,6 +17,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
@@ -111,6 +112,11 @@ public class LinearFactorizationImpl implements LinearFactorization
 
   private void factorizeGraph()
   {
+    if (graph.getGraphColoring().getActualColors().size() == 1)
+    {
+      reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(true));
+      return;
+    }
     graphFactorizer.factorize();
     graphHelper.revertGraphBfsStructure();
   }

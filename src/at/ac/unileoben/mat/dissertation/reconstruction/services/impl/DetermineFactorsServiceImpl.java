@@ -111,8 +111,7 @@ public class DetermineFactorsServiceImpl implements DetermineFactorsService
     FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
 
     int prevFactorsAmount = currentFactorizationData.getFactors().size();
-    collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
-    collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
+    collectFactorsFromPreviousAndCurrentLayer(currentLayerNo, currentFactorizationData);
 
     if (currentFactorizationData.getFactors().size() != prevFactorsAmount)
     {
@@ -123,6 +122,13 @@ public class DetermineFactorsServiceImpl implements DetermineFactorsService
     {
       currentFactorizationData.setFactorizationCompleted(isCorrectAmountOfVerticesInFactors(currentFactorizationData));
     }
+  }
+
+  @Override
+  public void collectFactorsFromPreviousAndCurrentLayer(int currentLayerNo, FactorizationData currentFactorizationData)
+  {
+    collectFactorsFromPreviousLayer(currentLayerNo - 1, currentFactorizationData);
+    collectFactorsFromCurrentLayer(currentLayerNo, currentFactorizationData);
   }
 
   private boolean isFactorizationPossiblyCompleted(int currentLayerNo, FactorizationData currentFactorizationData)

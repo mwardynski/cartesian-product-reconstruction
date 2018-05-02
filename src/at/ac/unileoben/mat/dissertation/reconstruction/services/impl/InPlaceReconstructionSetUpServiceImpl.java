@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.DetermineFactorsService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
@@ -37,6 +38,9 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   @Autowired
   VertexService vertexService;
 
+  @Autowired
+  DetermineFactorsService determineFactorsService;
+
   @Override
   public boolean isInPlaceReconstructionToBeStarted()
   {
@@ -51,16 +55,18 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     printOutMergeStatistics(reconstructionData.getCurrentLayerNo());
 
     reconstructionBackupLayerService.recoverAfterCompleteMerge();
+
     if (isMissingVertexInFirstLayer())
     {
-      reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(reconstructionData.getCurrentLayerNo()));
-
-      Edge exampleEdge = createExampleEdgeForRefactoring();
-      addNewColorToGraphColoring(exampleEdge.getLabel().getColor());
-      extendEdgesRefAndRevertLabeling();
-
-      reconstructionService.addEdgesToReconstruction(Collections.singletonList(exampleEdge), graph.getRoot(), EdgeType.UP);
-      reconstructionService.reconstructWithCollectedData();
+      return;
+//      reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(reconstructionData.getCurrentLayerNo()));
+//
+//      Edge exampleEdge = createExampleEdgeForRefactoring();
+//      addNewColorToGraphColoring(exampleEdge.getLabel().getColor());
+//      extendEdgesRefAndRevertLabeling();
+//
+//      reconstructionService.addEdgesToReconstruction(Collections.singletonList(exampleEdge), graph.getRoot(), EdgeType.UP);
+//      reconstructionService.reconstructWithCollectedData();
     }
     else if (isMissingVertexInCurrentLayerToBeCreatedLater())
     {
@@ -69,10 +75,13 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     reconstructionData.setMergeTags(new LinkedList<>());
 
     reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
-    FactorizationData factorizationData = new FactorizationData(0, null, null, null);
+    FactorizationData factorizationData = new FactorizationData(0, null, new LinkedList<>(), null);
     factorizationData.setMaxConsistentLayerNo(reconstructionData.getCurrentLayerNo() - 1);
     factorizationData.setAfterConsistencyCheck(false);
     reconstructionData.setResultFactorization(factorizationData);
+
+    determineFactorsService.collectFactorsFromPreviousAndCurrentLayer(reconstructionData.getCurrentLayerNo() - 1, factorizationData);
+
   }
 
   private void printOutMergeStatistics(int currentLayerNo)
@@ -111,13 +120,26 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     int mergeTagsCount = reconstructionData.getMergeTags().size();
 
     boolean missingVetexInFirstLayerPossible = currentLayerNo == 2
-            && ((mergeTagsCount == consistencyUpAmountBelowTagsQuantity
-            && !checkCurrentLayerUnitLayerVerticesValidity())
-//            && currentLayerNo != graph.getLayers().size() - 1)
+            && (mergeTagsCount == consistencyUpAmountBelowTagsQuantity
             || mergeTagsCount == consistencyUpLabelTagsQuantity
             || mergeTagsCount == labelCrossTagsQuantity
             || mergeTagsCount == labelDownTagsQuantity);
-    reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayerPossible(missingVetexInFirstLayerPossible);
+    if (currentLayerNo == 2 && mergeTagsCount == consistencyUpAmountBelowTagsQuantity)
+    {
+      if (graph.getGraphColoring().getActualColors().size() > 2)
+      {
+        reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(true));
+      }
+      else
+      {
+        reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(false));
+      }
+    }
+    else if (missingVetexInFirstLayerPossible)
+    {
+      reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(true));
+    }
+
     return missingVetexInFirstLayerPossible;
   }
 

@@ -7,7 +7,6 @@ import java.util.Optional;
 public class MissingInFirstLayerReconstructionData
 {
 
-  boolean missingInFirstLayerPossible;
   Optional<Boolean> missingInFirstLayer;
   int currentLayerUnitLayerVerticesAmountBeforeAmountCheck;
   List<MergeTagEnum> amountMergeTags;
@@ -16,16 +15,6 @@ public class MissingInFirstLayerReconstructionData
   {
     missingInFirstLayer = Optional.empty();
     amountMergeTags = new LinkedList<>();
-  }
-
-  public boolean isMissingInFirstLayerPossible()
-  {
-    return missingInFirstLayerPossible;
-  }
-
-  public void setMissingInFirstLayerPossible(boolean missingInFirstLayerPossible)
-  {
-    this.missingInFirstLayerPossible = missingInFirstLayerPossible;
   }
 
   public Optional<Boolean> getMissingInFirstLayer()

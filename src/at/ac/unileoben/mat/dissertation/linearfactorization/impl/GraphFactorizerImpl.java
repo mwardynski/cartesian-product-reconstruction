@@ -115,10 +115,6 @@ public class GraphFactorizerImpl implements GraphFactorizer
     }
     if (!consistencyCheckSuccess)
     {
-      if (reconstructionData.getMissingInFirstLayerReconstructionData().isMissingInFirstLayerPossible())
-      {
-        reconstructionData.getMissingInFirstLayerReconstructionData().setMissingInFirstLayer(Optional.of(true));
-      }
       reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.of(graph.getLayers().size()));
     }
   }

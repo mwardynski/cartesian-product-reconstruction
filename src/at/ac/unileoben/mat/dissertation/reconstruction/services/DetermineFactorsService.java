@@ -16,5 +16,7 @@ public interface DetermineFactorsService
 
   void findReconstructionComponents(int currentLayerNo, boolean afterConsistencyCheck);
 
+  void collectFactorsFromPreviousAndCurrentLayer(int currentLayerNo, FactorizationData currentFactorizationData);
+
   void collectFactors(FactorizationData factorizationData, List<List<Vertex>> topUnitLayerVertices);
 }

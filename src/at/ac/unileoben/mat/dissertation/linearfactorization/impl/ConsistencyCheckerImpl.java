@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Created with IntelliJ IDEA.
@@ -76,6 +75,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
     {
       inPlaceReconstructionSetUpService.setUpReconstructionInPlace();
+      missingInFirstLayerDefined = reconstructionData.getMissingInFirstLayerReconstructionData().getMissingInFirstLayer().isPresent();
+      if (missingInFirstLayerDefined)
+      {
+        return;
+      }
       if (!reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
       {
         checkConsistency(currentLayerNo);
@@ -95,7 +99,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
     else
     {
-      FactorizationData factorizationData = new FactorizationData(0, null, null, null);
+      FactorizationData factorizationData = new FactorizationData(0, null, new LinkedList<>(), null);
       factorizationData.setMaxConsistentLayerNo(reconstructionData.getCurrentLayerNo());
       factorizationData.setAfterConsistencyCheck(true);
       reconstructionData.setResultFactorization(factorizationData);
@@ -143,6 +147,10 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
             }
 
           }
+          else if (factorsPossibleHeight != graph.getLayers().size() - 1)
+          {
+
+          }
         }
         continue;
       }
@@ -178,16 +186,16 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     if (upEdgesAmountDifference != 0)
     {
       MergeTagEnum mergeTag = upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE;
-      if (inPlaceReconstructionSetUpService.checkCurrentLayerUnitLayerVerticesValidity())
-      {
-        IntStream.range(0, Math.abs(upEdgesAmountDifference))
-                .forEach(i -> reconstructionData.getMissingInFirstLayerReconstructionData().getAmountMergeTags().add(mergeTag));
-
-      }
-      else
-      {
-        vertexService.assignVertexToUnitLayerAndMergeColors(u, mergeTag);
-      }
+//      if (inPlaceReconstructionSetUpService.checkCurrentLayerUnitLayerVerticesValidity())
+//      {
+//        IntStream.range(0, Math.abs(upEdgesAmountDifference))
+//                .forEach(i -> reconstructionData.getMissingInFirstLayerReconstructionData().getAmountMergeTags().add(mergeTag));
+//
+//      }
+//      else
+//      {
+      vertexService.assignVertexToUnitLayerAndMergeColors(u, mergeTag);
+//      }
     }
   }
 
