@@ -42,7 +42,7 @@ public class DuplicateReconstructionAfterFindingAllFactorsTest extends AbstractR
 //    examplesList.add(new FactorizationCase("handP2.txt", 2));
 //    examplesList.add(new FactorizationCase("handP3.txt", 2));
     //standard
-    examplesList.add(new FactorizationCase("K4-ExK2xK2.txt", 2));
+    examplesList.add(new FactorizationCase("K4-ExS2.txt", 2));
 //    examplesList.add(new FactorizationCase("K23xK2.txt", 2));
 //    examplesList.add(new FactorizationCase("S2xK2.txt", 2));
 //    examplesList.add(new FactorizationCase("S2xK2xK2.txt", 3));

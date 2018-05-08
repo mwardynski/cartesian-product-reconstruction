@@ -73,7 +73,7 @@ public class ReconstructionTest
 //    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
 //    examplesList.add(new FactorizationCase("K4-ExK2.txt", 2));
 //    examplesList.add(new FactorizationCase("P3xK2.txt", 2));
-//    examplesList.add(new FactorizationCase("K4-ExK2xK2.txt", 2)); //FIXME not working
+//    examplesList.add(new FactorizationCase("K4-ExS2.txt", 2)); //FIXME not working
     examplesList.add(new FactorizationCase("K23xK2-mirrored.txt", 2)); //FIXME not working
 //    examplesList.add(new FactorizationCase("C3xK2xK2.txt", 3));
 //    examplesList.add(new FactorizationCase("victory.txt", 3));
