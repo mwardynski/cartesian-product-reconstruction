@@ -60,11 +60,28 @@ public class DownEdgesLabeler implements EdgesLabeler
   @Override
   public void labelEdges(int currentLayerNo)
   {
-    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> selectedVertices = selectVerticesForFactorization(currentLayerNo);
     List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
     List<Vertex> prePreviousLayer = vertexService.getGraphLayer(currentLayerNo - 2);
-    labelEdgesForSelectedVertices(currentLayer, previousLayer, prePreviousLayer);
 
+    labelEdgesForSelectedVertices(selectedVertices, previousLayer, prePreviousLayer);
+
+  }
+
+  private List<Vertex> selectVerticesForFactorization(int currentLayerNo)
+  {
+    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> selectedVertices;
+    if (reconstructionData.getOperationOnGraph() != null
+            && reconstructionData.getOperationOnGraph() != OperationOnGraph.FINDING_INTERVAL)
+    {
+      selectedVertices = currentLayer;
+    }
+    else
+    {
+      selectedVertices = currentLayer;
+    }
+    return currentLayer;
   }
 
   public void labelEdgesForSelectedVertices(List<Vertex> selectedVertices, List<Vertex> previousLayerVertices, List<Vertex> prePreviousLayerVertices)
@@ -121,13 +138,6 @@ public class DownEdgesLabeler implements EdgesLabeler
   private void labelDownEdgesWithFoundPivotSquares(LayerLabelingData layerLabelingData, List<Vertex> currentLayer)
   {
     List<Vertex> noPivotSquareVertices = layerLabelingData.getNoPivotSquareVerties();
-    if (CollectionUtils.isNotEmpty(noPivotSquareVertices))
-    {
-      for (Vertex v : noPivotSquareVertices)
-      {
-        labelUnitLayerVertex(v);
-      }
-    }
     boolean rerunLabeling = false;
     EdgeLabelingGroup[] edgeLabelingGroups = layerLabelingData.getEdgeLabelingGroups();
     for (EdgeLabelingGroup group : edgeLabelingGroups)
@@ -149,11 +159,11 @@ public class DownEdgesLabeler implements EdgesLabeler
             }
             else
             {
-              rerunLabeling = true;
               for (EdgeLabelingWrapper notLabeledEdge : notLabeledEdges)
               {
                 if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION && notLabeledEdge.getPotentialEdgeReconstruction().isPresent())
                 {
+                  rerunLabeling = true;
                   EdgeLabelingReconstruction edgeLabelingReconstruction = notLabeledEdge.getPotentialEdgeReconstruction().get();
                   reconstructionService.addEdgesToReconstruction(Collections.singletonList(edgeLabelingReconstruction.getEdge()), edgeLabelingReconstruction.getVertex(), EdgeType.DOWN);
                 }
@@ -165,7 +175,19 @@ public class DownEdgesLabeler implements EdgesLabeler
               }
             }
           }
+          else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_INTERVAL)
+          {
+            Vertex intervalTopVertex = subgroup.getFirstLabelingBaseEdge().getOrigin();
+            reconstructionData.getIntervalData().getIntervalVertices()[intervalTopVertex.getVertexNo()] = intervalTopVertex;
+          }
         }
+      }
+    }
+    if (CollectionUtils.isNotEmpty(noPivotSquareVertices))
+    {
+      for (Vertex v : noPivotSquareVertices)
+      {
+        labelUnitLayerVertex(v);
       }
     }
     if (rerunLabeling)

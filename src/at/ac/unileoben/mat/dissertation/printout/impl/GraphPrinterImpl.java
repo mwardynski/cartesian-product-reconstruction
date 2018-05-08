@@ -48,6 +48,9 @@ public class GraphPrinterImpl implements GraphPrinter
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   ColoringService coloringService;
 
   @Autowired
@@ -144,7 +147,14 @@ public class GraphPrinterImpl implements GraphPrinter
         VertexData vertexData = new VertexData();
         vertexData.setVertexNo(vertex.getVertexNo());
         vertexData.setOrigVertexNo(vertex.getVertexNo() < graph.getReverseReindexArray().length ? graph.getReverseReindexArray()[vertex.getVertexNo()] : vertex.getVertexNo());
-        if (vertex.isUnitLayer())
+
+        if (reconstructionData != null && reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_INTERVAL
+                && reconstructionData.getIntervalData() != null
+                && reconstructionData.getIntervalData().getIntervalVertices()[vertex.getVertexNo()] != null)
+        {
+          vertexData.setColor(VertexColorEnum.LIME.toString());
+        }
+        else if (vertex.isUnitLayer())
         {
           vertexData.setColor(VertexColorEnum.ORANGE.toString());
         }

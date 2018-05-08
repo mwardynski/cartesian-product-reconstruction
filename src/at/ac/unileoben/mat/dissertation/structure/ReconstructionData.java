@@ -25,6 +25,7 @@ public class ReconstructionData
   int missingVertexToBeCreatedLaterLayer;
   Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
   Vertex shiftVertex;
+  IntervalData intervalData;
 
 
   public ReconstructionData()
@@ -150,5 +151,15 @@ public class ReconstructionData
   public void setShiftVertex(Vertex shiftVertex)
   {
     this.shiftVertex = shiftVertex;
+  }
+
+  public IntervalData getIntervalData()
+  {
+    return intervalData;
+  }
+
+  public void setIntervalData(IntervalData intervalData)
+  {
+    this.intervalData = intervalData;
   }
 }
