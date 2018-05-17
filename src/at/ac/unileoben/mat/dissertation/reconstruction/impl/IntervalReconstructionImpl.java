@@ -11,7 +11,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 public class IntervalReconstructionImpl extends AbstractReconstruction implements Reconstruction
@@ -22,6 +25,12 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
   @Autowired
   ReconstructionData reconstructionData;
+
+  @Autowired
+  GraphHelper graphHelper;
+
+  @Autowired
+  Graph graph;
 
   public static void main(String... args)
   {
@@ -55,6 +64,30 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
   {
     reconstructionData.setOperationOnGraph(OperationOnGraph.FINDING_INTERVAL);
     reconstructionData.setIntervalData(new IntervalData(vertices.size()));
-    return linearFactorization.factorize(vertices, root);
+
+    linearFactorization.prepare(vertices, root);
+
+    Graph graphCopy = new Graph(graph);
+
+    List<Vertex> intervalTopVertices = IntStream.range(2, graph.getLayers().size())
+            .mapToObj(i -> graphCopy.getLayers().get(i))
+            .flatMap(layer -> layer.stream())
+            .filter(v -> isTopVertexOfInterval(v, vertices))
+            .collect(Collectors.toList());
+
+    List<Integer> mappedTopVertices = intervalTopVertices.stream()
+            .map(v -> graphCopy.getReverseReindexArray()[v.getVertexNo()])
+            .collect(Collectors.toList());
+
+    return null;
+  }
+
+  private boolean isTopVertexOfInterval(Vertex topVertex, List<Vertex> vertices)
+  {
+    List<Vertex> subgraph = graphHelper.getSubgraphForTopVertices(Collections.singletonList(topVertex), vertices);
+
+    linearFactorization.factorize(subgraph, null);
+
+    return graph.getGraphColoring().getActualColors().size() != 1;
   }
 }

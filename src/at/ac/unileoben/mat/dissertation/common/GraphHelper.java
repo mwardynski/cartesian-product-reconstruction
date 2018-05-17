@@ -25,7 +25,7 @@ public interface GraphHelper
 
   int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
 
-  List<Vertex> getFactorForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
+  List<Vertex> getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
 
   void createEdgeBetweenVertices(Vertex factorCurrentVertex, Vertex factorPreviousVertex);
 

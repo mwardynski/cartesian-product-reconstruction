@@ -14,6 +14,7 @@ import java.util.List;
  */
 public interface LinearFactorization
 {
-
+  void prepare(List<Vertex> vertices, Vertex root);
+  
   Graph factorize(List<Vertex> vertices, Vertex root);
 }

@@ -86,7 +86,8 @@ public class LinearFactorizationImpl implements LinearFactorization
     return graph;
   }
 
-  private void prepare(List<Vertex> vertices, Vertex root)
+  @Override
+  public void prepare(List<Vertex> vertices, Vertex root)
   {
     checkGraphCorrectness(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);

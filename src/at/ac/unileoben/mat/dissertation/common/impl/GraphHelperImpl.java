@@ -188,7 +188,7 @@ public class GraphHelperImpl implements GraphHelper
   }
 
   @Override
-  public List<Vertex> getFactorForTopVertices(List<Vertex> topVertices, List<Vertex> vertices)
+  public List<Vertex> getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices)
   {
     List<Vertex> factorVertices = new ArrayList<>(vertices.size());
     Vertex[] reindexArray = new Vertex[vertices.size()];

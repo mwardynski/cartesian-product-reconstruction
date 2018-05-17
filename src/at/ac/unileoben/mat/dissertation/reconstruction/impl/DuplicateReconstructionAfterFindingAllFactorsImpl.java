@@ -70,7 +70,7 @@ public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractR
   {
     graphHelper.prepareGraphBfsStructure(vertices, factorizationData.getRootVertex());
     List<List<Vertex>> factors = factorizationData.getFactors().stream()
-            .map(factor -> graphHelper.getFactorForTopVertices(factor.getTopVertices(), vertices))
+            .map(factor -> graphHelper.getSubgraphForTopVertices(factor.getTopVertices(), vertices))
             .collect(toList());
 
     Iterator<List<Vertex>> factorsIterator = factors.iterator();
