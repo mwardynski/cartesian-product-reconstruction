@@ -70,7 +70,7 @@ public class ProductGenerator
         }
         for (int k = 0; k < factor1.length; k++)
         {
-          resultGraph[i * factor2.length + j][k * factor2.length + j] = factor2[i][k];
+          resultGraph[i * factor2.length + j][k * factor2.length + j] = factor1[i][k];
         }
       }
     }
