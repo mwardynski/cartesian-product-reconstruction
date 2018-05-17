@@ -84,42 +84,8 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     List<Vertex> currentLayerVertices = vertexService.getGraphLayer(currentLayerNo);
     List<Vertex> previousLayerVertices = vertexService.getGraphLayer(currentLayerNo - 1);
 
-    if (reconstructionData.getOperationOnGraph() != OperationOnGraph.FINDING_INTERVAL)
-    {
-      checkPreviousLayerUpEdgesConsistency(previousLayerVertices);
-      checkCurrentLayerAllEdgesConsistency(currentLayerVertices);
-    }
-    else
-    {
-      List<Vertex> potentialIntervalTopVertices = currentLayerVertices.stream().filter(v -> !v.isUnitLayer()).collect(Collectors.toList());
-      IntervalData intervalData = reconstructionData.getIntervalData();
-      for (Vertex potentialIntervalVertex : potentialIntervalTopVertices)
-      {
-        GraphColoring graphColoringBackUp = new GraphColoring(graph.getGraphColoring());
-        intervalData.setCurrentIntervalTopVertex(potentialIntervalVertex);
-        List<Vertex> potentialIntervalDownNeighbors = potentialIntervalVertex.getDownEdges().getEdges().stream()
-                .map(e -> e.getEndpoint())
-                .collect(Collectors.toList());
-
-        boolean[] intervalTopVertexAdjacencyVector = new boolean[graph.getVertices().size()];
-        potentialIntervalDownNeighbors.stream()
-                .mapToInt(v -> v.getVertexNo())
-                .forEach(vNo -> intervalTopVertexAdjacencyVector[vNo] = true);
-        intervalData.setCurrentIntervalTopVertexAdjacencyVector(intervalTopVertexAdjacencyVector);
-
-        checkPreviousLayerUpEdgesConsistency(potentialIntervalDownNeighbors);
-        checkCurrentLayerAllEdgesConsistency(Collections.singletonList(potentialIntervalVertex));
-
-        if (graph.getGraphColoring().getActualColors().size() != 1)
-        {
-          intervalData.getIntervalVertices()[potentialIntervalVertex.getVertexNo()] = potentialIntervalVertex;
-        }
-        else
-        {
-          graph.setGraphColoring(graphColoringBackUp);
-        }
-      }
-    }
+    checkPreviousLayerUpEdgesConsistency(previousLayerVertices);
+    checkCurrentLayerAllEdgesConsistency(currentLayerVertices);
   }
 
   private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
@@ -153,8 +119,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
       if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.FINDING_INTERVAL)
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION)
       {
         int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
         if (upEdgesAmountDifference != 0)
@@ -250,20 +215,11 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     Vertex v = uv.getEndpoint();
     List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_INTERVAL
-            && edgeType == EdgeType.UP)
-    {
-      filterNotIntervalEdges(uDifferentThanUv, vDifferentThanUv);
-    }
     if (edgeType != EdgeType.UP
             || (edgeType == EdgeType.UP && reconstructionService.isCorrespondingEdgesCheckForUpEdgesReasonable()))
     {
       List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
       notCorrespondingEdges.stream().forEach(edge -> inconsistentEdges.add(new InconsistentEdge(edge, InconsistentEdgeTag.NOT_CORRESPONDING_EDGE)));
-    }
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_INTERVAL)
-    {
-      return inconsistentEdges;
     }
     for (List<Edge> uzForColor : uDifferentThanUv)
     {
@@ -332,33 +288,6 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
     }
   }
 
-  private void filterNotIntervalEdges(List<List<Edge>> uDifferentThanUv, List<List<Edge>> vDifferentThanUv)
-  {
-    for (List<Edge> uSameColorEdges : uDifferentThanUv)
-    {
-      Iterator<Edge> it = uSameColorEdges.iterator();
-      while (it.hasNext())
-      {
-        Edge edge = it.next();
-        if (!edge.getEndpoint().equals(reconstructionData.getIntervalData().getCurrentIntervalTopVertex()))
-        {
-          it.remove();
-        }
-      }
-    }
-    for (List<Edge> vSameColorEdges : vDifferentThanUv)
-    {
-      Iterator<Edge> it = vSameColorEdges.iterator();
-      while (it.hasNext())
-      {
-        Edge edge = it.next();
-        if (!reconstructionData.getIntervalData().getCurrentIntervalTopVertexAdjacencyVector()[edge.getEndpoint().getVertexNo()])
-        {
-          it.remove();
-        }
-      }
-    }
-  }
 
   private void assignInconsistentEdgesToRefactorOrReconstruction(List<InconsistentEdge> edgesToAssign, List<InconsistentEdge> edgesToRefactor, List<InconsistentEdge> edgesToReconstruct)
   {

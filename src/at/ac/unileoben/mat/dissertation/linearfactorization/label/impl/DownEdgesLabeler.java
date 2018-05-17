@@ -71,16 +71,6 @@ public class DownEdgesLabeler implements EdgesLabeler
   private List<Vertex> selectVerticesForFactorization(int currentLayerNo)
   {
     List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
-    List<Vertex> selectedVertices;
-    if (reconstructionData.getOperationOnGraph() != null
-            && reconstructionData.getOperationOnGraph() != OperationOnGraph.FINDING_INTERVAL)
-    {
-      selectedVertices = currentLayer;
-    }
-    else
-    {
-      selectedVertices = currentLayer;
-    }
     return currentLayer;
   }
 
@@ -174,11 +164,6 @@ public class DownEdgesLabeler implements EdgesLabeler
                 }
               }
             }
-          }
-          else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_INTERVAL)
-          {
-            Vertex intervalTopVertex = subgroup.getFirstLabelingBaseEdge().getOrigin();
-            reconstructionData.getIntervalData().getIntervalVertices()[intervalTopVertex.getVertexNo()] = intervalTopVertex;
           }
         }
       }
