@@ -55,7 +55,7 @@ public class K2BasedReconstructionStrategyImpl implements K2BasedReconstructionS
 
       List<Vertex> verticesCopy = reconstructGraphCopy(vertices, currentlyRemovedVertex, factorizedRemovedVertexNeighbors);
       Graph factorizedGraph = linearFactorization.factorize(verticesCopy, null);
-      if (factorizedGraph.getGraphColoring().getActualColors().size() != 1)
+      if (graphHelper.isMoreThanOneColorLeft(factorizedGraph))
       {
         return factorizedGraph;
       }
@@ -79,7 +79,7 @@ public class K2BasedReconstructionStrategyImpl implements K2BasedReconstructionS
       else
       {
         Graph factorizedGraph = linearFactorization.factorize(connectedComponentVertices, null);
-        if (factorizedGraph.getGraphColoring().getActualColors().size() > 1)
+        if (graphHelper.isMoreThanOneColorLeft(factorizedGraph))
         {
           Optional<Integer> factorizedGraphK2FactorColorOptional = getFactorizedGraphK2FactorColor(factorizedGraph);
           if (factorizedGraphK2FactorColorOptional.isPresent())

@@ -77,7 +77,7 @@ public class LinearFactorizationImpl implements LinearFactorization
   @Override
   public Graph factorize(List<Vertex> vertices, Vertex root)
   {
-    prepare(vertices, root);
+    prepare(vertices, root, true);
     if (reconstructionData.getOperationOnGraph() == null)
     {
       reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
@@ -87,11 +87,15 @@ public class LinearFactorizationImpl implements LinearFactorization
   }
 
   @Override
-  public void prepare(List<Vertex> vertices, Vertex root)
+  public void prepare(List<Vertex> vertices, Vertex root, boolean arrangeFirstLayerEdges)
   {
     checkGraphCorrectness(vertices);
     graphHelper.prepareGraphBfsStructure(vertices, root);
-    graphFactorizationPreparer.arrangeFirstLayerEdges();
+    if (arrangeFirstLayerEdges)
+    {
+      graphFactorizationPreparer.arrangeFirstLayerEdges();
+
+    }
     if (graph.getLayers().size() < 3)
     {
       throw new IllegalStateException(graphCorrectnessChecker.NOT_HIGH_ENOUGH);

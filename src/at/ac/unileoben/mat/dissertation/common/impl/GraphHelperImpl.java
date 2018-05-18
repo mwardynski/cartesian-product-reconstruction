@@ -188,10 +188,10 @@ public class GraphHelperImpl implements GraphHelper
   }
 
   @Override
-  public List<Vertex> getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices)
+  public SubgraphData getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices)
   {
     List<Vertex> factorVertices = new ArrayList<>(vertices.size());
-    Vertex[] reindexArray = new Vertex[vertices.size()];
+    Integer[] reindexArray = new Integer[vertices.size()];
     orderBFS(topVertices, vertices, Optional.empty(), EnumSet.of(EdgeType.UP),
             (currentVertex, previousVertex) -> true,
             (currentVertex, previousVertex) ->
@@ -200,22 +200,25 @@ public class GraphHelperImpl implements GraphHelper
               Vertex factorCurrentVertex = getFactorVertex(currentVertex, factorVertices, reindexArray, vertices.size());
               createEdgeBetweenVertices(factorCurrentVertex, factorPreviousVertex);
             });
-    return factorVertices;
+    SubgraphData subgraph = new SubgraphData();
+    subgraph.setVertices(factorVertices);
+    subgraph.setReverseReindexArray(createReverseReindexArray(reindexArray));
+    return subgraph;
   }
 
-  private Vertex getFactorVertex(Vertex vertex, List<Vertex> factorVertices, Vertex[] reindexArray, int verticesSize)
+  private Vertex getFactorVertex(Vertex vertex, List<Vertex> factorVertices, Integer[] reindexArray, int verticesSize)
   {
     Vertex factorCurrentVertex;
     if (reindexArray[vertex.getVertexNo()] == null)
     {
       Vertex newVertex = new Vertex(factorVertices.size(), new ArrayList<>(verticesSize));
       factorVertices.add(newVertex);
-      reindexArray[vertex.getVertexNo()] = newVertex;
+      reindexArray[vertex.getVertexNo()] = newVertex.getVertexNo();
       factorCurrentVertex = newVertex;
     }
     else
     {
-      factorCurrentVertex = reindexArray[vertex.getVertexNo()];
+      factorCurrentVertex = factorVertices.get(reindexArray[vertex.getVertexNo()]);
     }
     return factorCurrentVertex;
   }
@@ -380,7 +383,7 @@ public class GraphHelperImpl implements GraphHelper
     reindex(vertices, reverseReindexArray);
 //    vertices = sortVertices(vertices);
 //    sortEdges(vertices);
-    graph.setVertices(vertices);
+//    graph.setVertices(vertices);
   }
 
   private Vertex findVertexWithMinDegree(List<Vertex> vertices)
@@ -524,5 +527,11 @@ public class GraphHelperImpl implements GraphHelper
       }
     }
     return reverseReindexArray;
+  }
+
+  @Override
+  public boolean isMoreThanOneColorLeft(Graph graph)
+  {
+    return graph.getGraphColoring().getActualColors().size() > 1;
   }
 }

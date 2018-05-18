@@ -5,10 +5,7 @@ import at.ac.unileoben.mat.dissertation.common.impl.GraphHelperImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.reconstruction.ReconstructionAfterFindingAllFactors;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.FactorizationData;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -71,6 +68,7 @@ public class DuplicateReconstructionAfterFindingAllFactorsImpl extends AbstractR
     graphHelper.prepareGraphBfsStructure(vertices, factorizationData.getRootVertex());
     List<List<Vertex>> factors = factorizationData.getFactors().stream()
             .map(factor -> graphHelper.getSubgraphForTopVertices(factor.getTopVertices(), vertices))
+            .map(SubgraphData::getVertices)
             .collect(toList());
 
     Iterator<List<Vertex>> factorsIterator = factors.iterator();

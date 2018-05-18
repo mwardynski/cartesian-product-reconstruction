@@ -155,7 +155,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
 
   private boolean isSingleFactor()
   {
-    return graph.getGraphColoring().getActualColors().size() == 1;
+    return !graphHelper.isMoreThanOneColorLeft(graph);
   }
 
   private boolean isLastIncompleteLayer(int currentLayer)

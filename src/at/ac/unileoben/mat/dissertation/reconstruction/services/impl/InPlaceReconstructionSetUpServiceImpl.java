@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
@@ -40,11 +41,14 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
   @Autowired
   VertexService vertexService;
 
+  @Autowired
+  GraphHelper graphHelper;
+
   @Override
   public boolean isInPlaceReconstructionToBeStarted()
   {
     return reconstructionData.getOperationOnGraph() == OperationOnGraph.PRE_IN_PLACE_RECONSTRUCTION
-            && graph.getGraphColoring().getActualColors().size() == 1;
+            && !graphHelper.isMoreThanOneColorLeft(graph);
   }
 
   @Override

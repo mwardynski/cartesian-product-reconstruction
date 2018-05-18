@@ -63,7 +63,7 @@ public class GeneralReconstructionStrategyImpl implements GeneralReconstructionS
       }
       graphHelper.addVertex(verticesToFactorize, removedVertexNeighborsToFactorize);
       Graph factorizedGraph = linearFactorization.factorize(verticesToFactorize, null);
-      if (factorizedGraph.getGraphColoring().getActualColors().size() != 1)
+      if (graphHelper.isMoreThanOneColorLeft(factorizedGraph))
       {
         reconstructedAndFactorizedGraph = factorizedGraph;
       }

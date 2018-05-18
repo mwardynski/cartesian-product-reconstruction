@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.common;
 
 import at.ac.unileoben.mat.dissertation.structure.FactorizationUnitLayerSpecData;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.SubgraphData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
 import java.util.List;
@@ -25,7 +27,7 @@ public interface GraphHelper
 
   int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
 
-  List<Vertex> getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
+  SubgraphData getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
 
   void createEdgeBetweenVertices(Vertex factorCurrentVertex, Vertex factorPreviousVertex);
 
@@ -40,4 +42,6 @@ public interface GraphHelper
   void prepareGraphBfsStructure(List<Vertex> vertices, Vertex root);
 
   void revertGraphBfsStructure();
+
+  boolean isMoreThanOneColorLeft(Graph graph);
 }

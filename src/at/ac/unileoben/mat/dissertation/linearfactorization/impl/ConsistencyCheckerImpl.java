@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
@@ -49,11 +50,14 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Autowired
   ReconstructionShiftLayerService reconstructionShiftLayerService;
 
+  @Autowired
+  GraphHelper graphHelper;
+
   @Override
   public void checkConsistency(int currentLayerNo)
   {
 
-    if (graph.getGraphColoring().getActualColors().size() != 1)
+    if (graphHelper.isMoreThanOneColorLeft(graph))
     {
       checkConsistencyInternal(currentLayerNo);
     }

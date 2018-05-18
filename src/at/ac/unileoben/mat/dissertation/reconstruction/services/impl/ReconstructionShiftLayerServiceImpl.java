@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
@@ -35,11 +36,14 @@ public class ReconstructionShiftLayerServiceImpl implements ReconstructionShiftL
   @Autowired
   EdgeService edgeService;
 
+  @Autowired
+  GraphHelper graphHelper;
+
   @Override
   public boolean isVertexToShiftAvailable()
   {
     return reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION
-            && graph.getGraphColoring().getActualColors().size() == 1
+            && !graphHelper.isMoreThanOneColorLeft(graph)
             && reconstructionData.getNewVertex() != null
             && findVertexToShift().isPresent();
   }
