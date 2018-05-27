@@ -44,4 +44,6 @@ public interface GraphHelper
   void revertGraphBfsStructure();
 
   boolean isMoreThanOneColorLeft(Graph graph);
+
+  void overrideGlobalGraph(Graph graph);
 }

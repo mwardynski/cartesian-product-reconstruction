@@ -5,6 +5,7 @@ import at.ac.unileoben.mat.dissertation.common.impl.GraphHelperImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -20,6 +21,9 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 {
 
   @Autowired
+  Graph graph;
+
+  @Autowired
   LinearFactorization linearFactorization;
 
   @Autowired
@@ -29,7 +33,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
   GraphHelper graphHelper;
 
   @Autowired
-  Graph graph;
+  SingleSquareReconstructionService singleSquareReconstructionService;
 
   public static void main(String... args)
   {
@@ -68,7 +72,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     Graph originalGraph = new Graph(graph);
 
     List<Vertex> originalGraphVertices = new LinkedList(originalGraph.getVertices());
-    Collections.reverse(originalGraphVertices);
+//    Collections.reverse(originalGraphVertices);
 
     boolean reconstructed = false;
     for (Vertex vertex : originalGraphVertices)
@@ -78,13 +82,15 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
         boolean foundNotPrimeInterval = findNotPrimeInterval(vertex, vertices, originalGraph);
         if (foundNotPrimeInterval)
         {
-
+          graphHelper.overrideGlobalGraph(originalGraph);
+          singleSquareReconstructionService.reconstructUsingSquares();
+          return null;
         }
       }
-      if (vertex.getBfsLayer() == 1 || reconstructed)
-      {
-        break;
-      }
+//      if (vertex.getBfsLayer() == 1 || reconstructed)
+//      {
+//        break;
+//      }
     }
 
     return null;

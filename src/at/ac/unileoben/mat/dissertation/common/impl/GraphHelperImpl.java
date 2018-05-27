@@ -534,4 +534,15 @@ public class GraphHelperImpl implements GraphHelper
   {
     return graph.getGraphColoring().getActualColors().size() > 1;
   }
+
+  @Override
+  public void overrideGlobalGraph(Graph graph)
+  {
+    this.graph.setRoot(graph.getRoot());
+    this.graph.setVertices(graph.getVertices());
+    this.graph.setLayers(graph.getLayers());
+    this.graph.setGraphColoring(graph.getGraphColoring());
+    this.graph.setReverseReindexArray(graph.getReverseReindexArray());
+    this.graph.setAnalyzeData(graph.getAnalyzeData());
+  }
 }
