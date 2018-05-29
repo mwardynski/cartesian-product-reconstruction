@@ -72,7 +72,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     Graph originalGraph = new Graph(graph);
 
     List<Vertex> originalGraphVertices = new LinkedList(originalGraph.getVertices());
-//    Collections.reverse(originalGraphVertices);
+    Collections.reverse(originalGraphVertices);
 
     boolean reconstructed = false;
     for (Vertex vertex : originalGraphVertices)

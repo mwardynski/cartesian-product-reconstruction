@@ -65,6 +65,11 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
         Edge iEdge = currentVertexEdges.get(i);
         Edge jEdge = currentVertexEdges.get(j);
 
+        if (iEdge.getLabel() != null && jEdge.getLabel() != null && iEdge.getLabel().getColor() == jEdge.getLabel().getColor())
+        {
+          continue;
+        }
+
         Vertex iEdgeEndpoint = iEdge.getEndpoint();
         Vertex jEdgeEndpoint = jEdge.getEndpoint();
 
