@@ -88,7 +88,7 @@ public class GraphHelperImpl implements GraphHelper
     return newVertices;
   }
 
-
+  @Override
   public List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices)
   {
     Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
@@ -98,12 +98,7 @@ public class GraphHelperImpl implements GraphHelper
     {
       if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
       {
-        List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
-        orderBFS(Arrays.asList(v), vertices, Optional.empty(), Collections.emptySet(),
-                (currentVertex, previousVertex) -> connectedComponentVertices.add(currentVertex),
-                (currentVertex, previousVertex) ->
-                {
-                });
+        List<Vertex> connectedComponentVertices = getGraphConnectedComponentVerticesForColor(v, vertices, Optional.empty());
         connectedComponents.add(connectedComponentVertices);
       }
       graphColoringArray[v.getVertexNo()] = Color.WHITE;
@@ -111,6 +106,31 @@ public class GraphHelperImpl implements GraphHelper
 
     return connectedComponents;
   }
+
+  @Override
+  public List<Vertex> getGraphConnectedComponentVerticesForColor(Vertex vertex, List<Vertex> vertices, Optional<Integer> colorOptional)
+  {
+    List<Vertex> connectedComponentVertices = new ArrayList<>(vertices.size());
+    orderBFS(Arrays.asList(vertex), vertices, colorOptional, Collections.emptySet(),
+            (currentVertex, previousVertex) -> connectedComponentVertices.add(currentVertex),
+            (currentVertex, previousVertex) ->
+            {
+            });
+    return connectedComponentVertices;
+  }
+
+  @Override
+  public List<Edge> getGraphConnectedComponentEdgesForColor(Vertex vertex, List<Vertex> vertices, Optional<Integer> colorOptional, Edge[][] adjacencyMatrix)
+  {
+    List<Edge> connectedComponentEdges = new LinkedList<>();
+    orderBFS(Arrays.asList(vertex), vertices, colorOptional, Collections.emptySet(),
+            (currentVertex, previousVertex) -> connectedComponentEdges.add(adjacencyMatrix[previousVertex.getVertexNo()][currentVertex.getVertexNo()]),
+            (currentVertex, previousVertex) ->
+            {
+            });
+    return connectedComponentEdges;
+  }
+
 
   @Override
   public int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color)
@@ -544,5 +564,24 @@ public class GraphHelperImpl implements GraphHelper
     this.graph.setGraphColoring(graph.getGraphColoring());
     this.graph.setReverseReindexArray(graph.getReverseReindexArray());
     this.graph.setAnalyzeData(graph.getAnalyzeData());
+  }
+
+  @Override
+  public Edge[][] createAdjacencyMatrix()
+  {
+    int graphSize = graph.getVertices().size();
+    Edge[][] adjacencyMatrix = new Edge[graphSize][graphSize];
+
+    graph.getVertices().stream().forEach(
+            v -> v.getEdges().forEach(
+                    e ->
+                    {
+                      Vertex u = e.getEndpoint();
+                      adjacencyMatrix[v.getVertexNo()][u.getVertexNo()] = e;
+                    }
+            )
+    );
+
+    return adjacencyMatrix;
   }
 }

@@ -5,6 +5,7 @@ import at.ac.unileoben.mat.dissertation.common.impl.GraphHelperImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.FactorsFromIntervalReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
   @Autowired
   SingleSquareReconstructionService singleSquareReconstructionService;
+
+  @Autowired
+  FactorsFromIntervalReconstructionService factorsFromIntervalReconstructionService;
 
   public static void main(String... args)
   {
@@ -79,11 +83,12 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     {
       if (vertex.getBfsLayer() > 1)
       {
-        boolean foundNotPrimeInterval = findNotPrimeInterval(vertex, vertices, originalGraph);
-        if (foundNotPrimeInterval)
+        Vertex intervalRoot = findNotPrimeInterval(vertex, vertices, originalGraph);
+        if (intervalRoot != null)
         {
           graphHelper.overrideGlobalGraph(originalGraph);
-          singleSquareReconstructionService.reconstructUsingSquares();
+//          singleSquareReconstructionService.reconstructUsingSquares();
+          factorsFromIntervalReconstructionService.reconstructUsingIntervalFactors(intervalRoot);
           return null;
         }
       }
@@ -96,21 +101,23 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     return null;
   }
 
-  private boolean findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph)
+  private Vertex findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph)
   {
     SubgraphData subgraph = graphHelper.getSubgraphForTopVertices(Collections.singletonList(topVertex), vertices);
     List<Vertex> subgraphVertices = subgraph.getVertices();
     linearFactorization.factorize(subgraphVertices, subgraphVertices.get(subgraphVertices.size() - 1));
     if (!graphHelper.isMoreThanOneColorLeft(graph))
     {
-      return false;
+      return null;
     }
+
+    Vertex subgraphRoot = graph.getRoot();
 
     reindexSubgraphToOriginalGraph(subgraph);
 
     transferColorsFromSubGraphToOriginalGraph(originalGraph);
 
-    return true;
+    return subgraphRoot;
   }
 
   private void reindexSubgraphToOriginalGraph(SubgraphData subgraph)
@@ -123,6 +130,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
   private void transferColorsFromSubGraphToOriginalGraph(Graph originalGraph)
   {
+    originalGraph.setGraphColoring(graph.getGraphColoring());
     List<Vertex> originalGraphVertices = originalGraph.getVertices();
 
     for (Vertex vSub : graph.getVertices())

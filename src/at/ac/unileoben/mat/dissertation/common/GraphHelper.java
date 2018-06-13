@@ -1,9 +1,6 @@
 package at.ac.unileoben.mat.dissertation.common;
 
-import at.ac.unileoben.mat.dissertation.structure.FactorizationUnitLayerSpecData;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.SubgraphData;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +21,10 @@ public interface GraphHelper
   List<Vertex> copySubgraph(List<Vertex> allVertices, Optional<Vertex> vertexToRemoveOptional);
 
   List<List<Vertex>> getGraphConnectedComponents(List<Vertex> vertices);
+
+  List<Vertex> getGraphConnectedComponentVerticesForColor(Vertex vertex, List<Vertex> vertices, Optional<Integer> colorOptional);
+
+  List<Edge> getGraphConnectedComponentEdgesForColor(Vertex vertex, List<Vertex> vertices, Optional<Integer> colorOptional, Edge[][] adjacencyMatrix);
 
   int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
 
@@ -46,4 +47,6 @@ public interface GraphHelper
   boolean isMoreThanOneColorLeft(Graph graph);
 
   void overrideGlobalGraph(Graph graph);
+
+  Edge[][] createAdjacencyMatrix();
 }

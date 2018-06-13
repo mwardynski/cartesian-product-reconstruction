@@ -70,48 +70,56 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
           continue;
         }
 
-        Vertex iEdgeEndpoint = iEdge.getEndpoint();
-        Vertex jEdgeEndpoint = jEdge.getEndpoint();
-
-        Edge[] iEdgeEndpointAdjacencyVector = new Edge[graph.getVertices().size()];
-        iEdgeEndpoint.getEdges().stream().forEach(e -> iEdgeEndpointAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
-
-        Edge[] jEdgeEndpointAdjacencyVector = new Edge[graph.getVertices().size()];
-        jEdgeEndpoint.getEdges().stream().forEach(e -> jEdgeEndpointAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
-
-        boolean squareFound = false;
-        for (int k = 0; k < iEdgeEndpointAdjacencyVector.length; k++)
-        {
-          if (k == squareReconstructionData.getCurrentVertex().getVertexNo())
-          {
-            continue;
-          }
-          Edge iEdgeSquare = jEdgeEndpointAdjacencyVector[k];
-          Edge jEdgeSquare = iEdgeEndpointAdjacencyVector[k];
-          if (iEdgeSquare != null && jEdgeSquare != null)
-          {
-            squareFound = true;
-            colorEdge(iEdge, iEdgeSquare, squareReconstructionData);
-            colorEdge(jEdge, jEdgeSquare, squareReconstructionData);
-
-            if (!squareReconstructionData.getIncludedVertices()[k])
-            {
-              squareReconstructionData.getNextVertices().add(iEdgeSquare.getEndpoint());
-              squareReconstructionData.getIncludedVertices()[k] = true;
-            }
-          }
-        }
-        if (!squareFound)
-        {
-          MissingSquareData missingSquare = new MissingSquareData(squareReconstructionData.getCurrentVertex(), iEdge, jEdge);
-          squareReconstructionData.getMissingSquares().add(missingSquare);
-        }
+        findSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
       }
     }
     currentVertexEdges.stream()
             .peek(e -> squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = true)
             .forEach(e -> squareReconstructionData.getUsedEdges()[e.getEndpoint().getVertexNo()][e.getOrigin().getVertexNo()] = true);
     squareReconstructionData.getIncludedVertices()[squareReconstructionData.getCurrentVertex().getVertexNo()] = true;
+  }
+
+  @Override
+  public boolean findSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
+  {
+    Vertex iEdgeEndpoint = iEdge.getEndpoint();
+    Vertex jEdgeEndpoint = jEdge.getEndpoint();
+
+    Edge[] iEdgeEndpointAdjacencyVector = new Edge[graph.getVertices().size()];
+    iEdgeEndpoint.getEdges().stream().forEach(e -> iEdgeEndpointAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
+
+    Edge[] jEdgeEndpointAdjacencyVector = new Edge[graph.getVertices().size()];
+    jEdgeEndpoint.getEdges().stream().forEach(e -> jEdgeEndpointAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
+
+    boolean squareFound = false;
+    for (int k = 0; k < iEdgeEndpointAdjacencyVector.length; k++)
+    {
+      if (k == squareReconstructionData.getCurrentVertex().getVertexNo())
+      {
+        continue;
+      }
+      Edge iEdgeSquare = jEdgeEndpointAdjacencyVector[k];
+      Edge jEdgeSquare = iEdgeEndpointAdjacencyVector[k];
+      if (iEdgeSquare != null && jEdgeSquare != null)
+      {
+        squareFound = true;
+        colorEdge(iEdge, iEdgeSquare, squareReconstructionData);
+        colorEdge(jEdge, jEdgeSquare, squareReconstructionData);
+
+        if (!squareReconstructionData.getIncludedVertices()[k])
+        {
+          squareReconstructionData.getNextVertices().add(iEdgeSquare.getEndpoint());
+          squareReconstructionData.getIncludedVertices()[k] = true;
+        }
+      }
+    }
+    if (!squareFound)
+    {
+      MissingSquareData missingSquare = new MissingSquareData(squareReconstructionData.getCurrentVertex(), iEdge, jEdge);
+      squareReconstructionData.getMissingSquares().add(missingSquare);
+    }
+
+    return squareFound;
   }
 
   private void colorEdge(Edge baseEdge, Edge squareEdge, SquareReconstructionData squareReconstructionData)
