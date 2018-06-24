@@ -98,17 +98,19 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
       {
         continue;
       }
-      Edge iEdgeSquare = jEdgeEndpointAdjacencyVector[k];
-      Edge jEdgeSquare = iEdgeEndpointAdjacencyVector[k];
-      if (iEdgeSquare != null && jEdgeSquare != null)
+      Edge iSquareEdge = jEdgeEndpointAdjacencyVector[k];
+      Edge jSquareEdge = iEdgeEndpointAdjacencyVector[k];
+      if (iSquareEdge != null && jSquareEdge != null)
       {
         squareFound = true;
-        colorEdge(iEdge, iEdgeSquare, squareReconstructionData);
-        colorEdge(jEdge, jEdgeSquare, squareReconstructionData);
+        colorEdge(iEdge, iSquareEdge, squareReconstructionData);
+        colorEdge(jEdge, jSquareEdge, squareReconstructionData);
+
+        storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
         if (!squareReconstructionData.getIncludedVertices()[k])
         {
-          squareReconstructionData.getNextVertices().add(iEdgeSquare.getEndpoint());
+          squareReconstructionData.getNextVertices().add(iSquareEdge.getEndpoint());
           squareReconstructionData.getIncludedVertices()[k] = true;
         }
       }
@@ -148,6 +150,47 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
       squareEdge.setLabel(new Label(color, -1));
     }
 
+  }
+
+  private void storeSquareFormingEdges(Edge iEdge, Edge jEdge, Edge iSquareEdge, Edge jSquareEdge, SquareReconstructionData squareReconstructionData)
+  {
+    if (squareReconstructionData.getSquareFormingEdges() == null)
+    {
+      return;
+    }
+    storePairOfSquareFormingEdges(iEdge, jEdge, jSquareEdge, squareReconstructionData);
+    storePairOfSquareFormingEdges(iEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
+    storePairOfSquareFormingEdges(jEdge, iEdge, iSquareEdge, squareReconstructionData);
+    storePairOfSquareFormingEdges(jEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
+
+    storePairOfSquareFormingEdges(iSquareEdge, jEdge.getOpposite(), jSquareEdge.getOpposite(), squareReconstructionData);
+    storePairOfSquareFormingEdges(iSquareEdge.getOpposite(), jSquareEdge.getOpposite(), jEdge.getOpposite(), squareReconstructionData);
+    storePairOfSquareFormingEdges(jSquareEdge, iEdge.getOpposite(), iSquareEdge.getOpposite(), squareReconstructionData);
+    storePairOfSquareFormingEdges(jSquareEdge.getOpposite(), iSquareEdge.getOpposite(), iEdge.getOpposite(), squareReconstructionData);
+  }
+
+  private void storePairOfSquareFormingEdges(Edge referenceEdge, Edge firstParallelEdge, Edge secondParallelEdge, SquareReconstructionData squareReconstructionData)
+  {
+    Edge[][][] squareFormingEdges = squareReconstructionData.getSquareFormingEdges();
+    Edge[] parallelEdges = squareFormingEdges[referenceEdge.getOrigin().getVertexNo()][referenceEdge.getEndpoint().getVertexNo()];
+
+    Edge parallelEdge = parallelEdges[firstParallelEdge.getEndpoint().getVertexNo()];
+
+    if (parallelEdge == squareReconstructionData.getMultipleSquaresWardenEdge())
+    {
+      return;
+    }
+    else
+    {
+      Edge edgeToAssign = secondParallelEdge;
+
+      if (parallelEdge != secondParallelEdge)
+      {
+        edgeToAssign = squareReconstructionData.getMultipleSquaresWardenEdge();
+      }
+
+      parallelEdges[firstParallelEdge.getEndpoint().getVertexNo()] = edgeToAssign;
+    }
   }
 
   private List<Edge> collectCurrentVertexEdges(SquareReconstructionData squareReconstructionData)

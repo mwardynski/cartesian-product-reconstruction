@@ -4,18 +4,18 @@ import java.util.List;
 
 public class IntervalEdgeReconstructionData
 {
-  private Edge originEdge;
+  private Edge intervalColorEdge;
   private List<Edge> missingSquareEdges;
-  private boolean incorrect;
+  private boolean checked;
 
-  public Edge getOriginEdge()
+  public Edge getIntervalColorEdge()
   {
-    return originEdge;
+    return intervalColorEdge;
   }
 
-  public void setOriginEdge(Edge originEdge)
+  public void setIntervalColorEdge(Edge intervalColorEdge)
   {
-    this.originEdge = originEdge;
+    this.intervalColorEdge = intervalColorEdge;
   }
 
   public List<Edge> getMissingSquareEdges()
@@ -28,13 +28,13 @@ public class IntervalEdgeReconstructionData
     this.missingSquareEdges = missingSquareEdges;
   }
 
-  public boolean isIncorrect()
+  public boolean isChecked()
   {
-    return incorrect;
+    return checked;
   }
 
-  public void setIncorrect(boolean incorrect)
+  public void setChecked(boolean checked)
   {
-    this.incorrect = incorrect;
+    this.checked = checked;
   }
 }

@@ -59,7 +59,12 @@ public class ColoringServiceImpl implements ColoringService
   @Override
   public int getCurrentColorMapping(GraphColoring graphColoring, int colorKey)
   {
-    return graphColoring.getColorsMapping().get(colorKey);
+    int mappedColor = colorKey;
+    if (graphColoring.getColorsMapping().size() > colorKey)
+    {
+      mappedColor = graphColoring.getColorsMapping().get(colorKey);
+    }
+    return mappedColor;
   }
 
   @Override

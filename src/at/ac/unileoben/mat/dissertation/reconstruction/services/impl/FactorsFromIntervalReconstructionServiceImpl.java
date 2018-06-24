@@ -5,12 +5,12 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringSer
 import at.ac.unileoben.mat.dissertation.reconstruction.services.FactorsFromIntervalReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Component
 public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFromIntervalReconstructionService
@@ -31,26 +31,153 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
   @Override
   public void reconstructUsingIntervalFactors(Vertex intervalRoot)
   {
-    List<Integer> factorColors = coloringService.getColorsForEdges(graph.getGraphColoring(), intervalRoot.getEdges());
-    int maxColor = factorColors.stream().mapToInt(i -> i.intValue()).max().getAsInt();
-    List<Integer> intervalFactorSizes = IntStream.range(0, maxColor + 1).mapToObj(i -> 0).collect(Collectors.toList());
-    boolean[] intervalColorsVector = new boolean[maxColor + 1];
-    factorColors.forEach(color -> intervalColorsVector[color] = true);
-
     Edge[][] adjacencyMatrix = graphHelper.createAdjacencyMatrix();
     IntervalEdgeReconstructionData[][] missingSquareMatrix = new IntervalEdgeReconstructionData[adjacencyMatrix.length][adjacencyMatrix.length];
     List<IntervalEdgeReconstructionData> missingSquareEntries = new LinkedList<>();
-    factorColors.forEach(color ->
-    {
-      List<Vertex> graphConnectedComponentVerticesForColor = graphHelper.getGraphConnectedComponentVerticesForColor(intervalRoot, graph.getVertices(), Optional.of(color));
-      intervalFactorSizes.set(color, graphConnectedComponentVerticesForColor.size());
-    });
+    List<Integer> factorsColors = coloringService.getColorsForEdges(graph.getGraphColoring(), intervalRoot.getEdges());
 
-    for (Integer currentFactorColor : factorColors)
+    Edge[][][] squareFormingEdgesByIntervalEdges = new Edge[graph.getVertices().size()][graph.getVertices().size()][graph.getVertices().size()];
+
+    collectMissingSquareEntries(intervalRoot, factorsColors, adjacencyMatrix, missingSquareMatrix, missingSquareEntries, squareFormingEdgesByIntervalEdges);
+
+
+    if (CollectionUtils.isNotEmpty(missingSquareEntries))
+    {
+      int currentFactorColor = -1;
+      List<Integer> otherFactorsColors = null;
+
+      List<Edge> notMatchingEdges = new LinkedList<>();
+
+      for (IntervalEdgeReconstructionData missingSquareEntry : missingSquareEntries)
+      {
+        if (missingSquareEntry.isChecked())
+        {
+          continue;
+        }
+
+        missingSquareEntry.setChecked(true);
+        Edge intervalColorEdge = missingSquareEntry.getIntervalColorEdge();
+
+        if (intervalColorEdge.getLabel().getColor() != currentFactorColor)
+        {
+          currentFactorColor = intervalColorEdge.getLabel().getColor();
+          otherFactorsColors = collectOtherFactorsColors(currentFactorColor, factorsColors);
+        }
+
+        for (Integer otherFactorColor : otherFactorsColors)
+        {
+          Edge[] intervalColorEdgesByOriginVertex = new Edge[graph.getVertices().size()];
+          intervalColorEdgesByOriginVertex[intervalColorEdge.getOrigin().getVertexNo()] = intervalColorEdge;
+
+          List<Edge> otherColorIntervalFactorEdges = graphHelper.getGraphConnectedComponentEdgesForColor(intervalColorEdge.getOrigin(), graph.getVertices(), Optional.of(otherFactorColor), adjacencyMatrix);
+
+          int[] missingSquareEntriesDistances = new int[graph.getVertices().size()];
+          missingSquareEntriesDistances[intervalColorEdge.getOrigin().getVertexNo()] = 0;
+
+
+          for (Edge otherColorIntervalFactorEdge : otherColorIntervalFactorEdges)
+          {
+            Edge primaryEdge = intervalColorEdgesByOriginVertex[otherColorIntervalFactorEdge.getOrigin().getVertexNo()];
+            missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()] = missingSquareEntriesDistances[otherColorIntervalFactorEdge.getOrigin().getVertexNo()] + 1;
+
+            Optional<Edge> correspondingEdgeOptional = findCorrespondingEdgeToPrimaryEdge(primaryEdge, otherColorIntervalFactorEdge.getEndpoint(), adjacencyMatrix, intervalColorEdgesByOriginVertex);
+            if (correspondingEdgeOptional.isPresent())
+            {
+              Edge correspondingEdge = correspondingEdgeOptional.get();
+              intervalColorEdgesByOriginVertex[correspondingEdge.getOrigin().getVertexNo()] = correspondingEdge;
+
+              IntervalEdgeReconstructionData correspondingEdgeMissingSquareEntry = missingSquareMatrix[correspondingEdge.getOrigin().getVertexNo()][correspondingEdge.getEndpoint().getVertexNo()];
+
+              if (correspondingEdgeMissingSquareEntry != null)
+              {
+                correspondingEdgeMissingSquareEntry.setChecked(true);
+
+                int missingSquareEntriesDistance = missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()];
+                missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()] = 0;
+
+                if (missingSquareEntriesDistance == 1)
+                {
+                  List<Edge> tmpList = findNotMatchingEdges(missingSquareEntry.getMissingSquareEdges(), correspondingEdgeMissingSquareEntry.getMissingSquareEdges(), squareFormingEdgesByIntervalEdges,
+                          primaryEdge.getOrigin().getVertexNo(), otherColorIntervalFactorEdge.getEndpoint().getVertexNo());
+                  notMatchingEdges.addAll(tmpList);
+                  missingSquareEntry.setChecked(true);
+
+                  tmpList = findNotMatchingEdges(correspondingEdgeMissingSquareEntry.getMissingSquareEdges(), missingSquareEntry.getMissingSquareEdges(), squareFormingEdgesByIntervalEdges,
+                          otherColorIntervalFactorEdge.getEndpoint().getVertexNo(), intervalColorEdge.getOrigin().getVertexNo());
+                  notMatchingEdges.addAll(tmpList);
+                  correspondingEdgeMissingSquareEntry.setChecked(true);
+
+                  missingSquareEntry = correspondingEdgeMissingSquareEntry;
+                }
+                else if (missingSquareEntriesDistance == 2)
+                {
+                  //store potential reconstruction
+                }
+              }
+            }
+          }
+
+        }
+
+      }
+    }
+
+
+    return;
+  }
+
+  private Optional<Edge> findCorrespondingEdgeToPrimaryEdge(Edge primaryEdge, Vertex otherVertex, Edge[][] adjacencyMatrix, Edge[] intervalColorEdgesByOriginVertex)
+  {
+    Optional<Edge> correspondingEdgeOptional = Optional.ofNullable(intervalColorEdgesByOriginVertex[otherVertex.getVertexNo()]);
+
+    if (!correspondingEdgeOptional.isPresent())
+    {
+      correspondingEdgeOptional = otherVertex.getEdges().stream()
+              .filter(e -> e.getLabel().getColor() == primaryEdge.getLabel().getColor() &&
+                      adjacencyMatrix[e.getEndpoint().getVertexNo()][primaryEdge.getEndpoint().getVertexNo()] != null).findAny();
+    }
+
+    return correspondingEdgeOptional;
+  }
+
+  private List<Edge> findNotMatchingEdges(List<Edge> edges, List<Edge> correspondingEdges, Edge[][][] squreFormingEdgesByIntervalEdges,
+                                          int intervalFactorVertex1No, int intervalFactorVertex2No)
+  {
+    Edge[] correspondingEdgesAdjacencyVector = new Edge[graph.getVertices().size()];
+    correspondingEdges.stream().forEach(e -> correspondingEdgesAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
+
+    List<Edge> notMachingEdges = edges.stream()
+            .filter(e ->
+            {
+              Edge correspondingEdge = squreFormingEdgesByIntervalEdges[intervalFactorVertex1No][intervalFactorVertex2No][e.getEndpoint().getVertexNo()];
+              if (correspondingEdge == null || correspondingEdgesAdjacencyVector[correspondingEdge.getEndpoint().getVertexNo()] == null)
+              {
+                return true;
+              }
+              else
+              {
+                return false;
+              }
+            }).collect(Collectors.toList());
+
+    return notMachingEdges;
+  }
+
+  private void collectMissingSquareEntries(Vertex intervalRoot, List<Integer> factorsColors, Edge[][] adjacencyMatrix,
+                                           IntervalEdgeReconstructionData[][] missingSquareMatrix, List<IntervalEdgeReconstructionData> missingSquareEntries,
+                                           Edge[][][] squareFormingEdgesByIntervalEdges)
+  {
+    int maxColor = factorsColors.stream().mapToInt(i -> i.intValue()).max().getAsInt();
+    boolean[] intervalColorsVector = new boolean[maxColor + 1];
+    factorsColors.forEach(color -> intervalColorsVector[color] = true);
+
+    for (Integer currentFactorColor : factorsColors)
     {
       SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getGraphColoring().getOriginalColorsAmount(), graph.getVertices().size());
-      List<Integer> otherFactorColors = factorColors.stream().filter(color -> !color.equals(currentFactorColor)).collect(Collectors.toList());
-      List<List<Vertex>> counterBfsVertices = otherFactorColors.stream()
+      squareReconstructionData.setSquareFormingEdges(squareFormingEdgesByIntervalEdges);
+      squareReconstructionData.setMultipleSquaresWardenEdge(new Edge(graph.getRoot(), graph.getRoot()));
+      List<Integer> otherFactorsColors = collectOtherFactorsColors(currentFactorColor, factorsColors);
+      List<List<Vertex>> counterBfsVertices = otherFactorsColors.stream()
               .map(color -> graphHelper.getGraphConnectedComponentVerticesForColor(intervalRoot, graph.getVertices(), Optional.of(color)))
               .map(bfsOrderedVertices ->
               {
@@ -70,13 +197,16 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
         firstFactorIt.remove();
         if (!firstFactorIt.hasNext())
         {
-          List<Vertex> newVertices = provideNewVerticesForColor(0, otherFactorColors, counterBfsVertices);
+          List<Vertex> newVertices = provideNewVerticesForColor(0, otherFactorsColors, counterBfsVertices);
           firstFactorIt = newVertices.iterator();
         }
       }
-      this.getClass();
     }
-    return;
+  }
+
+  private List<Integer> collectOtherFactorsColors(int currentFactorColor, List<Integer> factorsColors)
+  {
+    return factorsColors.stream().filter(color -> !color.equals(currentFactorColor)).collect(Collectors.toList());
   }
 
 
@@ -84,17 +214,18 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
                                          List<IntervalEdgeReconstructionData> missingSquareEntries, SquareReconstructionData squareReconstructionData)
   {
     List<Edge> intervalFactorEdges = graphHelper.getGraphConnectedComponentEdgesForColor(startVertex, graph.getVertices(), Optional.of(color), adjacencyMatrix);
+    intervalFactorEdges.add(0, intervalFactorEdges.get(0).getOpposite());
     for (Edge intervalFactorEdge : intervalFactorEdges)
     {
+      intervalFactorEdge = intervalFactorEdge.getOpposite();
 
       List<Edge> checkedEdges = new LinkedList<>();
       List<Edge> missingSquareEdges = new LinkedList<>();
 
 
-      checkNotIntervalEdgesOfIntervalEdge(intervalFactorEdge, intervalColorsVector, squareReconstructionData, checkedEdges, missingSquareEdges, true);
-      checkNotIntervalEdgesOfIntervalEdge(intervalFactorEdge, intervalColorsVector, squareReconstructionData, checkedEdges, missingSquareEdges, false);
+      checkNotIntervalEdgesOfIntervalEdge(intervalFactorEdge, intervalColorsVector, squareReconstructionData, checkedEdges, missingSquareEdges);
 
-      if (checkedEdges.isEmpty() || !missingSquareEdges.isEmpty())
+      if (!missingSquareEdges.isEmpty())
       {
         storeIntervalEdgeWithoutSquare(intervalFactorEdge, missingSquareEdges, missingSquareMatrix, missingSquareEntries);
       }
@@ -102,13 +233,8 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
   }
 
   private void checkNotIntervalEdgesOfIntervalEdge(Edge intervalFactorEdge, boolean[] intervalColorsVector,
-                                                   SquareReconstructionData squareReconstructionData, List<Edge> checkedEdges, List<Edge> missingSquareEdges,
-                                                   boolean firstRun)
+                                                   SquareReconstructionData squareReconstructionData, List<Edge> checkedEdges, List<Edge> missingSquareEdges)
   {
-    if (!firstRun)
-    {
-      intervalFactorEdge = intervalFactorEdge.getOpposite();
-    }
     Vertex intervalFactorEdgeVertex = intervalFactorEdge.getOrigin();
     squareReconstructionData.setCurrentVertex(intervalFactorEdgeVertex);
 
@@ -120,11 +246,8 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
       }
       checkedEdges.add(edge);
       boolean squareFound = singleSquareReconstructionService.findSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
-      if (firstRun)
-      {
-        squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
-        squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
-      }
+//      squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
+//      squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
       if (!squareFound)
       {
         missingSquareEdges.add(edge);
@@ -135,15 +258,14 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
   private void storeIntervalEdgeWithoutSquare(Edge intervalFactorEdge, List<Edge> missingSquareEdges, IntervalEdgeReconstructionData[][] missingSquareMatrix, List<IntervalEdgeReconstructionData> missingSquareEntries)
   {
     IntervalEdgeReconstructionData intervalEdgeReconstructionData = new IntervalEdgeReconstructionData();
-    intervalEdgeReconstructionData.setOriginEdge(intervalFactorEdge);
+    intervalEdgeReconstructionData.setIntervalColorEdge(intervalFactorEdge);
     intervalEdgeReconstructionData.setMissingSquareEdges(missingSquareEdges);
-    intervalEdgeReconstructionData.setIncorrect(true);
 
     missingSquareEntries.add(intervalEdgeReconstructionData);
     missingSquareMatrix[intervalFactorEdge.getOrigin().getVertexNo()][intervalFactorEdge.getEndpoint().getVertexNo()] = intervalEdgeReconstructionData;
   }
 
-  private List<Vertex> provideNewVerticesForColor(int currentColorIndex, List<Integer> otherFactorColors, List<List<Vertex>> counterBfsVertices)
+  private List<Vertex> provideNewVerticesForColor(int currentColorIndex, List<Integer> otherFactorsColors, List<List<Vertex>> counterBfsVertices)
   {
     List<Vertex> resultVertices = Collections.emptyList();
     int nextColorIndex = currentColorIndex + 1;
@@ -156,7 +278,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
       if (!nextColorVerticesIt.hasNext())
       {
-        List<Vertex> updatedBfsVertices = provideNewVerticesForColor(nextColorIndex, otherFactorColors, counterBfsVertices);
+        List<Vertex> updatedBfsVertices = provideNewVerticesForColor(nextColorIndex, otherFactorsColors, counterBfsVertices);
         counterBfsVertices.set(nextColorIndex, updatedBfsVertices);
         nextColorVerticesIt = updatedBfsVertices.iterator();
       }
@@ -165,7 +287,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
       if (nextColorVerticesIt.hasNext())
       {
         Vertex nextVertex = nextColorVerticesIt.next();
-        resultVertices = graphHelper.getGraphConnectedComponentVerticesForColor(nextVertex, graph.getVertices(), Optional.of(otherFactorColors.get(currentColorIndex)));
+        resultVertices = graphHelper.getGraphConnectedComponentVerticesForColor(nextVertex, graph.getVertices(), Optional.of(otherFactorsColors.get(currentColorIndex)));
         resultVertices.add(0, nextVertex);
       }
     }

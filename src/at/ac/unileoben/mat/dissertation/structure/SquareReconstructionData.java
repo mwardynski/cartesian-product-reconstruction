@@ -12,6 +12,8 @@ public class SquareReconstructionData
   boolean[] includedVertices;
   boolean[][] usedEdges;
   List<MissingSquareData> missingSquares;
+  Edge[][][] squareFormingEdges;
+  Edge multipleSquaresWardenEdge;
 
   public SquareReconstructionData(int colorCounter, int graphSize)
   {
@@ -60,5 +62,25 @@ public class SquareReconstructionData
   public List<MissingSquareData> getMissingSquares()
   {
     return missingSquares;
+  }
+
+  public Edge[][][] getSquareFormingEdges()
+  {
+    return squareFormingEdges;
+  }
+
+  public void setSquareFormingEdges(Edge[][][] squareFormingEdges)
+  {
+    this.squareFormingEdges = squareFormingEdges;
+  }
+
+  public Edge getMultipleSquaresWardenEdge()
+  {
+    return multipleSquaresWardenEdge;
+  }
+
+  public void setMultipleSquaresWardenEdge(Edge multipleSquaresWardenEdge)
+  {
+    this.multipleSquaresWardenEdge = multipleSquaresWardenEdge;
   }
 }
