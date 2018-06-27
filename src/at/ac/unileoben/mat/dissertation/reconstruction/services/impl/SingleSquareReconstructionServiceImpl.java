@@ -135,6 +135,10 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     {
       color = baseEdge.getLabel().getColor();
     }
+    else if (squareEdge.getLabel() != null)
+    {
+      color = squareEdge.getLabel().getColor();
+    }
     else
     {
       color = squareReconstructionData.getColorCounter();
@@ -144,10 +148,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     if (baseEdge.getLabel() == null)
     {
       baseEdge.setLabel(new Label(color, -1));
+      baseEdge.getOpposite().setLabel(new Label(color, -1));
     }
     if (squareEdge.getLabel() == null)
     {
       squareEdge.setLabel(new Label(color, -1));
+      squareEdge.getOpposite().setLabel(new Label(color, -1));
     }
 
   }

@@ -38,7 +38,32 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
     Edge[][][] squareFormingEdgesByIntervalEdges = new Edge[graph.getVertices().size()][graph.getVertices().size()][graph.getVertices().size()];
 
-    collectMissingSquareEntries(intervalRoot, factorsColors, adjacencyMatrix, missingSquareMatrix, missingSquareEntries, squareFormingEdgesByIntervalEdges);
+    SpreadingIntervalVerticesCollection spreadingIntervalVerticesCollection = new SpreadingIntervalVerticesCollection(graph.getVertices().size());
+
+    collectMissingSquareEntries(intervalRoot, factorsColors, adjacencyMatrix, missingSquareMatrix, missingSquareEntries,
+            spreadingIntervalVerticesCollection, squareFormingEdgesByIntervalEdges);
+
+    if (CollectionUtils.isNotEmpty(spreadingIntervalVerticesCollection.getVertices()))
+    {
+      Queue<Vertex> spreadingIntervalVerticesQueue = new LinkedList<>(spreadingIntervalVerticesCollection.getVertices());
+      spreadingIntervalVerticesCollection.setVertices(new LinkedList<>());
+
+      while (!spreadingIntervalVerticesQueue.isEmpty())
+      {
+        Vertex vertex = spreadingIntervalVerticesQueue.poll();
+
+        boolean anyUncoloredEdgesExist = vertex.getEdges().stream().filter(e -> e.getLabel() == null).findAny().isPresent();
+
+        if (anyUncoloredEdgesExist)
+        {
+          collectMissingSquareEntries(vertex, factorsColors, adjacencyMatrix, missingSquareMatrix, missingSquareEntries,
+                  spreadingIntervalVerticesCollection, squareFormingEdgesByIntervalEdges);
+
+          spreadingIntervalVerticesQueue.addAll(spreadingIntervalVerticesCollection.getVertices());
+          spreadingIntervalVerticesCollection.setVertices(new LinkedList<>());
+        }
+      }
+    }
 
 
     if (CollectionUtils.isNotEmpty(missingSquareEntries))
@@ -165,7 +190,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
   private void collectMissingSquareEntries(Vertex intervalRoot, List<Integer> factorsColors, Edge[][] adjacencyMatrix,
                                            IntervalEdgeReconstructionData[][] missingSquareMatrix, List<IntervalEdgeReconstructionData> missingSquareEntries,
-                                           Edge[][][] squareFormingEdgesByIntervalEdges)
+                                           SpreadingIntervalVerticesCollection spreadingIntervalVerticesCollection, Edge[][][] squareFormingEdgesByIntervalEdges)
   {
     int maxColor = factorsColors.stream().mapToInt(i -> i.intValue()).max().getAsInt();
     boolean[] intervalColorsVector = new boolean[maxColor + 1];
@@ -192,7 +217,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
         Vertex startVertex = firstFactorIt.next();
 
         processFactorOfGivenColor(startVertex, currentFactorColor, intervalColorsVector, adjacencyMatrix, missingSquareMatrix,
-                missingSquareEntries, squareReconstructionData);
+                missingSquareEntries, squareReconstructionData, spreadingIntervalVerticesCollection);
 
         firstFactorIt.remove();
         if (!firstFactorIt.hasNext())
@@ -210,30 +235,34 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
   }
 
 
-  private void processFactorOfGivenColor(Vertex startVertex, int color, boolean[] intervalColorsVector, Edge[][] adjacencyMatrix, IntervalEdgeReconstructionData[][] missingSquareMatrix,
-                                         List<IntervalEdgeReconstructionData> missingSquareEntries, SquareReconstructionData squareReconstructionData)
+  private void processFactorOfGivenColor(Vertex startVertex, int currentFactorColor, boolean[] intervalColorsVector, Edge[][] adjacencyMatrix, IntervalEdgeReconstructionData[][] missingSquareMatrix,
+                                         List<IntervalEdgeReconstructionData> missingSquareEntries, SquareReconstructionData squareReconstructionData, SpreadingIntervalVerticesCollection spreadingIntervalVerticesCollection)
   {
-    List<Edge> intervalFactorEdges = graphHelper.getGraphConnectedComponentEdgesForColor(startVertex, graph.getVertices(), Optional.of(color), adjacencyMatrix);
-    intervalFactorEdges.add(0, intervalFactorEdges.get(0).getOpposite());
-    for (Edge intervalFactorEdge : intervalFactorEdges)
+    List<Edge> intervalFactorEdges = graphHelper.getGraphConnectedComponentEdgesForColor(startVertex, graph.getVertices(), Optional.of(currentFactorColor), adjacencyMatrix);
+    if (CollectionUtils.isNotEmpty(intervalFactorEdges))
     {
-      intervalFactorEdge = intervalFactorEdge.getOpposite();
-
-      List<Edge> checkedEdges = new LinkedList<>();
-      List<Edge> missingSquareEdges = new LinkedList<>();
-
-
-      checkNotIntervalEdgesOfIntervalEdge(intervalFactorEdge, intervalColorsVector, squareReconstructionData, checkedEdges, missingSquareEdges);
-
-      if (!missingSquareEdges.isEmpty())
+      intervalFactorEdges.add(0, intervalFactorEdges.get(0).getOpposite());
+      for (Edge intervalFactorEdge : intervalFactorEdges)
       {
-        storeIntervalEdgeWithoutSquare(intervalFactorEdge, missingSquareEdges, missingSquareMatrix, missingSquareEntries);
+        intervalFactorEdge = intervalFactorEdge.getOpposite();
+
+        List<Edge> checkedEdges = new LinkedList<>();
+        List<Edge> missingSquareEdges = new LinkedList<>();
+
+
+        checkNotIntervalEdgesOfIntervalEdge(intervalFactorEdge, intervalColorsVector, squareReconstructionData,
+                spreadingIntervalVerticesCollection, checkedEdges, missingSquareEdges);
+
+        if (!missingSquareEdges.isEmpty())
+        {
+          storeIntervalEdgeWithoutSquare(intervalFactorEdge, missingSquareEdges, missingSquareMatrix, missingSquareEntries);
+        }
       }
     }
   }
 
-  private void checkNotIntervalEdgesOfIntervalEdge(Edge intervalFactorEdge, boolean[] intervalColorsVector,
-                                                   SquareReconstructionData squareReconstructionData, List<Edge> checkedEdges, List<Edge> missingSquareEdges)
+  private void checkNotIntervalEdgesOfIntervalEdge(Edge intervalFactorEdge, boolean[] intervalColorsVector, SquareReconstructionData squareReconstructionData,
+                                                   SpreadingIntervalVerticesCollection spreadingIntervalVerticesCollection, List<Edge> checkedEdges, List<Edge> missingSquareEdges)
   {
     Vertex intervalFactorEdgeVertex = intervalFactorEdge.getOrigin();
     squareReconstructionData.setCurrentVertex(intervalFactorEdgeVertex);
@@ -248,6 +277,15 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
       boolean squareFound = singleSquareReconstructionService.findSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
 //      squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
 //      squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
+
+      if (!spreadingIntervalVerticesCollection.getVerticesOccurance()[edge.getEndpoint().getVertexNo()])
+      {
+        spreadingIntervalVerticesCollection.getVerticesOccurance()[edge.getOrigin().getVertexNo()] = true;
+        spreadingIntervalVerticesCollection.getVerticesOccurance()[edge.getEndpoint().getVertexNo()] = true;
+        spreadingIntervalVerticesCollection.getVertices().add(edge.getEndpoint());
+      }
+
+      //add vertex of the edge to the new vertices
       if (!squareFound)
       {
         missingSquareEdges.add(edge);
