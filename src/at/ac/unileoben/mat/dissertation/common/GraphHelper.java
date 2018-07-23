@@ -4,6 +4,7 @@ import at.ac.unileoben.mat.dissertation.structure.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -49,4 +50,6 @@ public interface GraphHelper
   void overrideGlobalGraph(Graph graph);
 
   Edge[][] createAdjacencyMatrix();
+
+  void traverseBfsGivenColors(Vertex root, List<Vertex> vertices, int currentColor, List<Integer> remainingColors, Consumer<Vertex> lastColorConsumer);
 }

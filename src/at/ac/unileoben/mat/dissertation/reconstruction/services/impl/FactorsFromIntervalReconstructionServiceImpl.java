@@ -52,7 +52,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
       {
         Vertex vertex = spreadingIntervalVerticesQueue.poll();
 
-        boolean anyUncoloredEdgesExist = vertex.getEdges().stream().filter(e -> e.getLabel() == null).findAny().isPresent();
+        boolean anyUncoloredEdgesExist = hasVertexAnyNotLabeledEdges(vertex);
 
         if (anyUncoloredEdgesExist)
         {
@@ -96,6 +96,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
           List<Edge> otherColorIntervalFactorEdges = graphHelper.getGraphConnectedComponentEdgesForColor(intervalColorEdge.getOrigin(), graph.getVertices(), Optional.of(otherFactorColor), adjacencyMatrix);
 
+          //FIXME not sure if it's really needed
           int[] missingSquareEntriesDistances = new int[graph.getVertices().size()];
           missingSquareEntriesDistances[intervalColorEdge.getOrigin().getVertexNo()] = 0;
 
@@ -103,6 +104,11 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
           for (Edge otherColorIntervalFactorEdge : otherColorIntervalFactorEdges)
           {
             Edge primaryEdge = intervalColorEdgesByOriginVertex[otherColorIntervalFactorEdge.getOrigin().getVertexNo()];
+            if (primaryEdge == null)
+            {
+              System.out.println(String.format("Wrong missingSquareEntry: %s, otherColorIntervalFactorEdges:", intervalColorEdge + missingSquareEntry.getMissingSquareEdges().toString(), otherColorIntervalFactorEdges));
+              break;
+            }
             missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()] = missingSquareEntriesDistances[otherColorIntervalFactorEdge.getOrigin().getVertexNo()] + 1;
 
             Optional<Edge> correspondingEdgeOptional = findCorrespondingEdgeToPrimaryEdge(primaryEdge, otherColorIntervalFactorEdge.getEndpoint(), adjacencyMatrix, intervalColorEdgesByOriginVertex);
@@ -198,34 +204,22 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
     for (Integer currentFactorColor : factorsColors)
     {
+      //FIXME propagate the new amount of colors, not the original one
       SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getGraphColoring().getOriginalColorsAmount(), graph.getVertices().size());
       squareReconstructionData.setSquareFormingEdges(squareFormingEdgesByIntervalEdges);
       squareReconstructionData.setMultipleSquaresWardenEdge(new Edge(graph.getRoot(), graph.getRoot()));
       List<Integer> otherFactorsColors = collectOtherFactorsColors(currentFactorColor, factorsColors);
-      List<List<Vertex>> counterBfsVertices = otherFactorsColors.stream()
-              .map(color -> graphHelper.getGraphConnectedComponentVerticesForColor(intervalRoot, graph.getVertices(), Optional.of(color)))
-              .map(bfsOrderedVertices ->
-              {
-                bfsOrderedVertices.add(0, intervalRoot);
-                return bfsOrderedVertices;
-              })
-              .collect(Collectors.toList());
 
-      Iterator<Vertex> firstFactorIt = counterBfsVertices.get(0).iterator();
-      while (firstFactorIt.hasNext())
-      {
-        Vertex startVertex = firstFactorIt.next();
+      int lastOtherColorIndex = otherFactorsColors.size() - 1;
+      int lastOtherColor = otherFactorsColors.get(lastOtherColorIndex);
+      List<Integer> remainingColors = otherFactorsColors.subList(0, lastOtherColorIndex);
 
-        processFactorOfGivenColor(startVertex, currentFactorColor, intervalColorsVector, adjacencyMatrix, missingSquareMatrix,
-                missingSquareEntries, squareReconstructionData, spreadingIntervalVerticesCollection);
+      List<Vertex> delayedProcessedVertices = new LinkedList<>();
 
-        firstFactorIt.remove();
-        if (!firstFactorIt.hasNext())
-        {
-          List<Vertex> newVertices = provideNewVerticesForColor(0, otherFactorsColors, counterBfsVertices);
-          firstFactorIt = newVertices.iterator();
-        }
-      }
+      graphHelper.traverseBfsGivenColors(intervalRoot, graph.getVertices(), lastOtherColor, remainingColors,
+              startVertex -> processFactorOfGivenColor(startVertex, currentFactorColor, intervalColorsVector, adjacencyMatrix, missingSquareMatrix,
+                      missingSquareEntries, squareReconstructionData, spreadingIntervalVerticesCollection, delayedProcessedVertices, true));
+
     }
   }
 
@@ -236,7 +230,8 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
 
   private void processFactorOfGivenColor(Vertex startVertex, int currentFactorColor, boolean[] intervalColorsVector, Edge[][] adjacencyMatrix, IntervalEdgeReconstructionData[][] missingSquareMatrix,
-                                         List<IntervalEdgeReconstructionData> missingSquareEntries, SquareReconstructionData squareReconstructionData, SpreadingIntervalVerticesCollection spreadingIntervalVerticesCollection)
+                                         List<IntervalEdgeReconstructionData> missingSquareEntries, SquareReconstructionData squareReconstructionData, SpreadingIntervalVerticesCollection spreadingIntervalVerticesCollection,
+                                         List<Vertex> delayedProcessedVertices, boolean processDelayedVertices)
   {
     List<Edge> intervalFactorEdges = graphHelper.getGraphConnectedComponentEdgesForColor(startVertex, graph.getVertices(), Optional.of(currentFactorColor), adjacencyMatrix);
     if (CollectionUtils.isNotEmpty(intervalFactorEdges))
@@ -259,6 +254,32 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
         }
       }
     }
+
+    if (processDelayedVertices)
+    {
+      Iterator<Vertex> delayedProcessedVerticesIterator = delayedProcessedVertices.iterator();
+      while (delayedProcessedVerticesIterator.hasNext())
+      {
+        Vertex delayedPRocessedVertex = delayedProcessedVerticesIterator.next();
+
+        if (!hasVertexAnyNotLabeledEdges(delayedPRocessedVertex))
+        {
+          delayedProcessedVerticesIterator.remove();
+
+          processFactorOfGivenColor(delayedPRocessedVertex, currentFactorColor, intervalColorsVector, adjacencyMatrix, missingSquareMatrix,
+                  missingSquareEntries, squareReconstructionData, spreadingIntervalVerticesCollection, delayedProcessedVertices, false);
+        }
+      }
+    }
+    if (hasVertexAnyNotLabeledEdges(startVertex))
+    {
+      delayedProcessedVertices.add(startVertex);
+    }
+  }
+
+  private boolean hasVertexAnyNotLabeledEdges(Vertex vertex)
+  {
+    return vertex.getEdges().stream().filter(e -> e.getLabel() == null).findAny().isPresent();
   }
 
   private void checkNotIntervalEdgesOfIntervalEdge(Edge intervalFactorEdge, boolean[] intervalColorsVector, SquareReconstructionData squareReconstructionData,
@@ -269,7 +290,8 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
     for (Edge edge : intervalFactorEdgeVertex.getEdges())
     {
-      if (edge.getLabel() != null && edge.getLabel().getColor() < intervalColorsVector.length && intervalColorsVector[edge.getLabel().getColor()])
+//      if (edge.getLabel() != null && edge.getLabel().getColor() < intervalColorsVector.length && intervalColorsVector[edge.getLabel().getColor()])
+      if (edge.getLabel() != null && edge.getLabel().getColor() == intervalFactorEdge.getLabel().getColor())
       {
         continue;
       }
@@ -295,6 +317,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
   private void storeIntervalEdgeWithoutSquare(Edge intervalFactorEdge, List<Edge> missingSquareEdges, IntervalEdgeReconstructionData[][] missingSquareMatrix, List<IntervalEdgeReconstructionData> missingSquareEntries)
   {
+    //FIXME check for existance - avoid duplicates
     IntervalEdgeReconstructionData intervalEdgeReconstructionData = new IntervalEdgeReconstructionData();
     intervalEdgeReconstructionData.setIntervalColorEdge(intervalFactorEdge);
     intervalEdgeReconstructionData.setMissingSquareEdges(missingSquareEdges);

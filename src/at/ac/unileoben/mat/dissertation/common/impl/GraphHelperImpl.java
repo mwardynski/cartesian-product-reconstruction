@@ -5,6 +5,7 @@ import at.ac.unileoben.mat.dissertation.common.GraphReader;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -583,5 +585,49 @@ public class GraphHelperImpl implements GraphHelper
     );
 
     return adjacencyMatrix;
+  }
+
+  @Override
+  public void traverseBfsGivenColors(Vertex root, List<Vertex> vertices, int currentColor, List<Integer> remainingColors, Consumer<Vertex> lastColorConsumer)
+  {
+    Color[] graphColoringArray = createGraphColoringArray(vertices, Color.WHITE);
+    graphColoringArray[root.getVertexNo()] = Color.GRAY;
+    Queue<Vertex> queue = new LinkedList<>();
+    queue.add(root);
+    while (!queue.isEmpty())
+    {
+      Vertex u = queue.poll();
+
+      if (CollectionUtils.isNotEmpty(remainingColors))
+      {
+        int newCurrentColorIndex = remainingColors.size() - 1;
+        Integer newCurrentColor = remainingColors.get(newCurrentColorIndex);
+        List<Integer> newRemainingColors = remainingColors.subList(0, newCurrentColorIndex);
+        traverseBfsGivenColors(u, vertices, newCurrentColor, newRemainingColors, lastColorConsumer);
+      }
+      else
+      {
+        lastColorConsumer.accept(u);
+      }
+
+      for (Edge e : u.getEdges())
+      {
+        if (isEdgeColorToByExcluded(Optional.of(currentColor), e))
+        {
+          continue;
+        }
+        Vertex v = e.getEndpoint();
+        if (graphColoringArray[v.getVertexNo()] != Color.BLACK)
+        {
+          if (graphColoringArray[v.getVertexNo()] == Color.WHITE)
+          {
+            graphColoringArray[v.getVertexNo()] = Color.GRAY;
+            queue.add(v);
+          }
+        }
+
+      }
+      graphColoringArray[u.getVertexNo()] = Color.BLACK;
+    }
   }
 }
