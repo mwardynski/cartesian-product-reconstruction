@@ -73,6 +73,8 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
       List<Edge> notMatchingEdges = new LinkedList<>();
 
+      List<IntervalEdgeReconstructionData> confirmedMissingSquareEntries = new LinkedList<>();
+
       for (IntervalEdgeReconstructionData missingSquareEntry : missingSquareEntries)
       {
         if (missingSquareEntry.isChecked())
@@ -80,6 +82,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
           continue;
         }
 
+        //FIXME set checked after checking all missing square edges
         missingSquareEntry.setChecked(true);
         Edge intervalColorEdge = missingSquareEntry.getIntervalColorEdge();
 
@@ -101,17 +104,30 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
           missingSquareEntriesDistances[intervalColorEdge.getOrigin().getVertexNo()] = 0;
 
 
+          List<Edge> missingSquareConfirmedOtherColorIntervalFactorEdges = new LinkedList<>();
+          List<Edge> missingSquareRejectedOtherColorIntervalFactorEdges = new LinkedList<>();
+
           for (Edge otherColorIntervalFactorEdge : otherColorIntervalFactorEdges)
           {
+            missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()] = missingSquareEntriesDistances[otherColorIntervalFactorEdge.getOrigin().getVertexNo()] + 1;
+
             Edge primaryEdge = intervalColorEdgesByOriginVertex[otherColorIntervalFactorEdge.getOrigin().getVertexNo()];
             if (primaryEdge == null)
             {
+              if (missingSquareEntriesDistances[otherColorIntervalFactorEdge.getOrigin().getVertexNo()] == 1)
+              {
+
+              }
+              else
+              {
+
+              }
               System.out.println(String.format("Wrong missingSquareEntry: %s, otherColorIntervalFactorEdges:", intervalColorEdge + missingSquareEntry.getMissingSquareEdges().toString(), otherColorIntervalFactorEdges));
               break;
             }
-            missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()] = missingSquareEntriesDistances[otherColorIntervalFactorEdge.getOrigin().getVertexNo()] + 1;
-
             Optional<Edge> correspondingEdgeOptional = findCorrespondingEdgeToPrimaryEdge(primaryEdge, otherColorIntervalFactorEdge.getEndpoint(), adjacencyMatrix, intervalColorEdgesByOriginVertex);
+
+            //FIXME what if it's not present
             if (correspondingEdgeOptional.isPresent())
             {
               Edge correspondingEdge = correspondingEdgeOptional.get();
@@ -121,6 +137,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
               if (correspondingEdgeMissingSquareEntry != null)
               {
+                //FIXME not too fast with this checked=true
                 correspondingEdgeMissingSquareEntry.setChecked(true);
 
                 int missingSquareEntriesDistance = missingSquareEntriesDistances[otherColorIntervalFactorEdge.getEndpoint().getVertexNo()];
@@ -145,12 +162,21 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
                   //store potential reconstruction
                 }
               }
+              else
+              {
+                missingSquareConfirmedOtherColorIntervalFactorEdges.add(otherColorIntervalFactorEdge);
+              }
             }
           }
 
+          if (missingSquareConfirmedOtherColorIntervalFactorEdges.size() == otherColorIntervalFactorEdges.size())
+          {
+            confirmedMissingSquareEntries.add(missingSquareEntry);
+          }
         }
-
       }
+
+      confirmedMissingSquareEntries.getClass();
     }
 
 
