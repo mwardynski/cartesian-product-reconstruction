@@ -20,6 +20,7 @@ public class Graph
   private List<List<Vertex>> layers;
 
   private Integer[] reverseReindexArray;
+  private Edge[][] adjacencyMatrix;
 
   private AnalyzeData analyzeData;
 
@@ -34,6 +35,7 @@ public class Graph
     setGraphColoring(graph.getGraphColoring());
     setLayers(graph.getLayers());
     setReverseReindexArray(graph.getReverseReindexArray());
+    setAdjacencyMatrix(graph.getAdjacencyMatrix());
     setAnalyzeData(graph.getAnalyzeData());
   }
 
@@ -85,6 +87,16 @@ public class Graph
   public void setReverseReindexArray(Integer[] reverseReindexArray)
   {
     this.reverseReindexArray = reverseReindexArray;
+  }
+
+  public Edge[][] getAdjacencyMatrix()
+  {
+    return adjacencyMatrix;
+  }
+
+  public void setAdjacencyMatrix(Edge[][] adjacencyMatrix)
+  {
+    this.adjacencyMatrix = adjacencyMatrix;
   }
 
   public AnalyzeData getAnalyzeData()

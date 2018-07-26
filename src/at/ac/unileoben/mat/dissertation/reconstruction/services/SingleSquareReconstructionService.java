@@ -5,7 +5,7 @@ import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 
 public interface SingleSquareReconstructionService
 {
-  void reconstructUsingSquares();
+  void reconstructUsingSquares(Edge[][][] matchingSquareEdgesByEdgeAndColor);
 
-  boolean findSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge);
+  boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge);
 }

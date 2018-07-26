@@ -2,10 +2,12 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,10 +19,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   Graph graph;
 
   @Override
-  public void reconstructUsingSquares()
+  public void reconstructUsingSquares(Edge[][][] matchingSquareEdgesByEdgeAndColor)
   {
     SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getGraphColoring().getOriginalColorsAmount(), graph.getVertices().size());
     squareReconstructionData.getNextVertices().add(graph.getRoot());
+    squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
+    squareReconstructionData.setMatchingSquareEdgesByEdgeAndColor(matchingSquareEdgesByEdgeAndColor);
 
     while (squareReconstructionData.getNextVertices().size() > 0)
     {
@@ -70,51 +74,47 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
           continue;
         }
 
-        findSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
+        findAndProcessSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
       }
     }
     currentVertexEdges.stream()
             .peek(e -> squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = true)
             .forEach(e -> squareReconstructionData.getUsedEdges()[e.getEndpoint().getVertexNo()][e.getOrigin().getVertexNo()] = true);
-    squareReconstructionData.getIncludedVertices()[squareReconstructionData.getCurrentVertex().getVertexNo()] = true;
   }
 
   @Override
-  public boolean findSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
+  public boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
   {
-    Vertex iEdgeEndpoint = iEdge.getEndpoint();
-    Vertex jEdgeEndpoint = jEdge.getEndpoint();
+    List<List<Edge>> squareEdgesList = findSquaresForVertexAndEdge(iEdge.getEndpoint(), jEdge);
+    boolean squareFound = CollectionUtils.isNotEmpty(squareEdgesList);
 
-    Edge[] iEdgeEndpointAdjacencyVector = new Edge[graph.getVertices().size()];
-    iEdgeEndpoint.getEdges().stream().forEach(e -> iEdgeEndpointAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
+    squareEdgesList.stream()
+            .forEach(edgesPair ->
+            {
+              Edge iSquareEdge = edgesPair.get(0);
+              Edge jSquareEdge = edgesPair.get(1);
 
-    Edge[] jEdgeEndpointAdjacencyVector = new Edge[graph.getVertices().size()];
-    jEdgeEndpoint.getEdges().stream().forEach(e -> jEdgeEndpointAdjacencyVector[e.getEndpoint().getVertexNo()] = e);
+              if (jEdge.getLabel() != null)
+              {
+                colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
+                colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
+              }
+              else
+              {
+                colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
+                colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
+              }
 
-    boolean squareFound = false;
-    for (int k = 0; k < iEdgeEndpointAdjacencyVector.length; k++)
-    {
-      if (k == squareReconstructionData.getCurrentVertex().getVertexNo())
-      {
-        continue;
-      }
-      Edge iSquareEdge = jEdgeEndpointAdjacencyVector[k];
-      Edge jSquareEdge = iEdgeEndpointAdjacencyVector[k];
-      if (iSquareEdge != null && jSquareEdge != null)
-      {
-        squareFound = true;
-        colorEdge(iEdge, iSquareEdge, squareReconstructionData);
-        colorEdge(jEdge, jSquareEdge, squareReconstructionData);
+              storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
-        storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
+              Vertex iSquareEdgeEndpoint = iSquareEdge.getEndpoint();
+              if (!squareReconstructionData.getIncludedVertices()[iSquareEdgeEndpoint.getVertexNo()])
+              {
+                squareReconstructionData.getNextVertices().add(iSquareEdgeEndpoint);
+                squareReconstructionData.getIncludedVertices()[iSquareEdgeEndpoint.getVertexNo()] = true;
+              }
+            });
 
-        if (!squareReconstructionData.getIncludedVertices()[k])
-        {
-          squareReconstructionData.getNextVertices().add(iSquareEdge.getEndpoint());
-          squareReconstructionData.getIncludedVertices()[k] = true;
-        }
-      }
-    }
     if (!squareFound)
     {
       MissingSquareData missingSquare = new MissingSquareData(squareReconstructionData.getCurrentVertex(), iEdge, jEdge);
@@ -124,13 +124,24 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     return squareFound;
   }
 
-  private void colorEdge(Edge baseEdge, Edge squareEdge, SquareReconstructionData squareReconstructionData)
+  private List<List<Edge>> findSquaresForVertexAndEdge(Vertex baseEdgeEndpoint, Edge otherEdge)
+  {
+    List<List<Edge>> squareEdgesForGivenTwoEdges = otherEdge.getEndpoint().getEdges().stream()
+            .filter(edge -> edge != otherEdge.getOpposite())
+            .filter(edge -> graph.getAdjacencyMatrix()[baseEdgeEndpoint.getVertexNo()][edge.getEndpoint().getVertexNo()] != null)
+            .map(edge -> Arrays.asList(edge, graph.getAdjacencyMatrix()[baseEdgeEndpoint.getVertexNo()][edge.getEndpoint().getVertexNo()]))
+            .collect(Collectors.toList());
+
+    return squareEdgesForGivenTwoEdges;
+  }
+
+  private void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
     if (baseEdge.getLabel() != null && squareEdge.getLabel() != null)
     {
       return;
     }
-    int color;
+    int color = -1;
     if (baseEdge.getLabel() != null)
     {
       color = baseEdge.getLabel().getColor();
@@ -141,21 +152,58 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     }
     else
     {
-      color = squareReconstructionData.getColorCounter();
-      squareReconstructionData.setColorCounter(color + 1);
+      color = findExtensionColor(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
+
+      if (color == -1)
+      {
+        color = squareReconstructionData.getColorCounter();
+        squareReconstructionData.setColorCounter(color + 1);
+      }
     }
+
 
     if (baseEdge.getLabel() == null)
     {
       baseEdge.setLabel(new Label(color, -1));
       baseEdge.getOpposite().setLabel(new Label(color, -1));
+
+      squareReconstructionData.getMatchingSquareEdgesByEdgeAndColor()[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()][otherColorBaseEdge.getLabel().getColor()] = squareEdge;
     }
     if (squareEdge.getLabel() == null)
     {
       squareEdge.setLabel(new Label(color, -1));
       squareEdge.getOpposite().setLabel(new Label(color, -1));
+
+      squareReconstructionData.getMatchingSquareEdgesByEdgeAndColor()[squareEdge.getOrigin().getVertexNo()][squareEdge.getEndpoint().getVertexNo()][otherColorBaseEdge.getLabel().getColor()] = baseEdge;
     }
 
+  }
+
+  private int findExtensionColor(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
+  {
+    int extensionColor = -1;
+
+    Edge[][][] matchingSquareEdgesByEdgeAndColor = squareReconstructionData.getMatchingSquareEdgesByEdgeAndColor();
+    Edge[] matchingSquareEdgesByColor = matchingSquareEdgesByEdgeAndColor[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
+
+    for (int i = 0; i < matchingSquareEdgesByColor.length; i++)
+    {
+      Edge matchingSquareEdge = matchingSquareEdgesByColor[i];
+      if (matchingSquareEdge == null)
+      {
+        continue;
+      }
+
+      List<List<Edge>> squares1 = findSquaresForVertexAndEdge(matchingSquareEdge.getOrigin(), baseEdge);
+      List<List<Edge>> squares2 = findSquaresForVertexAndEdge(matchingSquareEdge.getEndpoint(), squareEdge);
+
+      if (CollectionUtils.isEmpty(squares1) && CollectionUtils.isEmpty(squares2))
+      {
+        extensionColor = i;
+        break;
+      }
+    }
+    return extensionColor;
   }
 
   private void storeSquareFormingEdges(Edge iEdge, Edge jEdge, Edge iSquareEdge, Edge jSquareEdge, SquareReconstructionData squareReconstructionData)

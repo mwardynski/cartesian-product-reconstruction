@@ -322,7 +322,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
         continue;
       }
       checkedEdges.add(edge);
-      boolean squareFound = singleSquareReconstructionService.findSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
+      boolean squareFound = singleSquareReconstructionService.findAndProcessSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
 //      squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
 //      squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
 

@@ -15,6 +15,8 @@ public class SquareReconstructionData
   Edge[][][] squareFormingEdges;
   Edge multipleSquaresWardenEdge;
 
+  Edge[][][] matchingSquareEdgesByEdgeAndColor;
+
   public SquareReconstructionData(int colorCounter, int graphSize)
   {
     this.colorCounter = colorCounter;
@@ -82,5 +84,15 @@ public class SquareReconstructionData
   public void setMultipleSquaresWardenEdge(Edge multipleSquaresWardenEdge)
   {
     this.multipleSquaresWardenEdge = multipleSquaresWardenEdge;
+  }
+
+  public Edge[][][] getMatchingSquareEdgesByEdgeAndColor()
+  {
+    return matchingSquareEdgesByEdgeAndColor;
+  }
+
+  public void setMatchingSquareEdgesByEdgeAndColor(Edge[][][] matchingSquareEdgesByEdgeAndColor)
+  {
+    this.matchingSquareEdgesByEdgeAndColor = matchingSquareEdgesByEdgeAndColor;
   }
 }
