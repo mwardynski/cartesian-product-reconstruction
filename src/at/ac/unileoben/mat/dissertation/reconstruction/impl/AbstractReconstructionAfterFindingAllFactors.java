@@ -164,6 +164,7 @@ public abstract class AbstractReconstructionAfterFindingAllFactors extends Abstr
     FactorizationData currentFactorizationData = reconstructionData.getCurrentFactorization();
     if (currentLayer == graph.getLayers().size() - 1)
     {
+      //FIXME it should be multiplication, not max
       OptionalInt maxTopVerticesSizeOptional = currentFactorizationData.getFactors().stream().mapToInt(factorData -> factorData.getTopVertices().size()).max();
       if (maxTopVerticesSizeOptional.isPresent() && graph.getLayers().get(currentLayer).size() < maxTopVerticesSizeOptional.getAsInt())
       {

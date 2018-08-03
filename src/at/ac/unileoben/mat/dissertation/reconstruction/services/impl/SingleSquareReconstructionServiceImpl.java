@@ -255,18 +255,13 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     currentVertexEdges.stream().forEach(
             e ->
             {
-              if (true
-//                      !squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()]
-                      )
+              if (e.getLabel() != null)
               {
-                if (e.getLabel() != null)
-                {
-                  resultEdges.add(0, e);
-                }
-                else
-                {
-                  resultEdges.add(e);
-                }
+                resultEdges.add(0, e);
+              }
+              else
+              {
+                resultEdges.add(e);
               }
             }
     );

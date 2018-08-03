@@ -67,10 +67,9 @@ public class DetermineFactorsServiceImpl implements DetermineFactorsService
       updateFactorizationResult();
       List<FactorizationData.FactorData> newFactors = new LinkedList<>(currentFactorizationData.getFactors());
       int collectedFactorsTotalHeight = currentFactorizationData.getCollectedFactorsTotalHeight();
+
       currentFactorizationData = new FactorizationData(currentFactorizationData.getMaxFactorsHeight(), graph.getRoot(),
               newFactors, currentFactorizationData.getUnitLayerSpecs());
-
-
       currentFactorizationData.setCollectedFactorsTotalHeight(collectedFactorsTotalHeight);
 
       reconstructionData.setCurrentFactorization(currentFactorizationData);
@@ -127,7 +126,8 @@ public class DetermineFactorsServiceImpl implements DetermineFactorsService
 
   private boolean isFactorizationPossiblyCompleted(int currentLayerNo, FactorizationData currentFactorizationData)
   {
-    return isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) || (!isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData) && areCollectedFactorsOfMaxTotalHeight(currentFactorizationData));
+    boolean lastPossibleLayerForNewFactors = isLastPossibleLayerForNewFactors(currentLayerNo, currentFactorizationData);
+    return lastPossibleLayerForNewFactors || (!lastPossibleLayerForNewFactors && areCollectedFactorsOfMaxTotalHeight(currentFactorizationData));
   }
 
   private boolean isLastPossibleLayerForNewFactors(int currentLayerNo, FactorizationData factorizationData)
@@ -155,6 +155,7 @@ public class DetermineFactorsServiceImpl implements DetermineFactorsService
     collectFactors(factorizationData, topUnitLayerVertices);
   }
 
+  //FIXME why only for previous
   private void collectFactorsFromPreviousLayer(int previousLayerNo, FactorizationData factorizationData)
   {
     List<Vertex> previousLayer = vertexService.getGraphLayer(previousLayerNo);
@@ -163,6 +164,7 @@ public class DetermineFactorsServiceImpl implements DetermineFactorsService
     {
       Edge arbitraryEdge = v.getDownEdges().getEdges().get(0);
       int arbitraryEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), arbitraryEdge.getLabel().getColor());
+      //FIXME this second condition will be always satisfied
       if (v.isUnitLayer() && topUnitLayerVertices.get(arbitraryEdgeColor) != null)
       {
         boolean potentialCompletedFactor = true;
