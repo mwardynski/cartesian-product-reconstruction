@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.config;
 
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.exception.CompleteMergeException;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -23,6 +24,9 @@ public class CompleteMergeAspect
   @Autowired
   GraphHelper graphHelper;
 
+  @Autowired
+  GraphPrinter graphPrinter;
+
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker.checkConsistency(..)) && args(currentLayerNo)")
   private void checkConsistencyOperation(int currentLayerNo)
   {
@@ -42,6 +46,7 @@ public class CompleteMergeAspect
   {
     if (!graphHelper.isMoreThanOneColorLeft(graph))
     {
+      graphPrinter.printFactorization();
       throw new CompleteMergeException(currentLayerNo, afterConsistencyCheck);
     }
   }

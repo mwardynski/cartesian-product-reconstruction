@@ -123,7 +123,8 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
       if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCTION_ANALYSIS)
       {
         int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
         if (upEdgesAmountDifference != 0)

@@ -8,6 +8,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPr
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import at.ac.unileoben.mat.dissertation.structure.exception.CompleteMergeException;
 import org.junit.Test;
@@ -19,6 +20,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.LinkedList;
 import java.util.List;
 
+import static at.ac.unileoben.mat.dissertation.structure.OperationOnGraph.RECONSTRUCTION_ANALYSIS;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {FactorizationConfig.class})
 public class MissingVertexToRootDistanceTest
@@ -26,6 +29,9 @@ public class MissingVertexToRootDistanceTest
 
   @Autowired
   Graph graph;
+
+  @Autowired
+  ReconstructionData reconstructionData;
 
   @Autowired
   GraphHelper graphHelper;
@@ -78,6 +84,7 @@ public class MissingVertexToRootDistanceTest
   @Test
   public void runTest()
   {
+    reconstructionData.setOperationOnGraph(RECONSTRUCTION_ANALYSIS);
     examplesList.stream().forEach(reconstructionCase -> checkAllCasesForGraph(reconstructionCase));
   }
 
@@ -106,12 +113,14 @@ public class MissingVertexToRootDistanceTest
         }
         try
         {
+          logCurrentCase(graphName, vertex.getVertexNo(), vertexNumberToRemove);
           linearFactorization.factorize(incompleteVertices, vertex);
+          System.out.println(" - vertex missing on TOP of the graph");
         }
         catch (CompleteMergeException completeMergeException)
         {
           graphHelper.revertGraphBfsStructure();
-          logDistanceToMissingVertex(graphName, vertexNumberToRemove, distanceVector, completeMergeException);
+          logDistanceToMissingVertex(vertexNumberToRemove, distanceVector, completeMergeException);
         }
         clearVerticesAndEdges(incompleteVertices);
       }
@@ -141,17 +150,28 @@ public class MissingVertexToRootDistanceTest
     }
   }
 
-  private void logDistanceToMissingVertex(String graphPath, int vertexNumberToRemove, int[] distanceVector, CompleteMergeException completeMergeException)
+  private void logCurrentCase(String graphPath, int rootNo, int vertexNumberToRemove)
   {
-    Integer rootNo = graph.getRoot().getVertexNo();
-    int rootCorrectedNo = rootNo >= vertexNumberToRemove ? rootNo + 1 : rootNo;
+    int rootCorrectedNo = calculateRootCorrectedNo(vertexNumberToRemove, rootNo);
+
+    System.out.print(String.format("%s, m:%d r:%d(%d)", graphPath, vertexNumberToRemove, rootNo, rootCorrectedNo));
+  }
+
+  private void logDistanceToMissingVertex(int vertexNumberToRemove, int[] distanceVector, CompleteMergeException completeMergeException)
+  {
+    int rootNo = graph.getRoot().getVertexNo();
+    int rootCorrectedNo = calculateRootCorrectedNo(vertexNumberToRemove, rootNo);
 
     int distanceToRemovedVertex = distanceVector[rootCorrectedNo];
 
-    System.out.println(String.format("%s, m:%d r:%d(%d) - expected: layer %d, actual layer: %d(%b), diff=%d",
-            graphPath, vertexNumberToRemove, rootNo, rootCorrectedNo, distanceToRemovedVertex,
-            completeMergeException.getLayerNo(), completeMergeException.getAfterConsistencyCheck(),
-            distanceToRemovedVertex - completeMergeException.getLayerNo()));
+    System.out.println(String.format(" - expected: layer %d, actual layer: %d(%b), diff=%d",
+            distanceToRemovedVertex, completeMergeException.getLayerNo(), completeMergeException.getAfterConsistencyCheck(),
+            completeMergeException.getLayerNo() - distanceToRemovedVertex));
+  }
+
+  private int calculateRootCorrectedNo(int vertexNumberToRemove, int rootNo)
+  {
+    return rootNo >= vertexNumberToRemove ? rootNo + 1 : rootNo;
   }
 }
 
