@@ -123,13 +123,19 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         }
       }
       if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION
-              && reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCTION_ANALYSIS)
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION)
       {
         int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
         if (upEdgesAmountDifference != 0)
         {
-          vertexService.assignVertexToUnitLayerAndMergeColors(u, upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
+          if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCTION_ANALYSIS)
+          {
+            vertexService.assignVertexToUnitLayerAndMergeColors(u, upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
+          }
+          else
+          {
+            System.out.println(String.format(" --- edges amount check for %s %s: %d", uv, uw, upEdgesAmountDifference));
+          }
         }
       }
     }

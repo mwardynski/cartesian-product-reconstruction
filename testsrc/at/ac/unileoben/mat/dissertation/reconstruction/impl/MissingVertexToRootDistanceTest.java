@@ -154,7 +154,7 @@ public class MissingVertexToRootDistanceTest
   {
     int rootCorrectedNo = calculateRootCorrectedNo(vertexNumberToRemove, rootNo);
 
-    System.out.print(String.format("%s, m:%d r:%d(%d)", graphPath, vertexNumberToRemove, rootNo, rootCorrectedNo));
+    System.out.println(String.format("%s, m:%d r:%d(%d)", graphPath, vertexNumberToRemove, rootNo, rootCorrectedNo));
   }
 
   private void logDistanceToMissingVertex(int vertexNumberToRemove, int[] distanceVector, CompleteMergeException completeMergeException)
