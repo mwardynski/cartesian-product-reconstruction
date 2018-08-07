@@ -70,7 +70,7 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     {
       reconstructionData.setMissingVertexToBeCreatedLaterLayer(reconstructionData.getCurrentLayerNo());
     }
-    reconstructionData.setMergeTags(new LinkedList<>());
+    reconstructionData.setMergeInvocations(new LinkedList<>());
 
     reconstructionData.setOperationOnGraph(OperationOnGraph.IN_PLACE_RECONSTRUCTION);
     FactorizationData factorizationData = new FactorizationData(0, null, null, null);
@@ -87,26 +87,27 @@ public class InPlaceReconstructionSetUpServiceImpl implements InPlaceReconstruct
     int labelDownTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.LABEL_DOWN);
     int currentLayerNo = reconstructionData.getCurrentLayerNo();
 
-    int mergeTagsCount = reconstructionData.getMergeTags().size();
+    int mergeInvocationsCount = reconstructionData.getMergeInvocations().size();
     return currentLayerNo == 2
-            && ((mergeTagsCount == consistencyUpAmountBelowTagsQuantity
+            && ((mergeInvocationsCount == consistencyUpAmountBelowTagsQuantity
             && currentLayerNo != graph.getLayers().size() - 1)
-            || mergeTagsCount == consistencyUpLabelTagsQuantity
-            || mergeTagsCount == labelCrossTagsQuantity
-            || mergeTagsCount == labelDownTagsQuantity);
+            || mergeInvocationsCount == consistencyUpLabelTagsQuantity
+            || mergeInvocationsCount == labelCrossTagsQuantity
+            || mergeInvocationsCount == labelDownTagsQuantity);
   }
 
   private boolean isMissingVertexInCurrentLayerToBeCreatedLater()
   {
     int consistencyUpAmountAboveTagsQuantity = calculateQuantityOfMergeTag(MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
-    int mergeTagsCount = reconstructionData.getMergeTags().size();
+    int mergeTagsCount = reconstructionData.getMergeInvocations().size();
 
     return mergeTagsCount == consistencyUpAmountAboveTagsQuantity;
   }
 
   private int calculateQuantityOfMergeTag(MergeTagEnum selectedMergeTag)
   {
-    return reconstructionData.getMergeTags().stream()
+    return reconstructionData.getMergeInvocations().stream()
+            .map(mergeInvocation -> mergeInvocation.getMergeTag())
             .filter(mergeTag -> mergeTag == selectedMergeTag)
             .mapToInt(mergeTag -> 1)
             .sum();

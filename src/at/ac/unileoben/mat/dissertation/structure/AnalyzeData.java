@@ -15,9 +15,9 @@ public class AnalyzeData
 
   private List<MergeOperation> mergeOperations = new LinkedList<MergeOperation>();
 
-  public void addMergeOperation(int colorsLeft, List<Edge> edges, MergeTagEnum mergeTag)
+  public void addMergeOperation(List<Edge> edges, MergeTagEnum mergeTag)
   {
-    MergeOperation mergeOperation = new MergeOperation(colorsLeft, edges, mergeTag);
+    MergeOperation mergeOperation = new MergeOperation(edges, mergeTag);
     mergeOperations.add(mergeOperation);
   }
 
@@ -26,23 +26,18 @@ public class AnalyzeData
     return mergeOperations;
   }
 
-  public class MergeOperation
+  public static class MergeOperation
   {
     int colorsLeft;
     List<Edge> edgesByMerge;
     MergeTagEnum mergeTag;
 
-    MergeOperation(int colorsLeft, List<Edge> edgesByMerge, MergeTagEnum mergeTag)
+    public MergeOperation(List<Edge> edgesByMerge, MergeTagEnum mergeTag)
     {
-      this.colorsLeft = colorsLeft;
       this.edgesByMerge = edgesByMerge;
       this.mergeTag = mergeTag;
     }
 
-    public int getColorsLeft()
-    {
-      return colorsLeft;
-    }
 
     public List<Edge> getEdgesByMerge()
     {

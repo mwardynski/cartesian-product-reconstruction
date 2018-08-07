@@ -155,6 +155,13 @@ public class ColoringServiceImpl implements ColoringService
   @Override
   public boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag)
   {
+    AnalyzeData.MergeOperation mergeOperation = new AnalyzeData.MergeOperation(edges, mergeTag);
+    return mergeColorsForEdges(edges, mergeOperation);
+  }
+
+  @Override
+  public boolean mergeColorsForEdges(List<Edge> edges, AnalyzeData.MergeOperation mergeOperation)
+  {
     GraphColoring graphColoring = graph.getGraphColoring();
     List<Integer> colorsToMerge = getColorsForEdges(graphColoring, edges);
     boolean colorsMerged = false;
@@ -164,8 +171,9 @@ public class ColoringServiceImpl implements ColoringService
     }
     if (colorsMerged)
     {
-      reconstructionData.getMergeTags().add(mergeTag);
-      graph.getAnalyzeData().addMergeOperation(graphColoring.getActualColors().size(), edges, mergeTag);
+      MergeInvocation mergeInvocation = new MergeInvocation(mergeOperation.getMergeTag(), mergeOperation.getEdgesByMerge());
+      reconstructionData.getMergeInvocations().add(mergeInvocation);
+      graph.getAnalyzeData().addMergeOperation(edges, mergeInvocation.getMergeTag());
     }
     return colorsMerged;
   }

@@ -129,7 +129,7 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
       return;
     }
     int[] crossEdgesAmounts = new int[graph.getGraphColoring().getOriginalColorsAmount()];
-    reconstructionData.setMergeTags(new LinkedList<>());
+    reconstructionData.setMergeInvocations(new LinkedList<>());
 
     for (int i = 0; i < crossEdges.size(); i++)
     {

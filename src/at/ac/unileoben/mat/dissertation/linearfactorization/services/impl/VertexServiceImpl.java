@@ -4,6 +4,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringSer
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +71,11 @@ public class VertexServiceImpl implements VertexService
   @Override
   public void assignVertexToUnitLayerAndMergeColors(Vertex v, MergeTagEnum mergeTag)
   {
+    assignVertexToUnitLayerAndMergeColorsInternal(v, mergeTag, new LinkedList<>());
+  }
+
+  private void assignVertexToUnitLayerAndMergeColorsInternal(Vertex v, MergeTagEnum mergeTag, List<Edge> originalEdgesToRelabel)
+  {
     if (!v.isUnitLayer())
     {
       v.setUnitLayer(true);
@@ -84,10 +90,19 @@ public class VertexServiceImpl implements VertexService
       Vertex w = vw.getEndpoint();
       if (!w.isUnitLayer())
       {
-        assignVertexToUnitLayerAndMergeColors(w, mergeTag);
+        assignVertexToUnitLayerAndMergeColorsInternal(w, mergeTag, edgesToRelabel);
       }
     }
-    coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
+    if (CollectionUtils.isEmpty(edgesToRelabel))
+    {
+      coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
+    }
+    else
+    {
+      AnalyzeData.MergeOperation mergeOperation = new AnalyzeData.MergeOperation(originalEdgesToRelabel, mergeTag);
+      coloringService.mergeColorsForEdges(edgesToRelabel, mergeOperation);
+    }
+
   }
 
 }

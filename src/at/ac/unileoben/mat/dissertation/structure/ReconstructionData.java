@@ -22,6 +22,7 @@ public class ReconstructionData
   LayerBackupReconstructionData prevLayerBackup;
   LayerBackupReconstructionData currentLayerBackup;
   List<MergeTagEnum> mergeTags;
+  List<MergeInvocation> mergeInvocations;
   int missingVertexToBeCreatedLaterLayer;
   Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
   Vertex shiftVertex;
@@ -113,14 +114,14 @@ public class ReconstructionData
     this.currentLayerBackup = currentLayerBackup;
   }
 
-  public List<MergeTagEnum> getMergeTags()
+  public List<MergeInvocation> getMergeInvocations()
   {
-    return mergeTags;
+    return mergeInvocations;
   }
 
-  public void setMergeTags(List<MergeTagEnum> mergeTags)
+  public void setMergeInvocations(List<MergeInvocation> mergeInvocations)
   {
-    this.mergeTags = mergeTags;
+    this.mergeInvocations = mergeInvocations;
   }
 
   public int getMissingVertexToBeCreatedLaterLayer()
