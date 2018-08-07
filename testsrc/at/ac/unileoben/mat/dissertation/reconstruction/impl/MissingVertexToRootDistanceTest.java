@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static at.ac.unileoben.mat.dissertation.structure.OperationOnGraph.RECONSTRUCTION_ANALYSIS;
 
@@ -152,26 +153,55 @@ public class MissingVertexToRootDistanceTest
 
   private void logCurrentCase(String graphPath, int rootNo, int vertexNumberToRemove)
   {
-    int rootCorrectedNo = calculateRootCorrectedNo(vertexNumberToRemove, rootNo);
+    int rootCorrectedNo = calculateVertexCorrectedNo(vertexNumberToRemove, rootNo);
 
     System.out.println(String.format("%s, m:%d r:%d(%d)", graphPath, vertexNumberToRemove, rootNo, rootCorrectedNo));
   }
 
   private void logDistanceToMissingVertex(int vertexNumberToRemove, int[] distanceVector, CompleteMergeException completeMergeException)
   {
-    int rootNo = graph.getRoot().getVertexNo();
-    int rootCorrectedNo = calculateRootCorrectedNo(vertexNumberToRemove, rootNo);
+    int rootNumber = graph.getRoot().getVertexNo();
+    int rootCorrectedNumber = calculateVertexCorrectedNo(vertexNumberToRemove, rootNumber);
 
-    int distanceToRemovedVertex = distanceVector[rootCorrectedNo];
+    int distanceToRemovedVertex = distanceVector[rootCorrectedNumber];
 
     System.out.println(String.format(" - expected: layer %d, actual layer: %d(%b), diff=%d",
             distanceToRemovedVertex, completeMergeException.getLayerNo(), completeMergeException.getAfterConsistencyCheck(),
             completeMergeException.getLayerNo() - distanceToRemovedVertex));
+
+    String mergeOperationsOutput = prepareMergeOperationsLog(vertexNumberToRemove, distanceVector);
+    System.out.println(mergeOperationsOutput);
+
+
   }
 
-  private int calculateRootCorrectedNo(int vertexNumberToRemove, int rootNo)
+  private String prepareMergeOperationsLog(int vertexNumberToRemove, int[] distanceVector)
   {
-    return rootNo >= vertexNumberToRemove ? rootNo + 1 : rootNo;
+    return reconstructionData.getMergeOperations().stream()
+            .map(mergeOperation ->
+            {
+
+              String mergedEdgesOutput = mergeOperation.getEdges().stream()
+                      .map(e ->
+                      {
+                        int originNumber = e.getOrigin().getVertexNo();
+                        int endpointNumber = e.getEndpoint().getVertexNo();
+                        int originCorrectedNumber = calculateVertexCorrectedNo(vertexNumberToRemove, originNumber);
+                        int endpointCorrectedNumber = calculateVertexCorrectedNo(vertexNumberToRemove, endpointNumber);
+
+                        return String.format("%d-%d[%d,%d]", originNumber, endpointNumber,
+                                distanceVector[originCorrectedNumber], distanceVector[endpointCorrectedNumber]);
+                      })
+                      .collect(Collectors.joining(", "));
+
+              return String.format(" -- %s [eQty:%d]: %s", mergeOperation.getMergeTag(), mergeOperation.getEdges().size(), mergedEdgesOutput);
+            })
+            .collect(Collectors.joining("\n"));
+  }
+
+  private int calculateVertexCorrectedNo(int vertexNumberToRemove, int vertexNumber)
+  {
+    return vertexNumber >= vertexNumberToRemove ? vertexNumber + 1 : vertexNumber;
   }
 }
 

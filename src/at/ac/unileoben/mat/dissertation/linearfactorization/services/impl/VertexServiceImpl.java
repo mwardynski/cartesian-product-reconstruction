@@ -99,7 +99,7 @@ public class VertexServiceImpl implements VertexService
     }
     else
     {
-      AnalyzeData.MergeOperation mergeOperation = new AnalyzeData.MergeOperation(originalEdgesToRelabel, mergeTag);
+      MergeOperation mergeOperation = new MergeOperation(originalEdgesToRelabel, mergeTag);
       coloringService.mergeColorsForEdges(edgesToRelabel, mergeOperation);
     }
 

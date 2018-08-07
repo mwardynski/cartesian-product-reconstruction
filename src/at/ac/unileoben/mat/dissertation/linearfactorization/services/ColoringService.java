@@ -29,5 +29,5 @@ public interface ColoringService
 
   boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag);
 
-  boolean mergeColorsForEdges(List<Edge> edges, AnalyzeData.MergeOperation mergeOperation);
+  boolean mergeColorsForEdges(List<Edge> edges, MergeOperation mergeOperation);
 }

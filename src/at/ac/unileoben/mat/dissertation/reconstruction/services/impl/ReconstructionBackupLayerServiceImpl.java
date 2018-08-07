@@ -29,7 +29,7 @@ public class ReconstructionBackupLayerServiceImpl implements ReconstructionBacku
   @Override
   public void storeCurrentLayerBackup()
   {
-    reconstructionData.setMergeInvocations(new LinkedList<>());
+    reconstructionData.setMergeOperations(new LinkedList<>());
     if (reconstructionData.getPrevLayerBackup() == null || reconstructionData.getPrevLayerBackup().getLayerNo() < reconstructionData.getCurrentLayerNo())
     {
       reconstructionData.setPrevLayerBackup(reconstructionData.getCurrentLayerBackup());
