@@ -90,10 +90,11 @@ public class VertexServiceImpl implements VertexService
       Vertex w = vw.getEndpoint();
       if (!w.isUnitLayer())
       {
-        assignVertexToUnitLayerAndMergeColorsInternal(w, mergeTag, edgesToRelabel);
+        List<Edge> edgesToPass = CollectionUtils.isNotEmpty(originalEdgesToRelabel) ? originalEdgesToRelabel : edgesToRelabel;
+        assignVertexToUnitLayerAndMergeColorsInternal(w, mergeTag, edgesToPass);
       }
     }
-    if (CollectionUtils.isEmpty(edgesToRelabel))
+    if (CollectionUtils.isEmpty(originalEdgesToRelabel))
     {
       coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
     }

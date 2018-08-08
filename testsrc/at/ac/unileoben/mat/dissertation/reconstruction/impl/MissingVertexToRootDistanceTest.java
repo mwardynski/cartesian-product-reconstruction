@@ -177,7 +177,7 @@ public class MissingVertexToRootDistanceTest
 
   private String prepareMergeOperationsLog(int vertexNumberToRemove, int[] distanceVector)
   {
-    return reconstructionData.getMergeOperations().stream()
+    String mergeOperationsOutput = graph.getAnalyzeData().getMergeOperations().stream()
             .map(mergeOperation ->
             {
 
@@ -194,9 +194,39 @@ public class MissingVertexToRootDistanceTest
                       })
                       .collect(Collectors.joining(", "));
 
-              return String.format(" -- %s [eQty:%d]: %s", mergeOperation.getMergeTag(), mergeOperation.getEdges().size(), mergedEdgesOutput);
+              return String.format(" -- %s [eQty:%d,mC:%d,diff:%d]: %s", mergeOperation.getMergeTag(),
+                      mergeOperation.getEdges().size(), mergeOperation.getMergedColors().size(), mergeOperation.getEdges().size() - mergeOperation.getMergedColors().size(),
+                      mergedEdgesOutput);
             })
             .collect(Collectors.joining("\n"));
+
+    boolean mergeWihtEdgesOfProperDistancesExists = graph.getAnalyzeData().getMergeOperations().stream()
+            .filter(mergeOperation ->
+            {
+              boolean edgeOfProperDistancesExistsCorrectly = false;
+
+              int properDistanceEdgesQty = mergeOperation.getEdges().stream()
+                      .filter(e ->
+                      {
+                        int originNumber = e.getOrigin().getVertexNo();
+                        int endpointNumber = e.getEndpoint().getVertexNo();
+                        int originCorrectedNumber = calculateVertexCorrectedNo(vertexNumberToRemove, originNumber);
+                        int endpointCorrectedNumber = calculateVertexCorrectedNo(vertexNumberToRemove, endpointNumber);
+
+                        return (distanceVector[originCorrectedNumber] == 2 && distanceVector[endpointCorrectedNumber] == 1)
+                                || (distanceVector[originCorrectedNumber] == 1 && distanceVector[endpointCorrectedNumber] == 2);
+                      })
+                      .mapToInt(e -> 1).sum();
+
+              edgeOfProperDistancesExistsCorrectly
+                      = properDistanceEdgesQty > 0;
+
+              return edgeOfProperDistancesExistsCorrectly;
+            })
+            .findAny().isPresent();
+
+
+    return mergeOperationsOutput + "\n - properMergeExists: " + (mergeWihtEdgesOfProperDistancesExists || graph.getRoot().getEdges().size() == 1);
   }
 
   private int calculateVertexCorrectedNo(int vertexNumberToRemove, int vertexNumber)

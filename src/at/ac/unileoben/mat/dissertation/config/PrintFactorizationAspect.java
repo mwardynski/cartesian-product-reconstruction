@@ -57,12 +57,31 @@ public class PrintFactorizationAspect
 
 
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService.mergeColorsForEdges(..)) && args(edges,mergeTag)")
-  private void mergeColorsOperation(List<Edge> edges, MergeTagEnum mergeTag)
+  private void mergeColorsOperationWithMergeTag(List<Edge> edges, MergeTagEnum mergeTag)
   {
   }
 
-  @Around("mergeColorsOperation(edges,mergeTag)")
-  public Object addColorsMergeSnapshot(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeTagEnum mergeTag) throws Throwable
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService.mergeColorsForEdges(..)) && args(edges,mergeOperation)")
+  private void mergeColorsOperationWithMergeOperation(List<Edge> edges, MergeOperation mergeOperation)
+  {
+  }
+
+  @Around("mergeColorsOperationWithMergeTag(edges,mergeTag)")
+  public Object addColorsMergeSnapshotForMergeWithMergeTag(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeTagEnum mergeTag) throws Throwable
+  {
+    return addColorsMergeSnapshot(proceedingJoinPoint, edges, mergeTag);
+
+  }
+
+  @Around("mergeColorsOperationWithMergeOperation(edges,mergeOperation)")
+  public Object addColorsMergeSnapshot(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeOperation mergeOperation) throws Throwable
+  {
+    return addColorsMergeSnapshot(proceedingJoinPoint, edges, mergeOperation.getMergeTag());
+
+  }
+
+
+  private Object addColorsMergeSnapshot(ProceedingJoinPoint proceedingJoinPoint, List<Edge> edges, MergeTagEnum mergeTag) throws Throwable
   {
     int prevGraphColorsAmount = graph.getGraphColoring().getActualColors().size();
     Object result = proceedingJoinPoint.proceed();
@@ -72,7 +91,6 @@ public class PrintFactorizationAspect
       graphPrinter.createMergeSnapshot(edges, mergeTag);
     }
     return result;
-
   }
 
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService.addLabel(..)) && args(edge,color,name,squareMatchingEdge,labelOperationDetail)")

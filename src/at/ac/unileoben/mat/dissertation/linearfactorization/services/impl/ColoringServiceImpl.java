@@ -173,6 +173,7 @@ public class ColoringServiceImpl implements ColoringService
     {
       reconstructionData.getMergeOperations().add(mergeOperation);
       graph.getAnalyzeData().addMergeOperation(mergeOperation);
+      mergeOperation.setMergedColors(colorsToMerge);
     }
     return colorsMerged;
   }
