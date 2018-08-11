@@ -2,11 +2,11 @@ package at.ac.unileoben.mat.dissertation.printout.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.printout.EdgeColorsGenerator;
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.printout.data.EdgeData;
 import at.ac.unileoben.mat.dissertation.printout.data.EdgeStyleDefinition;
 import at.ac.unileoben.mat.dissertation.printout.data.VertexData;
-import at.ac.unileoben.mat.dissertation.printout.utils.EdgeColorEnum;
 import at.ac.unileoben.mat.dissertation.printout.utils.EdgeStyleEnum;
 import at.ac.unileoben.mat.dissertation.printout.utils.LabelUtils;
 import at.ac.unileoben.mat.dissertation.printout.utils.VertexColorEnum;
@@ -44,8 +44,13 @@ public class GraphPrinterImpl implements GraphPrinter
   public static final String MERGE_PREFIX = "MERGE - ";
   public static final String RECONSTRUCTION_RECOVERY = "RECONSTRUCTION RECOVERY";
 
+  private static final String COLOR_PREFIX = "color";
+
   @Autowired
   Graph graph;
+
+  @Autowired
+  EdgeColorsGenerator edgeColorsGenerator;
 
   @Autowired
   ColoringService coloringService;
@@ -54,7 +59,6 @@ public class GraphPrinterImpl implements GraphPrinter
   VertexService vertexService;
 
   List<String> steps;
-  String[] edgeColors = {EdgeColorEnum.RED.toString(), EdgeColorEnum.GREEN.toString(), EdgeColorEnum.BLUE.toString(), EdgeColorEnum.CYAN.toString(), EdgeColorEnum.YELLOW.toString()};
 
   public GraphPrinterImpl()
   {
@@ -67,6 +71,8 @@ public class GraphPrinterImpl implements GraphPrinter
   {
     VelocityContext context = new VelocityContext();
     context.put("steps", steps);
+    storeEdgeColorsInContext(context);
+
 
     try (PrintWriter printWriter = new PrintWriter("out/tex/factorization.tex", StandardCharsets.UTF_8.name()))
     {
@@ -75,8 +81,16 @@ public class GraphPrinterImpl implements GraphPrinter
     }
     catch (FileNotFoundException | UnsupportedEncodingException e)
     {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
+  }
+
+  private void storeEdgeColorsInContext(VelocityContext context)
+  {
+    List<String> colors = edgeColorsGenerator.generateColors(graph.getGraphColoring().getOriginalColorsAmount()).stream()
+            .map(color -> color.toString())
+            .collect(Collectors.toList());
+    context.put("colors", colors);
   }
 
   @Override
@@ -193,10 +207,10 @@ public class GraphPrinterImpl implements GraphPrinter
     }
 
     Label label = edge.getLabel();
-    if (label != null && label.getColor() < edgeColors.length)
+    if (label != null)
     {
       int colorNumber = coloringService.getCurrentColorMapping(graph.getGraphColoring(), label.getColor());
-      edgeData.setColor(edgeColors[colorNumber]);
+      edgeData.setColor(COLOR_PREFIX + colorNumber);
     }
 
     for (EdgeStyleDefinition edgeStyleDefinition : edgeStyleDefinitions)

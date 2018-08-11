@@ -2,6 +2,7 @@
 
 \usepackage{tikz}
 \usepackage{verbatim}
+\usepackage{xcolor}
 
 \usetikzlibrary{arrows,shapes}
 
@@ -16,6 +17,10 @@
 \tikzstyle{weight} = [font=\small]
 \tikzstyle{backwardEdgeLabel} = [font=\small, very near start, sloped, above]
 \tikzstyle{forwardEdgeLabel} = [font=\small, very near end, sloped, below]
+
+#foreach( $color in $colors )
+\definecolor{color$foreach.index}{RGB}$color
+#end
 
 
 #foreach( $step in $steps )
