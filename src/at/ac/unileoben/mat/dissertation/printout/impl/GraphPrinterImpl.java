@@ -14,6 +14,7 @@ import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
@@ -21,6 +22,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,6 +47,10 @@ public class GraphPrinterImpl implements GraphPrinter
   public static final String RECONSTRUCTION_RECOVERY = "RECONSTRUCTION RECOVERY";
 
   private static final String COLOR_PREFIX = "color";
+  private static final String ORIGINAL_COLORS_PROFILE = "origColors";
+
+  @Autowired
+  Environment environment;
 
   @Autowired
   Graph graph;
@@ -210,6 +216,11 @@ public class GraphPrinterImpl implements GraphPrinter
     if (label != null)
     {
       int colorNumber = coloringService.getCurrentColorMapping(graph.getGraphColoring(), label.getColor());
+      if (isProfileActive(ORIGINAL_COLORS_PROFILE))
+      {
+        colorNumber = label.getColor();
+      }
+
       edgeData.setColor(COLOR_PREFIX + colorNumber);
     }
 
@@ -222,5 +233,12 @@ public class GraphPrinterImpl implements GraphPrinter
       }
     }
     return edgeData;
+  }
+
+  private boolean isProfileActive(String profileName)
+  {
+    return Arrays.stream(environment.getActiveProfiles())
+            .filter(profile -> profile.equals(profileName))
+            .findAny().isPresent();
   }
 }
