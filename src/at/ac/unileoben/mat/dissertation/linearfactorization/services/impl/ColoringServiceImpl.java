@@ -131,7 +131,7 @@ public class ColoringServiceImpl implements ColoringService
   @Override
   public List<Integer> getColorsForEdges(GraphColoring graphColoring, List<Edge> edges)
   {
-    boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
+    boolean[] colorPresence = new boolean[graphColoring.getColorsMapping().size()];
     for (Edge e : edges)
     {
       Label label = e.getLabel();

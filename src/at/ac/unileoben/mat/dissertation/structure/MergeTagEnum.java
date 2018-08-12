@@ -19,7 +19,8 @@ public enum MergeTagEnum
   CONSISTENCY_UP_AMOUNT_BELOW("Consistency Check: Up-edges - Amount Below"),
   CONSISTENCY_UP_AMOUNT_ABOVE("Consistency Check: Up-edges - Amount Above"),
   CONSISTENCY_ADDITIONAL_VERTEX("Consistency Check: Additional vertex"),
-  RECONSTRUCTION_REJECTED_EDGES("Consistency Check - Reconstruction: Rejected edges");
+  RECONSTRUCTION_REJECTED_EDGES("Consistency Check - Reconstruction: Rejected edges"),
+  DOUBLE_SQUARE("Double square");
 
   private String name;
 

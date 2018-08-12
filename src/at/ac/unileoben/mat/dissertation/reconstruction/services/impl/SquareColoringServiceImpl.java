@@ -1,14 +1,14 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Label;
-import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -16,13 +16,26 @@ public class SquareColoringServiceImpl implements SquareColoringService
 {
 
   @Autowired
+  Graph graph;
+
+  @Autowired
   GraphHelper graphHelper;
+
+  @Autowired
+  ColoringService coloringService;
 
   @Override
   public void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
     if (baseEdge.getLabel() != null && squareEdge.getLabel() != null)
     {
+      int baseEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
+      int squareEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), squareEdge.getLabel().getColor());
+
+      if (baseEdgeColor != squareEdgeColor)
+      {
+        coloringService.mergeColorsForEdges(Arrays.asList(baseEdge, squareEdge), MergeTagEnum.DOUBLE_SQUARE);
+      }
       return;
     }
     int color = -1;
@@ -40,8 +53,7 @@ public class SquareColoringServiceImpl implements SquareColoringService
 
       if (color == -1)
       {
-        color = squareReconstructionData.getColorCounter();
-        squareReconstructionData.setColorCounter(color + 1);
+        color = addNewColorToGraphColoring();
       }
     }
 
@@ -87,6 +99,18 @@ public class SquareColoringServiceImpl implements SquareColoringService
       }
     }
     return extensionColor;
+  }
+
+  private int addNewColorToGraphColoring()
+  {
+    GraphColoring graphColoring = graph.getGraphColoring();
+
+    int newColor = graphColoring.getColorsMapping().size();
+
+    graphColoring.getColorsMapping().add(newColor);
+    graphColoring.getActualColors().add(newColor);
+
+    return newColor;
   }
 
 }
