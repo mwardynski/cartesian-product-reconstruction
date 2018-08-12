@@ -3,10 +3,7 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 
-import java.util.List;
-
-public interface SingleSquareReconstructionService
+public interface SquareColoringService
 {
-  void reconstructUsingSquares(Edge[][][] matchingSquareEdgesByEdgeAndColor);
-
+  void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData);
 }

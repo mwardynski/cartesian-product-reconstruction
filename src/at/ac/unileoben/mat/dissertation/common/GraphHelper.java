@@ -52,4 +52,6 @@ public interface GraphHelper
   Edge[][] createAdjacencyMatrix();
 
   void traverseBfsGivenColors(Vertex root, List<Vertex> vertices, int currentColor, List<Integer> remainingColors, Consumer<Vertex> lastColorConsumer);
+
+  List<List<Edge>> findSquaresForTwoEdges(Edge baseEdge, Edge otherEdge);
 }

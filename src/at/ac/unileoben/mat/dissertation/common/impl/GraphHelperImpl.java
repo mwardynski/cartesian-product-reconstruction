@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -629,5 +630,17 @@ public class GraphHelperImpl implements GraphHelper
       }
       graphColoringArray[u.getVertexNo()] = Color.BLACK;
     }
+  }
+
+  @Override
+  public List<List<Edge>> findSquaresForTwoEdges(Edge baseEdge, Edge otherEdge)
+  {
+    List<List<Edge>> squareEdgesForGivenTwoEdges = otherEdge.getEndpoint().getEdges().stream()
+            .filter(edge -> edge != otherEdge.getOpposite())
+            .filter(edge -> graph.getAdjacencyMatrix()[baseEdge.getEndpoint().getVertexNo()][edge.getEndpoint().getVertexNo()] != null)
+            .map(edge -> Arrays.asList(edge, graph.getAdjacencyMatrix()[baseEdge.getEndpoint().getVertexNo()][edge.getEndpoint().getVertexNo()]))
+            .collect(Collectors.toList());
+
+    return squareEdgesForGivenTwoEdges;
   }
 }

@@ -3,7 +3,7 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.FactorsFromIntervalReconstructionService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
   ColoringService coloringService;
 
   @Autowired
-  SingleSquareReconstructionService singleSquareReconstructionService;
+  SquareFindingService squareFindingService;
 
   @Autowired
   GraphHelper graphHelper;
@@ -322,7 +322,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
         continue;
       }
       checkedEdges.add(edge);
-      boolean squareFound = singleSquareReconstructionService.findAndProcessSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
+      boolean squareFound = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
 //      squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
 //      squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
 

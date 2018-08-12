@@ -6,9 +6,7 @@ import at.ac.unileoben.mat.dissertation.common.ReconstructionCase;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPreparer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import at.ac.unileoben.mat.dissertation.structure.exception.CompleteMergeException;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,12 +47,6 @@ public class MissingVertexToRootDistanceTest
 
   @Autowired
   EdgeService edgeService;
-
-  @Autowired
-  ColoringService coloringService;
-
-  @Autowired
-  SingleSquareReconstructionService singleSquareReconstructionService;
 
   private final static List<ReconstructionCase> examplesList = new LinkedList<ReconstructionCase>();
 
@@ -412,7 +404,7 @@ public class MissingVertexToRootDistanceTest
 //            })
             .filter(incidentEdge ->
             {
-              List<List<Edge>> squaresForTwoEdges = singleSquareReconstructionService.findSquaresForTwoEdges(mergeEdge, incidentEdge);
+              List<List<Edge>> squaresForTwoEdges = graphHelper.findSquaresForTwoEdges(mergeEdge, incidentEdge);
 
               return CollectionUtils.isEmpty(squaresForTwoEdges);
             })
