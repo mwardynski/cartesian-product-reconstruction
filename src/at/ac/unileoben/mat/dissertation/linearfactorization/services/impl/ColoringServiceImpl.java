@@ -163,6 +163,7 @@ public class ColoringServiceImpl implements ColoringService
   public boolean mergeColorsForEdges(List<Edge> edges, MergeOperation mergeOperation)
   {
     GraphColoring graphColoring = graph.getGraphColoring();
+    GraphColoring graphColoringBackup = new GraphColoring(graph.getGraphColoring());
     List<Integer> colorsToMerge = getColorsForEdges(graphColoring, edges);
     boolean colorsMerged = false;
     if (colorsToMerge.size() > 0)
@@ -174,6 +175,7 @@ public class ColoringServiceImpl implements ColoringService
       reconstructionData.getMergeOperations().add(mergeOperation);
       graph.getAnalyzeData().addMergeOperation(mergeOperation);
       mergeOperation.setMergedColors(colorsToMerge);
+      mergeOperation.setMergeGraphColoring(graphColoringBackup);
     }
     return colorsMerged;
   }

@@ -6,6 +6,9 @@ public class MergeOperation
 {
   List<Edge> edges;
   MergeTagEnum mergeTag;
+  List<Integer> mergedColors;
+  GraphColoring mergeGraphColoring;
+
 
   public MergeOperation(List<Edge> edges, MergeTagEnum mergeTag)
   {
@@ -21,5 +24,25 @@ public class MergeOperation
   public MergeTagEnum getMergeTag()
   {
     return mergeTag;
+  }
+
+  public List<Integer> getMergedColors()
+  {
+    return mergedColors;
+  }
+
+  public void setMergedColors(List<Integer> mergedColors)
+  {
+    this.mergedColors = mergedColors;
+  }
+
+  public GraphColoring getMergeGraphColoring()
+  {
+    return mergeGraphColoring;
+  }
+
+  public void setMergeGraphColoring(GraphColoring mergeGraphColoring)
+  {
+    this.mergeGraphColoring = mergeGraphColoring;
   }
 }
