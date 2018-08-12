@@ -87,13 +87,13 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
       if (vertex.getBfsLayer() > 1)
       {
         //FIXME replace third vertices.size() with max grade
-        Edge[][][] matchingSquareEdgesByEdgeAndColor = new Edge[vertices.size()][vertices.size()][vertices.size()];
+        Edge[][][] squareMatchingEdgesByEdgeAndColor = new Edge[vertices.size()][vertices.size()][vertices.size()];
 
-        Vertex intervalRoot = findNotPrimeInterval(vertex, vertices, originalGraph, matchingSquareEdgesByEdgeAndColor);
+        Vertex intervalRoot = findNotPrimeInterval(vertex, vertices, originalGraph, squareMatchingEdgesByEdgeAndColor);
         if (intervalRoot != null)
         {
           graphHelper.overrideGlobalGraph(originalGraph);
-          singleSquareReconstructionService.reconstructUsingSquares(matchingSquareEdgesByEdgeAndColor);
+          singleSquareReconstructionService.reconstructUsingSquares(squareMatchingEdgesByEdgeAndColor);
 //          factorsFromIntervalReconstructionService.reconstructUsingIntervalFactors(intervalRoot);
           return null;
         }
@@ -107,7 +107,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     return null;
   }
 
-  private Vertex findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph, Edge[][][] matchingSquareEdgesByEdgeAndColor)
+  private Vertex findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph, Edge[][][] squareMatchingEdgesByEdgeAndColor)
   {
     SubgraphData subgraph = graphHelper.getSubgraphForTopVertices(Collections.singletonList(topVertex), vertices);
     List<Vertex> subgraphVertices = subgraph.getVertices();
@@ -121,7 +121,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
     reindexSubgraphToOriginalGraph(subgraph);
 
-    collectMatchingSquareEdges(matchingSquareEdgesByEdgeAndColor);
+    collectMatchingSquareEdges(squareMatchingEdgesByEdgeAndColor, originalGraph);
 
     transferColorsFromSubGraphToOriginalGraph(originalGraph);
 
@@ -136,7 +136,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     }
   }
 
-  private void collectMatchingSquareEdges(Edge[][][] matchingSquareEdgesByEdgeAndColor)
+  private void collectMatchingSquareEdges(Edge[][][] squareMatchingEdgesByEdgeAndColor, Graph originalGraph)
   {
     List<Integer> subGraphColors = graph.getRoot().getEdges().stream()
             .mapToInt(e -> e.getLabel().getColor())
@@ -153,8 +153,12 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
                               Edge squareMatchingEdge = edge.getSquareMatchingEdge();
 
-                              matchingSquareEdgesByEdgeAndColor[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()][otherColor] = squareMatchingEdge;
-                              matchingSquareEdgesByEdgeAndColor[squareMatchingEdge.getOrigin().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()][otherColor] = edge;
+                              Edge[][] originalGraphAdjacencyMatrix = originalGraph.getAdjacencyMatrix();
+                              Edge originalGraphEdge = originalGraphAdjacencyMatrix[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()];
+                              Edge originalGraphSquareMatchingEdge = originalGraphAdjacencyMatrix[squareMatchingEdge.getOrigin().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
+
+                              squareMatchingEdgesByEdgeAndColor[originalGraphEdge.getOrigin().getVertexNo()][originalGraphEdge.getEndpoint().getVertexNo()][otherColor] = originalGraphSquareMatchingEdge;
+                              squareMatchingEdgesByEdgeAndColor[originalGraphSquareMatchingEdge.getOrigin().getVertexNo()][originalGraphSquareMatchingEdge.getEndpoint().getVertexNo()][otherColor] = originalGraphEdge;
                             }
                     ));
   }

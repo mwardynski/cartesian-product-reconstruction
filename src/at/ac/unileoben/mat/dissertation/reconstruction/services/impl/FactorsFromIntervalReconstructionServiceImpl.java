@@ -231,7 +231,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
     for (Integer currentFactorColor : factorsColors)
     {
       //FIXME propagate the new amount of colors, not the original one
-      SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getGraphColoring().getOriginalColorsAmount(), graph.getVertices().size());
+      SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getVertices().size());
       squareReconstructionData.setSquareFormingEdges(squareFormingEdgesByIntervalEdges);
       squareReconstructionData.setMultipleSquaresWardenEdge(new Edge(graph.getRoot(), graph.getRoot()));
       List<Integer> otherFactorsColors = collectOtherFactorsColors(currentFactorColor, factorsColors);

@@ -22,10 +22,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -142,25 +139,28 @@ public class GraphPrinterImpl implements GraphPrinter
   }
 
   @Override
-  public void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge)
+  public void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
     List<EdgeStyleDefinition> edgeStyleDefinitions = new LinkedList<>();
     edgeStyleDefinitions.add(new EdgeStyleDefinition(Arrays.asList(baseEdge, squareEdge), EdgeStyleEnum.DOUBLE.toString()));
     edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(otherColorBaseEdge), EdgeStyleEnum.DASHDOTTED.toString()));
-    Edge squareMatchingEdge = otherColorBaseEdge.getSquareMatchingEdge();
-    if (squareMatchingEdge != null)
-    {
-      edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(squareMatchingEdge), EdgeStyleEnum.LOOSELY_DOTTED.toString()));
-    }
+
+    Edge[][][] squareMatchingEdgesByEdgeAndColor = squareReconstructionData.getSquareMatchingEdgesByEdgeAndColor();
+    Edge[] squareMatchingEdgesByColor = squareMatchingEdgesByEdgeAndColor[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
+    List<Edge> squareMatchingEdges = Arrays.stream(squareMatchingEdgesByColor)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+    edgeStyleDefinitions.add(new EdgeStyleDefinition(squareMatchingEdges, EdgeStyleEnum.LOOSELY_DOTTED.toString()));
 
     createSnapshot(COLORING_SQUARE_HEADER, () -> prepareEdges(edgeStyleDefinitions));
   }
 
-  private void createSnapshot(String figureTItle, Supplier<List<EdgeData>> edgesSupplier)
+  private void createSnapshot(String figureTitle, Supplier<List<EdgeData>> edgesSupplier)
   {
     VelocityContext context = new VelocityContext();
 
-    context.put("figureTitle", figureTItle);
+    context.put("figureTitle", figureTitle);
 
     List<VertexData> vertices = prepareVertices();
     List<EdgeData> edges = edgesSupplier.get();

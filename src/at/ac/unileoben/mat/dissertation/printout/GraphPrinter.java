@@ -3,6 +3,7 @@ package at.ac.unileoben.mat.dissertation.printout;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.LabelOperationDetail;
 import at.ac.unileoben.mat.dissertation.structure.MergeTagEnum;
+import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 
 import java.util.List;
 
@@ -25,5 +26,5 @@ public interface GraphPrinter
 
   void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge);
 
-  void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge);
+  void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData);
 }

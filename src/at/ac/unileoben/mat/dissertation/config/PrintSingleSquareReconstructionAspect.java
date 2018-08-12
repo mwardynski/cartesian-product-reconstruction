@@ -43,7 +43,7 @@ public class PrintSingleSquareReconstructionAspect
   @Before("coloringSquareOperation(baseEdge,squareEdge,otherColorBaseEdge,squareReconstructionData)")
   public void addFindingSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
-    graphPrinter.createColoringSquareSnapshot(baseEdge, squareEdge, otherColorBaseEdge);
+    graphPrinter.createColoringSquareSnapshot(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService.reconstructUsingSquares(..))")

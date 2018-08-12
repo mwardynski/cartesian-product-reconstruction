@@ -24,12 +24,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   SquareFindingService squareFindingService;
 
   @Override
-  public void reconstructUsingSquares(Edge[][][] matchingSquareEdgesByEdgeAndColor)
+  public void reconstructUsingSquares(Edge[][][] squareMatchingEdgesByEdgeAndColor)
   {
-    SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getGraphColoring().getOriginalColorsAmount(), graph.getVertices().size());
+    SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getVertices().size());
     squareReconstructionData.getNextVertices().add(graph.getRoot());
     squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
-    squareReconstructionData.setMatchingSquareEdgesByEdgeAndColor(matchingSquareEdgesByEdgeAndColor);
+    squareReconstructionData.setSquareMatchingEdgesByEdgeAndColor(squareMatchingEdgesByEdgeAndColor);
 
     while (squareReconstructionData.getNextVertices().size() > 0)
     {

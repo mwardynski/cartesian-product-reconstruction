@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface SingleSquareReconstructionService
 {
-  void reconstructUsingSquares(Edge[][][] matchingSquareEdgesByEdgeAndColor);
+  void reconstructUsingSquares(Edge[][][] squareMatchingEdgesByEdgeAndColor);
 
 }

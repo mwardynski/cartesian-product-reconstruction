@@ -38,7 +38,7 @@ public class SquareColoringServiceImpl implements SquareColoringService
       }
       return;
     }
-    int color = -1;
+    int color;
     if (baseEdge.getLabel() != null)
     {
       color = baseEdge.getLabel().getColor();
@@ -63,14 +63,14 @@ public class SquareColoringServiceImpl implements SquareColoringService
       baseEdge.setLabel(new Label(color, -1));
       baseEdge.getOpposite().setLabel(new Label(color, -1));
 
-      squareReconstructionData.getMatchingSquareEdgesByEdgeAndColor()[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()][otherColorBaseEdge.getLabel().getColor()] = squareEdge;
+      squareReconstructionData.getSquareMatchingEdgesByEdgeAndColor()[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()][otherColorBaseEdge.getLabel().getColor()] = squareEdge;
     }
     if (squareEdge.getLabel() == null)
     {
       squareEdge.setLabel(new Label(color, -1));
       squareEdge.getOpposite().setLabel(new Label(color, -1));
 
-      squareReconstructionData.getMatchingSquareEdgesByEdgeAndColor()[squareEdge.getOrigin().getVertexNo()][squareEdge.getEndpoint().getVertexNo()][otherColorBaseEdge.getLabel().getColor()] = baseEdge;
+      squareReconstructionData.getSquareMatchingEdgesByEdgeAndColor()[squareEdge.getOrigin().getVertexNo()][squareEdge.getEndpoint().getVertexNo()][otherColorBaseEdge.getLabel().getColor()] = baseEdge;
     }
   }
 
@@ -78,21 +78,26 @@ public class SquareColoringServiceImpl implements SquareColoringService
   {
     int extensionColor = -1;
 
-    Edge[][][] matchingSquareEdgesByEdgeAndColor = squareReconstructionData.getMatchingSquareEdgesByEdgeAndColor();
-    Edge[] matchingSquareEdgesByColor = matchingSquareEdgesByEdgeAndColor[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
+    Edge[][][] squareMatchingEdgesByEdgeAndColor = squareReconstructionData.getSquareMatchingEdgesByEdgeAndColor();
+    Edge[] squareMatchingEdgesByColor = squareMatchingEdgesByEdgeAndColor[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
 
-    for (int i = 0; i < matchingSquareEdgesByColor.length; i++)
+    for (int i = 0; i < squareMatchingEdgesByColor.length; i++)
     {
-      Edge matchingSquareEdge = matchingSquareEdgesByColor[i];
-      if (matchingSquareEdge == null)
+      Edge squareMatchingEdge = squareMatchingEdgesByColor[i];
+      if (squareMatchingEdge == null)
       {
         continue;
       }
 
-      List<List<Edge>> squares1 = graphHelper.findSquaresForTwoEdges(matchingSquareEdge.getOpposite(), baseEdge);
-      List<List<Edge>> squares2 = graphHelper.findSquaresForTwoEdges(matchingSquareEdge, squareEdge);
+      Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
 
-      if (CollectionUtils.isEmpty(squares1) && CollectionUtils.isEmpty(squares2))
+      Edge baseEdgeExtendingEdge = adjacencyMatrix[baseEdge.getOrigin().getVertexNo()][squareMatchingEdge.getOrigin().getVertexNo()];
+      Edge squareEdgeExtendingEdge = adjacencyMatrix[squareEdge.getOrigin().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
+
+      List<List<Edge>> baseEdgeSquares = graphHelper.findSquaresForTwoEdges(baseEdgeExtendingEdge, baseEdge);
+      List<List<Edge>> squareEdgeSquares = graphHelper.findSquaresForTwoEdges(squareEdgeExtendingEdge, squareEdge);
+
+      if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
       {
         extensionColor = i;
         break;
