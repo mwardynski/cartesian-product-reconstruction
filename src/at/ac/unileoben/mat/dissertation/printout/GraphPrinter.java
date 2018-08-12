@@ -22,4 +22,8 @@ public interface GraphPrinter
   void createMergeSnapshot(List<Edge> edges, MergeTagEnum mergeTag);
 
   void createLabelSnapshot(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail);
+
+  void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge);
+
+  void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge);
 }

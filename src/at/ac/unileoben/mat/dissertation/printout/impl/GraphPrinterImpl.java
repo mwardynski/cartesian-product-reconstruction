@@ -48,6 +48,8 @@ public class GraphPrinterImpl implements GraphPrinter
 
   private static final String COLOR_PREFIX = "color";
   private static final String ORIGINAL_COLORS_PROFILE = "origColors";
+  private static final String FINDING_SQUARE_HEADER = "FINDING SQUARE";
+  private static final String COLORING_SQUARE_HEADER = "COLORING SQUARE";
 
   @Autowired
   Environment environment;
@@ -130,7 +132,28 @@ public class GraphPrinterImpl implements GraphPrinter
     }
     edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(edge), EdgeStyleEnum.DOUBLE.toString()));
     createSnapshot(LABEL_PREFIX + labelOperationDetail.getType().toString(), () -> prepareEdges(edgeStyleDefinitions));
+  }
 
+  @Override
+  public void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge)
+  {
+    EdgeStyleDefinition edgeStyleDefinition = new EdgeStyleDefinition(Arrays.asList(baseEdge, otherEdge), EdgeStyleEnum.DASHED.toString());
+    createSnapshot(FINDING_SQUARE_HEADER, () -> prepareEdges(Collections.singletonList(edgeStyleDefinition)));
+  }
+
+  @Override
+  public void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge)
+  {
+    List<EdgeStyleDefinition> edgeStyleDefinitions = new LinkedList<>();
+    edgeStyleDefinitions.add(new EdgeStyleDefinition(Arrays.asList(baseEdge, squareEdge), EdgeStyleEnum.DOUBLE.toString()));
+    edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(otherColorBaseEdge), EdgeStyleEnum.DASHDOTTED.toString()));
+    Edge squareMatchingEdge = otherColorBaseEdge.getSquareMatchingEdge();
+    if (squareMatchingEdge != null)
+    {
+      edgeStyleDefinitions.add(new EdgeStyleDefinition(Collections.singletonList(squareMatchingEdge), EdgeStyleEnum.LOOSELY_DOTTED.toString()));
+    }
+
+    createSnapshot(COLORING_SQUARE_HEADER, () -> prepareEdges(edgeStyleDefinitions));
   }
 
   private void createSnapshot(String figureTItle, Supplier<List<EdgeData>> edgesSupplier)
@@ -202,7 +225,7 @@ public class GraphPrinterImpl implements GraphPrinter
     edgeData.setEndpointNo(edge.getEndpoint().getVertexNo());
     edgeData.setEdgeType(edge.getEdgeType().name());
 
-    if (edge.getLabel() != null)
+    if (edge.getLabel() != null && edge.getLabel().getName() != -1)
     {
       edgeData.setBackwardEdgeLabel(LabelUtils.formatLabel(edge.getLabel()));
 

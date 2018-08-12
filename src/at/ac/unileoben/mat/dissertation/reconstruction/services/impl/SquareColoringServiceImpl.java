@@ -7,9 +7,11 @@ import at.ac.unileoben.mat.dissertation.structure.Label;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class SquareColoringServiceImpl implements SquareColoringService
 {
 
