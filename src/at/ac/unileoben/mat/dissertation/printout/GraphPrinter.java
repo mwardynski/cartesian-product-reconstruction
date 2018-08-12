@@ -27,4 +27,6 @@ public interface GraphPrinter
   void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge);
 
   void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData);
+
+  void createColoringEdgesWithoutSquareSnapshot(List<Edge> edgesWithoutSquare);
 }

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Aspect
 @Component
 @Profile("printSquares")
@@ -40,10 +42,22 @@ public class PrintSingleSquareReconstructionAspect
   {
   }
 
-  @Before("coloringSquareOperation(baseEdge,squareEdge,otherColorBaseEdge,squareReconstructionData)")
-  public void addFindingSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
+  @AfterReturning("coloringSquareOperation(baseEdge,squareEdge,otherColorBaseEdge,squareReconstructionData)")
+  public void addColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
     graphPrinter.createColoringSquareSnapshot(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
+  }
+
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService.colorEdgesWithoutSquare(..)) " +
+          "&& args(edgesWithoutSquare)")
+  private void coloringEdgesWithoutSquareOperation(List<Edge> edgesWithoutSquare)
+  {
+  }
+
+  @AfterReturning("coloringEdgesWithoutSquareOperation(edgesWithoutSquare)")
+  public void addColoringEdgesWithoutSquareSnapshot(List<Edge> edgesWithoutSquare)
+  {
+    graphPrinter.createColoringEdgesWithoutSquareSnapshot(edgesWithoutSquare);
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService.reconstructUsingSquares(..))")

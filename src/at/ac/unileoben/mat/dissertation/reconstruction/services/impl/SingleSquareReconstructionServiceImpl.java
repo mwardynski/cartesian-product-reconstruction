@@ -1,11 +1,13 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,9 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
 
   @Autowired
   SquareFindingService squareFindingService;
+
+  @Autowired
+  SquareColoringService squareColoringService;
 
   @Override
   public void reconstructUsingSquares(Edge[][][] squareMatchingEdgesByEdgeAndColor)
@@ -85,6 +90,14 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     currentVertexEdges.stream()
             .peek(e -> squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = true)
             .forEach(e -> squareReconstructionData.getUsedEdges()[e.getEndpoint().getVertexNo()][e.getOrigin().getVertexNo()] = true);
+
+    List<Edge> edgesWithoutSquare = currentVertexEdges.stream()
+            .filter(e -> e.getLabel() == null)
+            .collect(Collectors.toList());
+    if (CollectionUtils.isNotEmpty(edgesWithoutSquare))
+    {
+      squareColoringService.colorEdgesWithoutSquare(edgesWithoutSquare);
+    }
   }
 
   private List<Edge> collectCurrentVertexEdges(SquareReconstructionData squareReconstructionData)

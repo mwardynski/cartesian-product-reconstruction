@@ -20,7 +20,8 @@ public enum MergeTagEnum
   CONSISTENCY_UP_AMOUNT_ABOVE("Consistency Check: Up-edges - Amount Above"),
   CONSISTENCY_ADDITIONAL_VERTEX("Consistency Check: Additional vertex"),
   RECONSTRUCTION_REJECTED_EDGES("Consistency Check - Reconstruction: Rejected edges"),
-  DOUBLE_SQUARE("Double square");
+  DOUBLE_SQUARE("Double Square"),
+  MULTIPLE_COLORING_EXTENIONS("Multiple Coloring Extensions");
 
   private String name;
 

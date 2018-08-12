@@ -47,6 +47,7 @@ public class GraphPrinterImpl implements GraphPrinter
   private static final String ORIGINAL_COLORS_PROFILE = "origColors";
   private static final String FINDING_SQUARE_HEADER = "FINDING SQUARE";
   private static final String COLORING_SQUARE_HEADER = "COLORING SQUARE";
+  private static final String COLORING_EDGES_WITHOUT_SQUARE_HEADER = "COLORING EDGES WITHOUT SQUARE";
 
   @Autowired
   Environment environment;
@@ -92,7 +93,7 @@ public class GraphPrinterImpl implements GraphPrinter
 
   private void storeEdgeColorsInContext(VelocityContext context)
   {
-    List<String> colors = edgeColorsGenerator.generateColors(graph.getGraphColoring().getOriginalColorsAmount()).stream()
+    List<String> colors = edgeColorsGenerator.generateColors(graph.getGraphColoring().getColorsMapping().size()).stream()
             .map(color -> color.toString())
             .collect(Collectors.toList());
     context.put("colors", colors);
@@ -136,6 +137,10 @@ public class GraphPrinterImpl implements GraphPrinter
   {
     EdgeStyleDefinition edgeStyleDefinition = new EdgeStyleDefinition(Arrays.asList(baseEdge, otherEdge), EdgeStyleEnum.DASHED.toString());
     createSnapshot(FINDING_SQUARE_HEADER, () -> prepareEdges(Collections.singletonList(edgeStyleDefinition)));
+
+    System.out.println(String.format("%d. FINDING - %d-%d, %d-%d", steps.size(),
+            baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(),
+            otherEdge.getOrigin().getVertexNo(), otherEdge.getEndpoint().getVertexNo()));
   }
 
   @Override
@@ -154,6 +159,22 @@ public class GraphPrinterImpl implements GraphPrinter
     edgeStyleDefinitions.add(new EdgeStyleDefinition(squareMatchingEdges, EdgeStyleEnum.LOOSELY_DOTTED.toString()));
 
     createSnapshot(COLORING_SQUARE_HEADER, () -> prepareEdges(edgeStyleDefinitions));
+
+    System.out.println(String.format("%d. COLORING - %d-%d, %d-%d", steps.size(),
+            baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(),
+            squareEdge.getOrigin().getVertexNo(), squareEdge.getEndpoint().getVertexNo()));
+  }
+
+  @Override
+  public void createColoringEdgesWithoutSquareSnapshot(List<Edge> edgesWithoutSquare)
+  {
+    EdgeStyleDefinition edgeStyleDefinition = new EdgeStyleDefinition(edgesWithoutSquare, EdgeStyleEnum.DASHED.toString());
+    createSnapshot(COLORING_EDGES_WITHOUT_SQUARE_HEADER, () -> prepareEdges(Collections.singletonList(edgeStyleDefinition)));
+
+    String formattedEdgesWithoutSquare = edgesWithoutSquare.stream()
+            .map(e -> String.format("%d-%d", e.getOrigin().getVertexNo(), e.getEndpoint().getVertexNo()))
+            .collect(Collectors.joining(", "));
+    System.out.println(String.format("%d. NO SQUARE - %s", steps.size(), formattedEdgesWithoutSquare));
   }
 
   private void createSnapshot(String figureTitle, Supplier<List<EdgeData>> edgesSupplier)
