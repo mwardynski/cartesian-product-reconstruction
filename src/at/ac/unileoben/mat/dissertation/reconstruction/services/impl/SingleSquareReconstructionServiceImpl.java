@@ -1,7 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
@@ -26,7 +26,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   SquareFindingService squareFindingService;
 
   @Autowired
-  SquareColoringService squareColoringService;
+  SquareHandlingStrategy squareHandlingStrategy;
 
   @Override
   public void reconstructUsingSquares(Edge[][][] squareMatchingEdgesByEdgeAndColor)
@@ -65,12 +65,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
       return;
     }
 
-    List<Vertex> newNextVertices = currentVertexEdges.stream()
+    /*List<Vertex> newNextVertices = currentVertexEdges.stream()
             .map(e -> e.getEndpoint())
-            .filter(v -> !squareReconstructionData.getIncludedVertices()[v.getVertexNo()])
+            .filter(v -> !squareReconstructionData.getIncludedVertices()[v.getVertexNo(\)])
             .collect(Collectors.toList());
     newNextVertices.stream().forEach(v -> squareReconstructionData.getIncludedVertices()[v.getVertexNo()] = true);
-    squareReconstructionData.getNextVertices().addAll(newNextVertices);
+    squareReconstructionData.getNextVertices().addAll(newNextVertices);*/
 
     for (int i = 0; i < currentVertexEdges.size() - 1; i++)
     {
@@ -96,7 +96,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
             .collect(Collectors.toList());
     if (CollectionUtils.isNotEmpty(edgesWithoutSquare))
     {
-      squareColoringService.colorEdgesWithoutSquare(edgesWithoutSquare);
+      squareHandlingStrategy.colorEdgesWithoutSquare(edgesWithoutSquare);
     }
   }
 

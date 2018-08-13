@@ -1,9 +1,12 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
-import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.MissingSquareData;
+import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +24,7 @@ public class SquareFindingServiceImpl implements SquareFindingService
   GraphHelper graphHelper;
 
   @Autowired
-  SquareColoringService squareColoringService;
+  SquareHandlingStrategy squareHandlingStrategy;
 
   @Override
   public boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
@@ -37,24 +40,22 @@ public class SquareFindingServiceImpl implements SquareFindingService
 
               if (jEdge.getLabel() != null)
               {
-                squareColoringService.colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
-                squareColoringService.colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
+                squareHandlingStrategy.colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
+                squareHandlingStrategy.colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
               }
               else
               {
-                squareColoringService.colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
-                squareColoringService.colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
+                squareHandlingStrategy.colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
+                squareHandlingStrategy.colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
               }
 
               storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
-              Vertex iSquareEdgeEndpoint = iSquareEdge.getEndpoint();
-              if (!squareReconstructionData.getIncludedVertices()[iSquareEdgeEndpoint.getVertexNo()])
-              {
-                squareReconstructionData.getNextVertices().add(iSquareEdgeEndpoint);
-                squareReconstructionData.getIncludedVertices()[iSquareEdgeEndpoint.getVertexNo()] = true;
-              }
+              squareHandlingStrategy.queueSquareTopVertexToNextVertices(iSquareEdge.getEndpoint(), squareReconstructionData);
             });
+
+    squareHandlingStrategy.queueSquareSideVertexToNextVertices(iEdge.getEndpoint(), squareReconstructionData);
+    squareHandlingStrategy.queueSquareSideVertexToNextVertices(jEdge.getEndpoint(), squareReconstructionData);
 
     if (!squareFound)
     {

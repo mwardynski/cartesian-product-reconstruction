@@ -6,7 +6,6 @@ import java.util.Queue;
 
 public class SquareReconstructionData
 {
-  int colorCounter;
   Vertex currentVertex;
   Queue<Vertex> nextVertices;
   boolean[] includedVertices;

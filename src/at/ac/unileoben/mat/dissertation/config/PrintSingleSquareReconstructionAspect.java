@@ -36,7 +36,7 @@ public class PrintSingleSquareReconstructionAspect
     graphPrinter.createFindingSquareSnapshot(baseEdge, otherEdge);
   }
 
-  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService.colorEdge(..)) " +
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy.colorEdge(..)) " +
           "&& args(baseEdge,squareEdge,otherColorBaseEdge,squareReconstructionData)")
   private void coloringSquareOperation(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
@@ -48,7 +48,7 @@ public class PrintSingleSquareReconstructionAspect
     graphPrinter.createColoringSquareSnapshot(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
   }
 
-  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareColoringService.colorEdgesWithoutSquare(..)) " +
+  @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy.colorEdgesWithoutSquare(..)) " +
           "&& args(edgesWithoutSquare)")
   private void coloringEdgesWithoutSquareOperation(List<Edge> edgesWithoutSquare)
   {
