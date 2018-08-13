@@ -1,5 +1,10 @@
 package at.ac.unileoben.mat.dissertation.generator;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 /**
  * Created by mwardynski on 21/10/16.
  */
@@ -30,36 +35,52 @@ public class ProductGenerator
     ProductGenerator productGenerator = new ProductGenerator();
     if (args.length == 0)
     {
-      productGenerator.createProduct(G1, G2);
+      productGenerator.createProduct();
     }
     else
     {
-      productGenerator.createProduct(G1, Integer.parseInt(args[0]));
+      productGenerator.createProduct(Integer.parseInt(args[0]));
     }
 
   }
 
-  public ProductGenerator()
+  private static void printResultGraph(int[][] resultGraph)
   {
-  }
-
-  private void createProduct(int[][] factor, int exponent)
-  {
-    int[][] tmpFactor = factor;
-    for (int i = 1; i < exponent; i++)
+    for (int i = 0; i < resultGraph.length; i++)
     {
-      tmpFactor = multiplyFactors(factor, tmpFactor);
+      System.out.print(i + " <==> ");
+      for (int j = 0; j < resultGraph.length; j++)
+      {
+        if (resultGraph[i][j] == 1 && i != j)
+        {
+          System.out.print(j + " ");
+        }
+      }
+      System.out.println("");
     }
-    printResultGraph(tmpFactor);
   }
 
-  private void createProduct(int[][] factor1, int[][] factor2)
+  private void createProduct()
   {
-    int[][] productGraph = multiplyFactors(factor1, factor2);
+    List<int[][]> factors = Arrays.asList(G1, G2);
+    multiplyFactorsAndPrintOut(factors);
+  }
+
+  private void createProduct(int exponent)
+  {
+    List<int[][]> factors = IntStream.range(0, exponent)
+            .mapToObj(i -> G1)
+            .collect(Collectors.toList());
+    multiplyFactorsAndPrintOut(factors);
+  }
+
+  private void multiplyFactorsAndPrintOut(List<int[][]> factors)
+  {
+    int[][] productGraph = factors.stream().reduce(this::multiplyTwoFactors).get();
     printResultGraph(productGraph);
   }
 
-  private int[][] multiplyFactors(int[][] factor1, int[][] factor2)
+  private int[][] multiplyTwoFactors(int[][] factor1, int[][] factor2)
   {
     int resultGraphLength = factor1.length * factor2.length;
     int resultGraph[][] = new int[resultGraphLength][resultGraphLength];
@@ -79,22 +100,6 @@ public class ProductGenerator
     }
 
     return resultGraph;
-  }
-
-  private static void printResultGraph(int[][] resultGraph)
-  {
-    for (int i = 0; i < resultGraph.length; i++)
-    {
-      System.out.print(i + " <==> ");
-      for (int j = 0; j < resultGraph.length; j++)
-      {
-        if (resultGraph[i][j] == 1 && i != j)
-        {
-          System.out.print(j + " ");
-        }
-      }
-      System.out.println("");
-    }
   }
 
 }
