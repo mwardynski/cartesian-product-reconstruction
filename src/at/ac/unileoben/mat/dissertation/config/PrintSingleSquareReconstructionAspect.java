@@ -4,7 +4,7 @@ package at.ac.unileoben.mat.dissertation.config;
 import at.ac.unileoben.mat.dissertation.printout.GraphPrinter;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
-import org.aspectj.lang.JoinPoint;
+import org.apache.commons.lang.StringUtils;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -61,8 +61,9 @@ public class PrintSingleSquareReconstructionAspect
   }
 
   @AfterReturning("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService.reconstructUsingSquares(..))")
-  public void printColoredGraph(JoinPoint joinPoint)
+  public void printColoredGraph()
   {
+    graphPrinter.createLayerSnapshot(StringUtils.EMPTY);
     graphPrinter.printFactorization();
   }
 }
