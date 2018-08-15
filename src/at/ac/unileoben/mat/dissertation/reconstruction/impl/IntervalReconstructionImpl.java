@@ -7,6 +7,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.FactorsFromIntervalReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -39,6 +40,9 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
   @Autowired
   FactorsFromIntervalReconstructionService factorsFromIntervalReconstructionService;
+
+  @Autowired
+  SquareHandlingStrategy squareHandlingStrategy;
 
   public static void main(String... args)
   {
@@ -87,7 +91,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
       if (vertex.getBfsLayer() > 1)
       {
         //FIXME replace third vertices.size() with max grade
-        Edge[][][] squareMatchingEdgesByEdgeAndColor = new Edge[vertices.size()][vertices.size()][vertices.size()];
+        SquareMatchingEdgeData[][] squareMatchingEdgesByEdgeAndColor = new SquareMatchingEdgeData[vertices.size()][vertices.size()];
 
         Vertex intervalRoot = findNotPrimeInterval(vertex, vertices, originalGraph, squareMatchingEdgesByEdgeAndColor);
         if (intervalRoot != null)
@@ -107,7 +111,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     return null;
   }
 
-  private Vertex findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph, Edge[][][] squareMatchingEdgesByEdgeAndColor)
+  private Vertex findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
     SubgraphData subgraph = graphHelper.getSubgraphForTopVertices(Collections.singletonList(topVertex), vertices);
     List<Vertex> subgraphVertices = subgraph.getVertices();
@@ -121,7 +125,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
     reindexSubgraphToOriginalGraph(subgraph);
 
-    collectMatchingSquareEdges(squareMatchingEdgesByEdgeAndColor, originalGraph);
+    collectMatchingSquareEdges(squareMatchingEdges, originalGraph);
 
     transferColorsFromSubGraphToOriginalGraph(originalGraph);
 
@@ -136,7 +140,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     }
   }
 
-  private void collectMatchingSquareEdges(Edge[][][] squareMatchingEdgesByEdgeAndColor, Graph originalGraph)
+  private void collectMatchingSquareEdges(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge, Graph originalGraph)
   {
     List<Integer> subGraphColors = graph.getRoot().getEdges().stream()
             .mapToInt(e -> e.getLabel().getColor())
@@ -157,8 +161,11 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
                               Edge originalGraphEdge = originalGraphAdjacencyMatrix[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()];
                               Edge originalGraphSquareMatchingEdge = originalGraphAdjacencyMatrix[squareMatchingEdge.getOrigin().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
 
-                              squareMatchingEdgesByEdgeAndColor[originalGraphEdge.getOrigin().getVertexNo()][originalGraphEdge.getEndpoint().getVertexNo()][otherColor] = originalGraphSquareMatchingEdge;
-                              squareMatchingEdgesByEdgeAndColor[originalGraphSquareMatchingEdge.getOrigin().getVertexNo()][originalGraphSquareMatchingEdge.getEndpoint().getVertexNo()][otherColor] = originalGraphEdge;
+                              int originalGraphSize = originalGraph.getVertices().size();
+                              squareHandlingStrategy.storeSingleSquareMatchingEdge(originalGraphEdge, originalGraphSquareMatchingEdge, otherColor, originalGraphSize, squareMatchingEdgesByEdge);
+                              squareHandlingStrategy.storeSingleSquareMatchingEdge(originalGraphEdge.getOpposite(), originalGraphSquareMatchingEdge.getOpposite(), otherColor, originalGraphSize, squareMatchingEdgesByEdge);
+                              squareHandlingStrategy.storeSingleSquareMatchingEdge(originalGraphSquareMatchingEdge, originalGraphEdge, otherColor, originalGraphSize, squareMatchingEdgesByEdge);
+                              squareHandlingStrategy.storeSingleSquareMatchingEdge(originalGraphSquareMatchingEdge.getOpposite(), originalGraphEdge.getOpposite(), otherColor, originalGraphSize, squareMatchingEdgesByEdge);
                             }
                     ));
   }

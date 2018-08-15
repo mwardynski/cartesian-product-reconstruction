@@ -1,12 +1,12 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.SquareMatchingEdgeData;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,12 +29,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   SquareHandlingStrategy squareHandlingStrategy;
 
   @Override
-  public void reconstructUsingSquares(Edge[][][] squareMatchingEdgesByEdgeAndColor)
+  public void reconstructUsingSquares(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
   {
     SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getVertices().size());
     squareReconstructionData.getNextVertices().add(graph.getRoot());
     squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
-    squareReconstructionData.setSquareMatchingEdgesByEdgeAndColor(squareMatchingEdgesByEdgeAndColor);
+    squareReconstructionData.setSquareMatchingEdgesByEdge(squareMatchingEdgesByEdge);
 
     while (squareReconstructionData.getNextVertices().size() > 0)
     {

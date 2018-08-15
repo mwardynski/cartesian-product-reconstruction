@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services;
 
 import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.SquareMatchingEdgeData;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 
@@ -15,4 +16,6 @@ public interface SquareHandlingStrategy
   void queueSquareSideVertexToNextVertices(Vertex squareSideVertex, SquareReconstructionData squareReconstructionData);
 
   void queueSquareTopVertexToNextVertices(Vertex squareTopVertex, SquareReconstructionData squareReconstructionData);
+
+  void storeSingleSquareMatchingEdge(Edge baseEdge, Edge squareEdge, int otherColor, int graphSize, SquareMatchingEdgeData[][] squareMatchingEdgesByEdge);
 }

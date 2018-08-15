@@ -14,7 +14,7 @@ public class SquareReconstructionData
   Edge[][][] squareFormingEdges;
   Edge multipleSquaresWardenEdge;
 
-  Edge[][][] squareMatchingEdgesByEdgeAndColor;
+  SquareMatchingEdgeData[][] squareMatchingEdgesByEdge;
 
   public SquareReconstructionData(int graphSize)
   {
@@ -74,13 +74,13 @@ public class SquareReconstructionData
     this.multipleSquaresWardenEdge = multipleSquaresWardenEdge;
   }
 
-  public Edge[][][] getSquareMatchingEdgesByEdgeAndColor()
+  public SquareMatchingEdgeData[][] getSquareMatchingEdgesByEdge()
   {
-    return squareMatchingEdgesByEdgeAndColor;
+    return squareMatchingEdgesByEdge;
   }
 
-  public void setSquareMatchingEdgesByEdgeAndColor(Edge[][][] squareMatchingEdgesByEdgeAndColor)
+  public void setSquareMatchingEdgesByEdge(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
   {
-    this.squareMatchingEdgesByEdgeAndColor = squareMatchingEdgesByEdgeAndColor;
+    this.squareMatchingEdgesByEdge = squareMatchingEdgesByEdge;
   }
 }

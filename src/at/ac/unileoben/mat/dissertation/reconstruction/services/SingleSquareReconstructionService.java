@@ -1,12 +1,9 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services;
 
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
-
-import java.util.List;
+import at.ac.unileoben.mat.dissertation.structure.SquareMatchingEdgeData;
 
 public interface SingleSquareReconstructionService
 {
-  void reconstructUsingSquares(Edge[][][] squareMatchingEdgesByEdgeAndColor);
+  void reconstructUsingSquares(SquareMatchingEdgeData[][] squareMatchingEdgesByEdgeAndColor);
 
 }
