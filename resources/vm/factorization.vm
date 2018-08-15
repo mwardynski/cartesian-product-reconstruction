@@ -3,6 +3,13 @@
 \usepackage{tikz}
 \usepackage{verbatim}
 \usepackage{xcolor}
+\usepackage{geometry}
+\geometry{
+a4paper,
+total={300mm,300mm},
+left=5mm,
+top=5mm,
+}
 
 \usetikzlibrary{arrows,shapes}
 
