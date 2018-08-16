@@ -322,7 +322,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
         continue;
       }
       checkedEdges.add(edge);
-      boolean squareFound = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
+      SquareFindingEnum squareFindingResult = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge, true);
 //      squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
 //      squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
 
@@ -334,7 +334,7 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
       }
 
       //add vertex of the edge to the new vertices
-      if (!squareFound)
+      if (squareFindingResult == SquareFindingEnum.NO_SQUARE)
       {
         missingSquareEdges.add(edge);
       }

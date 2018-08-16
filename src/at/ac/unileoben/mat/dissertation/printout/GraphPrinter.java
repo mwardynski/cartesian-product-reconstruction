@@ -24,7 +24,7 @@ public interface GraphPrinter
 
   void createLabelSnapshot(Edge edge, int color, int name, LabelOperationDetail labelOperationDetail);
 
-  void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge);
+  void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge, boolean firstRun);
 
   void createColoringSquareSnapshot(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData);
 
