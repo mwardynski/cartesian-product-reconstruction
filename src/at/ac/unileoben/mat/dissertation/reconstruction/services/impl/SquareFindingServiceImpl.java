@@ -3,11 +3,14 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
-import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.MissingSquareData;
+import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -24,75 +27,55 @@ public class SquareFindingServiceImpl implements SquareFindingService
   SquareHandlingStrategy squareHandlingStrategy;
 
   @Override
-  public SquareFindingEnum findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge, boolean firstRunForEdgePair)
+  public boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
   {
-    SquareFindingEnum squareFindingResult = SquareFindingEnum.NO_SQUARE;
     List<List<Edge>> squareEdgesList = graphHelper.findSquaresForTwoEdges(iEdge, jEdge);
+    boolean squareFound = CollectionUtils.isNotEmpty(squareEdgesList);
 
-    for (List<Edge> edgesPair : squareEdgesList)
-    {
-      Edge iSquareEdge = edgesPair.get(0);
-      Edge jSquareEdge = edgesPair.get(1);
+    squareEdgesList.stream()
+            .forEach(edgesPair ->
+            {
+              Edge iSquareEdge = edgesPair.get(0);
+              Edge jSquareEdge = edgesPair.get(1);
 
-      if (isAnyEdgeInSquareColored(iEdge, jEdge, iSquareEdge, jSquareEdge))
-      {
-        if (iEdge.getLabel() != null)
-        {
-          colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
-        }
-        else if (jEdge.getLabel() != null)
-        {
-          colorEdgesFormingSquare(iEdge, iSquareEdge, jEdge, jSquareEdge, squareReconstructionData);
-        }
-        else if (iSquareEdge.getLabel() != null)
-        {
-          colorEdgesFormingSquare(jEdge.getOpposite(), jSquareEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
-        }
-        else if (jSquareEdge.getLabel() != null)
-        {
-          colorEdgesFormingSquare(iEdge.getOpposite(), iSquareEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
-        }
-        squareFindingResult = SquareFindingEnum.SQUARE_COLORED;
-      }
-      else
-      {
-        if (firstRunForEdgePair)
-        {
-          squareFindingResult = SquareFindingEnum.REPEAT_SQUARE;
-        }
-        else
-        {
-          squareHandlingStrategy.colorEdgesWithoutSquare(Collections.singletonList(iEdge));
-          colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
-          squareFindingResult = SquareFindingEnum.SQUARE_COLORED;
-        }
-      }
+              if (iEdge.getLabel() != null)
+              {
+                colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
+              }
+              else if (jEdge.getLabel() != null)
+              {
+                colorEdgesFormingSquare(iEdge, iSquareEdge, jEdge, jSquareEdge, squareReconstructionData);
+              }
+              else if (iSquareEdge.getLabel() != null)
+              {
+                System.out.println("iSquareEdge");
+                colorEdgesFormingSquare(jEdge.getOpposite(), jSquareEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
+              }
+              else if (jSquareEdge.getLabel() != null)
+              {
+                System.out.println("jSquareEdge");
+                colorEdgesFormingSquare(iEdge.getOpposite(), iSquareEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
+              }
+              else
+              {
+                throw new RuntimeException(String.format("no way to color edges: %s, %s, %s, %s", iEdge, jEdge, iSquareEdge, jSquareEdge));
+              }
 
-      if (firstRunForEdgePair)
-      {
-        storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
-        squareHandlingStrategy.queueSquareTopVertexToNextVertices(iSquareEdge.getEndpoint(), squareReconstructionData);
-      }
-    }
+              storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
-    if (firstRunForEdgePair)
-    {
-      squareHandlingStrategy.queueSquareSideVertexToNextVertices(iEdge.getEndpoint(), squareReconstructionData);
-      squareHandlingStrategy.queueSquareSideVertexToNextVertices(jEdge.getEndpoint(), squareReconstructionData);
-    }
+              squareHandlingStrategy.queueSquareTopVertexToNextVertices(iSquareEdge.getEndpoint(), squareReconstructionData);
+            });
 
-    if (squareFindingResult == SquareFindingEnum.NO_SQUARE)
+    squareHandlingStrategy.queueSquareSideVertexToNextVertices(iEdge.getEndpoint(), squareReconstructionData);
+    squareHandlingStrategy.queueSquareSideVertexToNextVertices(jEdge.getEndpoint(), squareReconstructionData);
+
+    if (!squareFound)
     {
       MissingSquareData missingSquare = new MissingSquareData(squareReconstructionData.getCurrentVertex(), iEdge, jEdge);
       squareReconstructionData.getMissingSquares().add(missingSquare);
     }
 
-    return squareFindingResult;
-  }
-
-  private boolean isAnyEdgeInSquareColored(Edge iEdge, Edge jEdge, Edge iSquareEdge, Edge jSquareEdge)
-  {
-    return iEdge.getLabel() != null || jEdge.getLabel() != null || iSquareEdge.getLabel() != null || jSquareEdge.getLabel() != null;
+    return squareFound;
   }
 
   private void colorEdgesFormingSquare(Edge baseEdge, Edge squareEdge, Edge otherBaseEdge, Edge otherSquareEdge, SquareReconstructionData squareReconstructionData)

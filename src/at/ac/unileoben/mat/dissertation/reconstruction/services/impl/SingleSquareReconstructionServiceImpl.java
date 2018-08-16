@@ -3,7 +3,10 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
-import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.SquareMatchingEdgeData;
+import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class SingleSquareReconstructionServiceImpl implements SingleSquareReconstructionService
@@ -57,7 +59,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   private void reconstructForCurrentVertex(SquareReconstructionData squareReconstructionData)
   {
     squareReconstructionData.setCurrentVertex(squareReconstructionData.getNextVertices().poll());
-    List<Edge> currentVertexEdges = prepareEdgesForColoringUsingSquares(squareReconstructionData.getCurrentVertex().getEdges(), squareReconstructionData);
+    List<Edge> currentVertexEdges = collectCurrentVertexEdges(squareReconstructionData);
 
     if (currentVertexEdges.size() < 2)
     {
@@ -71,8 +73,21 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     newNextVertices.stream().forEach(v -> squareReconstructionData.getIncludedVertices()[v.getVertexNo()] = true);
     squareReconstructionData.getNextVertices().addAll(newNextVertices);*/
 
-    traverseAndColorAllEdgePairs(currentVertexEdges, squareReconstructionData, true);
+    for (int i = 0; i < currentVertexEdges.size() - 1; i++)
+    {
+      for (int j = i + 1; j < currentVertexEdges.size(); j++)
+      {
+        Edge iEdge = currentVertexEdges.get(i);
+        Edge jEdge = currentVertexEdges.get(j);
 
+        if (iEdge.getLabel() != null && jEdge.getLabel() != null && iEdge.getLabel().getColor() == jEdge.getLabel().getColor())
+        {
+          continue;
+        }
+
+        squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
+      }
+    }
     currentVertexEdges.stream()
             .peek(e -> squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = true)
             .forEach(e -> squareReconstructionData.getUsedEdges()[e.getEndpoint().getVertexNo()][e.getOrigin().getVertexNo()] = true);
@@ -86,50 +101,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     }
   }
 
-  private void traverseAndColorAllEdgePairs(List<Edge> currentVertexEdges, SquareReconstructionData squareReconstructionData, boolean firstRun)
+  private List<Edge> collectCurrentVertexEdges(SquareReconstructionData squareReconstructionData)
   {
-    List<Edge> edgesToRepeatColoring = new ArrayList<>(currentVertexEdges.size());
-    boolean[] includedEdgesToRepeatColoring = new boolean[graph.getVertices().size()];
+    List<Edge> currentVertexEdges = squareReconstructionData.getCurrentVertex().getEdges();
+    List<Edge> resultEdges = new ArrayList<>(currentVertexEdges.size());
 
-    for (int i = 0; i < currentVertexEdges.size() - 1; i++)
-    {
-      for (int j = i + 1; j < currentVertexEdges.size(); j++)
-      {
-        Edge iEdge = currentVertexEdges.get(i);
-        Edge jEdge = currentVertexEdges.get(j);
-
-        if (iEdge.getLabel() != null && jEdge.getLabel() != null && iEdge.getLabel().getColor() == jEdge.getLabel().getColor())
-        {
-          continue;
-        }
-
-        SquareFindingEnum squareFindingResult = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, iEdge, jEdge, firstRun);
-
-        if (squareFindingResult == SquareFindingEnum.REPEAT_SQUARE)
-        {
-          Stream.of(iEdge, jEdge)
-                  .filter(edge -> !includedEdgesToRepeatColoring[edge.getEndpoint().getVertexNo()])
-                  .forEach(edge ->
-                  {
-                    edgesToRepeatColoring.add(edge);
-                    includedEdgesToRepeatColoring[edge.getEndpoint().getVertexNo()] = true;
-                  });
-        }
-      }
-    }
-
-    if (CollectionUtils.isNotEmpty(edgesToRepeatColoring))
-    {
-      List<Edge> preparedEdgesToRepeatColoring = prepareEdgesForColoringUsingSquares(edgesToRepeatColoring, squareReconstructionData);
-      traverseAndColorAllEdgePairs(preparedEdgesToRepeatColoring, squareReconstructionData, false);
-    }
-  }
-
-  private List<Edge> prepareEdgesForColoringUsingSquares(List<Edge> edges, SquareReconstructionData squareReconstructionData)
-  {
-    List<Edge> resultEdges = new ArrayList<>(edges.size());
-
-    edges.stream().forEach(
+    currentVertexEdges.stream().forEach(
             e ->
             {
               if (e.getLabel() != null)

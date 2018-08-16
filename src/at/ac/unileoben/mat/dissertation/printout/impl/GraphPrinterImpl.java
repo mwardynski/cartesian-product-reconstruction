@@ -46,7 +46,6 @@ public class GraphPrinterImpl implements GraphPrinter
   private static final String COLOR_PREFIX = "color";
   private static final String ORIGINAL_COLORS_PROFILE = "origColors";
   private static final String FINDING_SQUARE_HEADER = "FINDING SQUARE";
-  private static final String FINDING_SQUARE_SECOND_RUN_HEADER = "FINDING SQUARE SECOND RUN";
   private static final String COLORING_SQUARE_HEADER = "COLORING SQUARE";
   private static final String COLORING_EDGES_WITHOUT_SQUARE_HEADER = "COLORING EDGES WITHOUT SQUARE";
 
@@ -134,13 +133,12 @@ public class GraphPrinterImpl implements GraphPrinter
   }
 
   @Override
-  public void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge, boolean firstRun)
+  public void createFindingSquareSnapshot(Edge baseEdge, Edge otherEdge)
   {
     EdgeStyleDefinition edgeStyleDefinition = new EdgeStyleDefinition(Arrays.asList(baseEdge, otherEdge), EdgeStyleEnum.DASHED.toString());
-    String header = firstRun ? FINDING_SQUARE_HEADER : FINDING_SQUARE_SECOND_RUN_HEADER;
-    createSnapshot(header, () -> prepareEdges(Collections.singletonList(edgeStyleDefinition)));
+    createSnapshot(FINDING_SQUARE_HEADER, () -> prepareEdges(Collections.singletonList(edgeStyleDefinition)));
 
-    System.out.println(String.format("%d. %s - %d-%d, %d-%d", steps.size(), header,
+    System.out.println(String.format("%d. FINDING - %d-%d, %d-%d", steps.size(),
             baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(),
             otherEdge.getOrigin().getVertexNo(), otherEdge.getEndpoint().getVertexNo()));
   }
@@ -166,7 +164,7 @@ public class GraphPrinterImpl implements GraphPrinter
 
     createSnapshot(COLORING_SQUARE_HEADER, () -> prepareEdges(edgeStyleDefinitions));
 
-    System.out.println(String.format("%d. %s - %d-%d, %d-%d", steps.size(), COLORING_SQUARE_HEADER,
+    System.out.println(String.format("%d. COLORING - %d-%d, %d-%d", steps.size(),
             baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(),
             squareEdge.getOrigin().getVertexNo(), squareEdge.getEndpoint().getVertexNo()));
   }
@@ -180,7 +178,7 @@ public class GraphPrinterImpl implements GraphPrinter
     String formattedEdgesWithoutSquare = edgesWithoutSquare.stream()
             .map(e -> String.format("%d-%d", e.getOrigin().getVertexNo(), e.getEndpoint().getVertexNo()))
             .collect(Collectors.joining(", "));
-    System.out.println(String.format("%d. %s - %s", steps.size(), COLORING_EDGES_WITHOUT_SQUARE_HEADER, formattedEdgesWithoutSquare));
+    System.out.println(String.format("%d. NO SQUARE - %s", steps.size(), formattedEdgesWithoutSquare));
   }
 
   private void createSnapshot(String figureTitle, Supplier<List<EdgeData>> edgesSupplier)

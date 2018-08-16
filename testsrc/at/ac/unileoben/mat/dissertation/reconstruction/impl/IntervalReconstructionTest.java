@@ -31,7 +31,7 @@ public class IntervalReconstructionTest extends AbstractReconstructionAfterFindi
 
   static
   {
-    examplesList.add(new FactorizationCase("P6xP4.txt", 2, 0));
+    examplesList.add(new FactorizationCase("P6xP4.txt", 2, 11));
 //    examplesList.add(new FactorizationCase("P6xP3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("hMxP3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("YxP3xP3.txt", 2, 0));

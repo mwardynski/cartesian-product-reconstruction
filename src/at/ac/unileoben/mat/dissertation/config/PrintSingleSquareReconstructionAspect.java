@@ -25,15 +25,15 @@ public class PrintSingleSquareReconstructionAspect
   GraphPrinter graphPrinter;
 
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService.findAndProcessSquareForTwoEdges(..)) " +
-          "&& args(squareReconstructionData,baseEdge,otherEdge,firstRun)")
-  private void findingSquareOperation(SquareReconstructionData squareReconstructionData, Edge baseEdge, Edge otherEdge, boolean firstRun)
+          "&& args(squareReconstructionData,baseEdge,otherEdge)")
+  private void findingSquareOperation(SquareReconstructionData squareReconstructionData, Edge baseEdge, Edge otherEdge)
   {
   }
 
-  @Before("findingSquareOperation(squareReconstructionData,baseEdge,otherEdge,firstRun)")
-  public void addFindingSquareSnapshot(SquareReconstructionData squareReconstructionData, Edge baseEdge, Edge otherEdge, boolean firstRun)
+  @Before("findingSquareOperation(squareReconstructionData,baseEdge,otherEdge)")
+  public void addFindingSquareSnapshot(SquareReconstructionData squareReconstructionData, Edge baseEdge, Edge otherEdge)
   {
-    graphPrinter.createFindingSquareSnapshot(baseEdge, otherEdge, firstRun);
+    graphPrinter.createFindingSquareSnapshot(baseEdge, otherEdge);
   }
 
   @Pointcut("execution(* at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy.colorEdge(..)) " +
