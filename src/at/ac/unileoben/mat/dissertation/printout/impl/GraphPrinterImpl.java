@@ -152,12 +152,15 @@ public class GraphPrinterImpl implements GraphPrinter
 
     SquareMatchingEdgeData[][] squareMatchingEdgesByEdge = squareReconstructionData.getSquareMatchingEdgesByEdge();
     SquareMatchingEdgeData squareMatchingEdgeData = squareMatchingEdgesByEdge[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
-    List<Edge> squareMatchingEdges = Arrays.stream(squareMatchingEdgeData.getEdgesByColors())
-            .filter(Objects::nonNull)
-            .flatMap(edges -> edges.stream())
-            .collect(Collectors.toList());
+    if (squareMatchingEdgeData != null)
+    {
+      List<Edge> squareMatchingEdges = Arrays.stream(squareMatchingEdgeData.getEdgesByColors())
+              .filter(Objects::nonNull)
+              .flatMap(edges -> edges.stream())
+              .collect(Collectors.toList());
 
-    edgeStyleDefinitions.add(new EdgeStyleDefinition(squareMatchingEdges, EdgeStyleEnum.LOOSELY_DOTTED.toString()));
+      edgeStyleDefinitions.add(new EdgeStyleDefinition(squareMatchingEdges, EdgeStyleEnum.LOOSELY_DOTTED.toString()));
+    }
 
     createSnapshot(COLORING_SQUARE_HEADER, () -> prepareEdges(edgeStyleDefinitions));
 

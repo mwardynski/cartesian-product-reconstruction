@@ -38,15 +38,27 @@ public class SquareFindingServiceImpl implements SquareFindingService
               Edge iSquareEdge = edgesPair.get(0);
               Edge jSquareEdge = edgesPair.get(1);
 
-              if (jEdge.getLabel() != null)
+              if (iEdge.getLabel() != null)
               {
-                squareHandlingStrategy.colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
-                squareHandlingStrategy.colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
+                colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
+              }
+              else if (jEdge.getLabel() != null)
+              {
+                colorEdgesFormingSquare(iEdge, iSquareEdge, jEdge, jSquareEdge, squareReconstructionData);
+              }
+              else if (iSquareEdge.getLabel() != null)
+              {
+                System.out.println("iSquareEdge");
+                colorEdgesFormingSquare(jEdge.getOpposite(), jSquareEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
+              }
+              else if (jSquareEdge.getLabel() != null)
+              {
+                System.out.println("jSquareEdge");
+                colorEdgesFormingSquare(iEdge.getOpposite(), iSquareEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
               }
               else
               {
-                squareHandlingStrategy.colorEdge(jEdge, jSquareEdge, iEdge, squareReconstructionData);
-                squareHandlingStrategy.colorEdge(iEdge, iSquareEdge, jEdge, squareReconstructionData);
+                throw new RuntimeException(String.format("no way to color edges: %s, %s, %s, %s", iEdge, jEdge, iSquareEdge, jSquareEdge));
               }
 
               storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
@@ -64,6 +76,12 @@ public class SquareFindingServiceImpl implements SquareFindingService
     }
 
     return squareFound;
+  }
+
+  private void colorEdgesFormingSquare(Edge baseEdge, Edge squareEdge, Edge otherBaseEdge, Edge otherSquareEdge, SquareReconstructionData squareReconstructionData)
+  {
+    squareHandlingStrategy.colorEdge(baseEdge, squareEdge, otherBaseEdge, squareReconstructionData);
+    squareHandlingStrategy.colorEdge(otherBaseEdge, otherSquareEdge, baseEdge, squareReconstructionData);
   }
 
   private void storeSquareFormingEdges(Edge iEdge, Edge jEdge, Edge iSquareEdge, Edge jSquareEdge, SquareReconstructionData squareReconstructionData)

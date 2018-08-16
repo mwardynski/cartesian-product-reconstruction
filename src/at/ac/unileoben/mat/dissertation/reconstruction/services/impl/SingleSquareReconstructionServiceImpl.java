@@ -48,10 +48,11 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     squareReconstructionData.getMissingSquares().stream()
             .forEach(missingSquare ->
             {
-              Integer vertexNo = graph.getReverseReindexArray()[missingSquare.getVertex().getVertexNo()];
-              Integer edge1Endpoint = graph.getReverseReindexArray()[missingSquare.getFirstEdge().getEndpoint().getVertexNo()];
-              Integer edge2Endpoint = graph.getReverseReindexArray()[missingSquare.getSecondEdge().getEndpoint().getVertexNo()];
-              System.out.println(vertexNo + ": " + edge1Endpoint + "-" + edge2Endpoint);
+              Edge edge1 = missingSquare.getFirstEdge();
+              Edge edge2 = missingSquare.getSecondEdge();
+              System.out.println(String.format("%d-%d(%d), %d-%d(%d)",
+                      edge1.getOrigin().getVertexNo(), edge1.getEndpoint().getVertexNo(), edge1.getLabel().getColor(),
+                      edge2.getOrigin().getVertexNo(), edge2.getEndpoint().getVertexNo(), edge2.getLabel().getColor()));
             });
   }
 

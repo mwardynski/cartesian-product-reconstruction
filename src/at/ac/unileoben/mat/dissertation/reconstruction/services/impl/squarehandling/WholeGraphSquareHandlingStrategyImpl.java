@@ -13,7 +13,7 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
 {
 
   @Override
-  public void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
+  public void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorEdge, SquareReconstructionData squareReconstructionData)
   {
     if (baseEdge.getLabel() != null && squareEdge.getLabel() != null)
     {
@@ -22,7 +22,7 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
 
       if (baseEdgeColor != squareEdgeColor)
       {
-        coloringService.mergeColorsForEdges(Arrays.asList(baseEdge, squareEdge), MergeTagEnum.DOUBLE_SQUARE);
+        coloringService.mergeColorsForEdges(Arrays.asList(baseEdge, squareEdge), MergeTagEnum.DOUBLE_SQUARE_UNIFY_COLORING);
       }
     }
     else
@@ -39,7 +39,7 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
       }
       else
       {
-        color = findExtensionColor(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
+        color = findExtensionColor(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
 
         if (color == -1)
         {
@@ -59,7 +59,7 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
       }
     }
 
-    storeSquareMatchingEdges(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
+    storeSquareMatchingEdges(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
   }
 
   @Override

@@ -49,8 +49,8 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
       {
         Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
 
-        Edge baseEdgeExtendingEdge = adjacencyMatrix[baseEdge.getOrigin().getVertexNo()][squareMatchingEdge.getOrigin().getVertexNo()];
-        Edge squareEdgeExtendingEdge = adjacencyMatrix[squareEdge.getOrigin().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
+        Edge baseEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getOrigin().getVertexNo()][squareMatchingEdge.getOrigin().getVertexNo()];
+        Edge squareEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getEndpoint().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
 
         List<List<Edge>> baseEdgeSquares = graphHelper.findSquaresForTwoEdges(baseEdgeExtendingEdge, baseEdge);
         List<List<Edge>> squareEdgeSquares = graphHelper.findSquaresForTwoEdges(squareEdgeExtendingEdge, squareEdge);
@@ -92,6 +92,7 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
     if (squareMatchingEdgesToBaseEdge == null)
     {
       squareMatchingEdgesToBaseEdge = new SquareMatchingEdgeData(graphSize);
+      squareMatchingEdgesByEdge[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()] = squareMatchingEdgesToBaseEdge;
     }
     Edge[] includedEdges = squareMatchingEdgesToBaseEdge.getIncludedEdges();
     Edge includedEdge = includedEdges[squareEdge.getOrigin().getVertexNo()];
