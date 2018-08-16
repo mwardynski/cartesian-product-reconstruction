@@ -13,7 +13,7 @@ public class EdgeColorsGeneratorImpl implements EdgeColorsGenerator
 {
 
   private static final int BITWISE_RGB_SETS_AMOUNT = 6;
-  private static final int RGB_MIN_VALUE = 100;
+  private static final int RGB_MIN_VALUE = 155;
   private static final int RGB_MAX_VALUE = 255;
 
 

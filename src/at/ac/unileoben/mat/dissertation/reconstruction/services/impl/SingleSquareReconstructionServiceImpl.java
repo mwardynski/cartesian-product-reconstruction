@@ -3,10 +3,8 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.SquareMatchingEdgeData;
-import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.exception.SquareWithoutAnyLabelsException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,11 +34,45 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
     squareReconstructionData.setSquareMatchingEdgesByEdge(squareMatchingEdgesByEdge);
 
-    while (squareReconstructionData.getNextVertices().size() > 0)
+    while (CollectionUtils.isNotEmpty(squareReconstructionData.getNextVertices()))
     {
-      reconstructForCurrentVertex(squareReconstructionData);
+      try
+      {
+        reconstructForCurrentVertex(squareReconstructionData);
+      }
+      catch (SquareWithoutAnyLabelsException e)
+      {
+        addCurrentVertexToPostponedVertices(squareReconstructionData);
+      }
+
+      if (CollectionUtils.isEmpty(squareReconstructionData.getNextVertices()))
+      {
+        handleNextPostponedVertex(squareReconstructionData);
+      }
     }
     printOutMissingSquares(squareReconstructionData);
+  }
+
+  private void addCurrentVertexToPostponedVertices(SquareReconstructionData squareReconstructionData)
+  {
+    Vertex currentVertex = squareReconstructionData.getCurrentVertex();
+    squareReconstructionData.getIncludedVertices()[currentVertex.getVertexNo()] = false;
+    squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()] = true;
+    squareReconstructionData.getPostponedVertices().add(currentVertex);
+  }
+
+  private void handleNextPostponedVertex(SquareReconstructionData squareReconstructionData)
+  {
+    while (CollectionUtils.isNotEmpty(squareReconstructionData.getPostponedVertices()))
+    {
+      Vertex nextPostponedVertex = squareReconstructionData.getPostponedVertices().poll();
+      if (!squareReconstructionData.getIncludedVertices()[nextPostponedVertex.getVertexNo()])
+      {
+        squareReconstructionData.getNextVertices().add(nextPostponedVertex);
+        squareReconstructionData.getIncludedVertices()[nextPostponedVertex.getVertexNo()] = true;
+        break;
+      }
+    }
   }
 
   private void printOutMissingSquares(SquareReconstructionData squareReconstructionData)
