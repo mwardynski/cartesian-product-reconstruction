@@ -51,6 +51,11 @@ public class FactorXK2SquareHandlingStrategyImpl extends AbstractSquareHandlingS
   }
 
   @Override
+  public void colorEdgeWithNewColor(Edge edge)
+  {
+  }
+
+  @Override
   public void queueSquareSideVertexToNextVertices(Vertex squareSideVertex, SquareReconstructionData squareReconstructionData)
   {
     boolean vertexToQueue = squareSideVertex.getEdges().stream()

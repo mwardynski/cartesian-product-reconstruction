@@ -3,10 +3,8 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.MissingSquareData;
-import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.exception.SquareWithoutAnyLabelsException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +27,7 @@ public class SquareFindingServiceImpl implements SquareFindingService
   @Override
   public boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
   {
+    Vertex currentVertex = squareReconstructionData.getCurrentVertex();
     List<List<Edge>> squareEdgesList = graphHelper.findSquaresForTwoEdges(iEdge, jEdge);
     boolean squareFound = CollectionUtils.isNotEmpty(squareEdgesList);
 
@@ -58,7 +57,15 @@ public class SquareFindingServiceImpl implements SquareFindingService
               }
               else
               {
-                throw new RuntimeException(String.format("no way to color edges: %s, %s, %s, %s", iEdge, jEdge, iSquareEdge, jSquareEdge));
+                if (squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()])
+                {
+                  squareHandlingStrategy.colorEdgeWithNewColor(iEdge);
+                  colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
+                }
+                else
+                {
+                  throw new SquareWithoutAnyLabelsException(String.format("no way to color edges: %s, %s, %s, %s", iEdge, jEdge, iSquareEdge, jSquareEdge));
+                }
               }
 
               storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
@@ -71,7 +78,7 @@ public class SquareFindingServiceImpl implements SquareFindingService
 
     if (!squareFound)
     {
-      MissingSquareData missingSquare = new MissingSquareData(squareReconstructionData.getCurrentVertex(), iEdge, jEdge);
+      MissingSquareData missingSquare = new MissingSquareData(currentVertex, iEdge, jEdge);
       squareReconstructionData.getMissingSquares().add(missingSquare);
     }
 

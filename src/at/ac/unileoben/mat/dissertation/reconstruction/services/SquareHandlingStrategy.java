@@ -13,6 +13,8 @@ public interface SquareHandlingStrategy
 
   void colorEdgesWithoutSquare(List<Edge> edgesWithoutSquare);
 
+  void colorEdgeWithNewColor(Edge edge);
+
   void queueSquareSideVertexToNextVertices(Vertex squareSideVertex, SquareReconstructionData squareReconstructionData);
 
   void queueSquareTopVertexToNextVertices(Vertex squareTopVertex, SquareReconstructionData squareReconstructionData);

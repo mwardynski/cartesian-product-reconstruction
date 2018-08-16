@@ -9,6 +9,8 @@ public class SquareReconstructionData
   Vertex currentVertex;
   Queue<Vertex> nextVertices;
   boolean[] includedVertices;
+  Queue<Vertex> postponedVertices;
+  boolean[] includedPostponedVertices;
   boolean[][] usedEdges;
   List<MissingSquareData> missingSquares;
   Edge[][][] squareFormingEdges;
@@ -20,6 +22,8 @@ public class SquareReconstructionData
   {
     nextVertices = new LinkedList<>();
     includedVertices = new boolean[graphSize];
+    postponedVertices = new LinkedList<>();
+    includedPostponedVertices = new boolean[graphSize];
     usedEdges = new boolean[graphSize][graphSize];
     missingSquares = new LinkedList<>();
   }
@@ -42,6 +46,16 @@ public class SquareReconstructionData
   public boolean[] getIncludedVertices()
   {
     return includedVertices;
+  }
+
+  public Queue<Vertex> getPostponedVertices()
+  {
+    return postponedVertices;
+  }
+
+  public boolean[] getIncludedPostponedVertices()
+  {
+    return includedPostponedVertices;
   }
 
   public boolean[][] getUsedEdges()

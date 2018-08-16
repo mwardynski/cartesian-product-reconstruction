@@ -66,12 +66,15 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
   public void colorEdgesWithoutSquare(List<Edge> edgesWithoutSquare)
   {
     edgesWithoutSquare.stream()
-            .forEach(e ->
-            {
-              int newColor = addNewColorToGraphColoring();
-              e.setLabel(new Label(newColor, -1));
-              e.getOpposite().setLabel(new Label(newColor, -1));
-            });
+            .forEach(this::colorEdgeWithNewColor);
+  }
+
+  @Override
+  public void colorEdgeWithNewColor(Edge edge)
+  {
+    int newColor = addNewColorToGraphColoring();
+    edge.setLabel(new Label(newColor, -1));
+    edge.getOpposite().setLabel(new Label(newColor, -1));
   }
 
   private int addNewColorToGraphColoring()
