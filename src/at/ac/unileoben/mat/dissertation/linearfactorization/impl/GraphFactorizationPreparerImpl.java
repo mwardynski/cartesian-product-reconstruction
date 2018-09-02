@@ -35,6 +35,9 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   @Autowired
   EdgeService edgeService;
 
+  @Autowired
+  TestCaseContext testCaseContext;
+
   @Override
   public void removeVertex(List<Vertex> vertices, int vertexIndex)
   {
@@ -42,18 +45,22 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
     while (vertexIterator.hasNext())
     {
       Vertex v = vertexIterator.next();
-      Iterator<Edge> edgeIterator = v.getEdges().iterator();
-      while (edgeIterator.hasNext())
-      {
-        Edge e = edgeIterator.next();
-        if (e.getOrigin().getVertexNo() == vertexIndex || e.getEndpoint().getVertexNo() == vertexIndex)
-        {
-          edgeIterator.remove();
-        }
-      }
       if (v.getVertexNo() == vertexIndex)
       {
         vertexIterator.remove();
+      }
+      else
+      {
+        Iterator<Edge> edgeIterator = v.getEdges().iterator();
+        while (edgeIterator.hasNext())
+        {
+          Edge e = edgeIterator.next();
+          if (e.getEndpoint().getVertexNo() == vertexIndex)
+          {
+            edgeIterator.remove();
+            testCaseContext.getRemovedVertexNeighbors().add(v.getVertexNo() < vertexIndex ? v.getVertexNo() : v.getVertexNo() - 1);
+          }
+        }
       }
     }
     for (Vertex v : vertices)

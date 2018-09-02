@@ -6,6 +6,7 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizationPr
 import at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.TestCaseContext;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StopWatch;
@@ -33,6 +34,9 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
   @Autowired
   GraphFactorizationPreparer graphFactorizationPreparer;
 
+  @Autowired
+  TestCaseContext testCaseContext;
+
   void checkExamples(Reconstruction reconstruction, List<FactorizationCase> examplesList)
   {
     for (FactorizationCase factorizationCase : examplesList)
@@ -44,6 +48,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
         {
           StopWatch stopWatch = new StopWatch();
           stopWatch.start();
+          testCaseContext.setRemovedVertexNeighbors(new HashSet<>());
           List<Vertex> incompleteVertices = graphHelper.parseGraph(factorizationCase.getFileName());
           graphFactorizationPreparer.removeVertex(incompleteVertices, vertexNumberToRemove);
 
@@ -77,8 +82,9 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
 
   private void cleanUpReconstructionData()
   {
+    reconstructionData.setReconstructionEntries(new LinkedList<>());
     reconstructionData.setNewVertex(null);
-    reconstructionData.setMergeTags(null);
+    reconstructionData.setMergeOperations(null);
     reconstructionData.setCurrentLayerBackup(null);
     reconstructionData.setPrevLayerBackup(null);
     reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.empty());
@@ -86,7 +92,6 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
     reconstructionData.setCurrentFactorization(null);
     reconstructionData.setOperationOnGraph(null);
     reconstructionData.setCurrentLayerNo(0);
-    reconstructionData.setReconstructionEntries(new LinkedList<>());
   }
 
 }
