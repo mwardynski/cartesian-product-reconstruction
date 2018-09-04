@@ -1,9 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.reconstruction.services.MissingSquaresAnalyzerService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.*;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import at.ac.unileoben.mat.dissertation.structure.exception.SquareWithoutAnyLabelsException;
 import org.apache.commons.collections.CollectionUtils;
@@ -28,6 +25,9 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
 
   @Autowired
   SquareHandlingStrategy squareHandlingStrategy;
+
+  @Autowired
+  MissingSquaresCleanerService missingSquaresCleanerService;
 
   @Autowired
   MissingSquaresAnalyzerService missingSquaresAnalyzerService;
@@ -57,6 +57,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
       }
     }
 //    printOutMissingSquares(squareReconstructionData);
+    missingSquaresCleanerService.cleanNotValidMissingSquares(squareReconstructionData);
     missingSquaresAnalyzerService.analyseMissingSquares(squareReconstructionData, squareMatchingEdgesByEdge);
   }
 
