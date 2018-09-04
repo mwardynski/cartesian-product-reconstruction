@@ -3,7 +3,10 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
-import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import at.ac.unileoben.mat.dissertation.structure.exception.SquareWithoutAnyLabelsException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,56 +34,51 @@ public class SquareFindingServiceImpl implements SquareFindingService
     List<List<Edge>> squareEdgesList = graphHelper.findSquaresForTwoEdges(iEdge, jEdge);
     boolean squareFound = CollectionUtils.isNotEmpty(squareEdgesList);
 
-    squareEdgesList.stream()
-            .forEach(edgesPair ->
-            {
-              Edge iSquareEdge = edgesPair.get(0);
-              Edge jSquareEdge = edgesPair.get(1);
+    if (squareFound)
+    {
+      squareEdgesList.stream()
+              .forEach(edgesPair ->
+              {
+                Edge iSquareEdge = edgesPair.get(0);
+                Edge jSquareEdge = edgesPair.get(1);
 
-              if (iEdge.getLabel() != null)
-              {
-                colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
-              }
-              else if (jEdge.getLabel() != null)
-              {
-                colorEdgesFormingSquare(iEdge, iSquareEdge, jEdge, jSquareEdge, squareReconstructionData);
-              }
-              else if (iSquareEdge.getLabel() != null)
-              {
-                System.out.println("iSquareEdge");
-                colorEdgesFormingSquare(jEdge.getOpposite(), jSquareEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
-              }
-              else if (jSquareEdge.getLabel() != null)
-              {
-                System.out.println("jSquareEdge");
-                colorEdgesFormingSquare(iEdge.getOpposite(), iSquareEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
-              }
-              else
-              {
-                if (squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()])
+                if (iEdge.getLabel() != null)
                 {
-                  squareHandlingStrategy.colorEdgeWithNewColor(iEdge);
                   colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
+                }
+                else if (jEdge.getLabel() != null)
+                {
+                  colorEdgesFormingSquare(iEdge, iSquareEdge, jEdge, jSquareEdge, squareReconstructionData);
+                }
+                else if (iSquareEdge.getLabel() != null)
+                {
+                  colorEdgesFormingSquare(jEdge.getOpposite(), jSquareEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
+                }
+                else if (jSquareEdge.getLabel() != null)
+                {
+                  colorEdgesFormingSquare(iEdge.getOpposite(), iSquareEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
                 }
                 else
                 {
-                  throw new SquareWithoutAnyLabelsException(String.format("no way to color edges: %s, %s, %s, %s", iEdge, jEdge, iSquareEdge, jSquareEdge));
+                  if (squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()])
+                  {
+                    squareHandlingStrategy.colorEdgeWithNewColor(iEdge, true);
+                    colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);
+                  }
+                  else
+                  {
+                    throw new SquareWithoutAnyLabelsException(String.format("no way to color edges: %s, %s, %s, %s", iEdge, jEdge, iSquareEdge, jSquareEdge));
+                  }
                 }
-              }
 
-              storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
+                storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
-              squareHandlingStrategy.queueSquareTopVertexToNextVertices(iSquareEdge.getEndpoint(), squareReconstructionData);
-            });
+                squareHandlingStrategy.queueSquareTopVertexToNextVertices(iSquareEdge.getEndpoint(), squareReconstructionData);
+              });
+    }
 
     squareHandlingStrategy.queueSquareSideVertexToNextVertices(iEdge.getEndpoint(), squareReconstructionData);
     squareHandlingStrategy.queueSquareSideVertexToNextVertices(jEdge.getEndpoint(), squareReconstructionData);
-
-    if (!squareFound)
-    {
-      MissingSquareData missingSquare = new MissingSquareData(currentVertex, iEdge, jEdge);
-      squareReconstructionData.getMissingSquares().add(missingSquare);
-    }
 
     return squareFound;
   }

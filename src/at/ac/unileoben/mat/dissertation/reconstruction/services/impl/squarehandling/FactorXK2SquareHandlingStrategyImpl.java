@@ -51,7 +51,7 @@ public class FactorXK2SquareHandlingStrategyImpl extends AbstractSquareHandlingS
   }
 
   @Override
-  public void colorEdgeWithNewColor(Edge edge)
+  public void colorEdgeWithNewColor(Edge edge, boolean edgeWithSquare)
   {
   }
 

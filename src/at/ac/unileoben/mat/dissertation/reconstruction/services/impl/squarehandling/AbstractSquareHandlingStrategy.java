@@ -70,7 +70,7 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
     else if (possibleExtensionEdgesColors.size() > 1)
     {
       extensionColor = possibleExtensionEdgesColors.stream().mapToInt(color -> color).min().getAsInt();
-      coloringService.mergeColorsForEdges(possibleExtensionEdges, MergeTagEnum.MULTIPLE_COLORING_EXTENIONS);
+      coloringService.mergeColorsForEdges(possibleExtensionEdges, MergeTagEnum.MULTIPLE_COLORING_EXTENSIONS);
     }
     return extensionColor;
   }
@@ -104,6 +104,7 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
       {
         edgesByColor = new LinkedList<>();
         squareMatchingEdgesToBaseEdge.getEdgesByColors()[otherColor] = edgesByColor;
+        squareMatchingEdgesToBaseEdge.getExistingColors().add(otherColor);
       }
       edgesByColor.add(squareEdge);
     }
@@ -111,6 +112,36 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
     {
       throw new RuntimeException("colors to merge");
     }
+  }
+
+  @Override
+  public void storeMissingSquareEntry(Edge baseEdge, Edge otherEdge, MissingSquaresData missingSquaresData)
+  {
+    MissingSquaresEntryData missingSquaresEntryData = missingSquaresData.getMissingSquaresEntriesByBaseEdge()[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()];
+
+    if (missingSquaresEntryData == null)
+    {
+      int graphSize = missingSquaresData.getMissingSquaresEntriesByBaseEdge().length;
+      missingSquaresEntryData = new MissingSquaresEntryData(baseEdge, graphSize);
+
+      missingSquaresData.getMissingSquaresEntriesByBaseEdge()[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()] = missingSquaresEntryData;
+      missingSquaresData.getMissingSquaresEntries().add(missingSquaresEntryData);
+    }
+
+    if (missingSquaresEntryData.getIncludedOtherEdges()[otherEdge.getEndpoint().getVertexNo()] == null)
+    {
+      missingSquaresEntryData.getIncludedOtherEdges()[otherEdge.getEndpoint().getVertexNo()] = otherEdge;
+      int otherEdgeColor = otherEdge.getLabel().getColor();
+      List<Edge> edgesForColor = missingSquaresEntryData.getOtherEdgesByColors()[otherEdgeColor];
+      if (CollectionUtils.isEmpty(edgesForColor))
+      {
+        edgesForColor = new LinkedList<>();
+        missingSquaresEntryData.getOtherEdgesByColors()[otherEdgeColor] = edgesForColor;
+        missingSquaresEntryData.getExistingColors().add(otherEdgeColor);
+      }
+      edgesForColor.add(otherEdge);
+    }
+
   }
 
   protected void addVertexToNextVertices(Vertex vertex, SquareReconstructionData squareReconstructionData)

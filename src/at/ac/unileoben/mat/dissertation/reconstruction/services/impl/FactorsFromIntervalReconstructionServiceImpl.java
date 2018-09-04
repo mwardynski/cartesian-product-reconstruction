@@ -4,6 +4,7 @@ import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.FactorsFromIntervalReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
 
   @Autowired
   GraphHelper graphHelper;
+
+  @Autowired
+  SquareHandlingStrategy squareHandlingStrategy;
 
   @Override
   public void reconstructUsingIntervalFactors(Vertex intervalRoot)
@@ -323,6 +327,8 @@ public class FactorsFromIntervalReconstructionServiceImpl implements FactorsFrom
       }
       checkedEdges.add(edge);
       boolean squareFound = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, intervalFactorEdge, edge);
+      squareHandlingStrategy.storeMissingSquareEntry(intervalFactorEdge, edge, squareReconstructionData.getMissingSquaresData());
+      squareHandlingStrategy.storeMissingSquareEntry(edge, intervalFactorEdge, squareReconstructionData.getMissingSquaresData());
 //      squareReconstructionData.getUsedEdges()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
 //      squareReconstructionData.getUsedEdges()[edge.getEndpoint().getVertexNo()][edge.getOrigin().getVertexNo()] = true;
 

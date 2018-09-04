@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.reconstruction.services.MissingSquaresAnalyzerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,9 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
 
   @Autowired
   SquareHandlingStrategy squareHandlingStrategy;
+
+  @Autowired
+  MissingSquaresAnalyzerService missingSquaresAnalyzerService;
 
   @Override
   public void reconstructUsingSquares(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
@@ -50,7 +56,8 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
         handleNextPostponedVertex(squareReconstructionData);
       }
     }
-    printOutMissingSquares(squareReconstructionData);
+//    printOutMissingSquares(squareReconstructionData);
+    missingSquaresAnalyzerService.analyseMissingSquares(squareReconstructionData, squareMatchingEdgesByEdge);
   }
 
   private void addCurrentVertexToPostponedVertices(SquareReconstructionData squareReconstructionData)
@@ -77,14 +84,18 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
 
   private void printOutMissingSquares(SquareReconstructionData squareReconstructionData)
   {
-    squareReconstructionData.getMissingSquares().stream()
-            .forEach(missingSquare ->
+    squareReconstructionData.getMissingSquaresData().getMissingSquaresEntries().stream()
+            .forEach(missingSquaresEntry ->
             {
-              Edge edge1 = missingSquare.getFirstEdge();
-              Edge edge2 = missingSquare.getSecondEdge();
-              System.out.println(String.format("%d-%d(%d), %d-%d(%d)",
-                      edge1.getOrigin().getVertexNo(), edge1.getEndpoint().getVertexNo(), edge1.getLabel().getColor(),
-                      edge2.getOrigin().getVertexNo(), edge2.getEndpoint().getVertexNo(), edge2.getLabel().getColor()));
+              Edge baseEdge = missingSquaresEntry.getBaseEdge();
+              Arrays.stream(missingSquaresEntry.getOtherEdgesByColors())
+                      .filter(edgesByColor -> CollectionUtils.isNotEmpty(edgesByColor))
+                      .flatMap(edgesByColor -> edgesByColor.stream())
+                      .forEach(otherEdge ->
+                              System.out.println(String.format("%d-%d(%d), %d-%d(%d)",
+                                      baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(), baseEdge.getLabel().getColor(),
+                                      otherEdge.getOrigin().getVertexNo(), otherEdge.getEndpoint().getVertexNo(), otherEdge.getLabel().getColor()))
+                      );
             });
   }
 
@@ -98,12 +109,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
       return;
     }
 
-    /*List<Vertex> newNextVertices = currentVertexEdges.stream()
-            .map(e -> e.getEndpoint())
-            .filter(v -> !squareReconstructionData.getIncludedVertices()[v.getVertexNo(\)])
-            .collect(Collectors.toList());
-    newNextVertices.stream().forEach(v -> squareReconstructionData.getIncludedVertices()[v.getVertexNo()] = true);
-    squareReconstructionData.getNextVertices().addAll(newNextVertices);*/
+    List<MissingSquaresUniqueEdgesData> missingSquares = new LinkedList<>();
 
     for (int i = 0; i < currentVertexEdges.size() - 1; i++)
     {
@@ -117,7 +123,14 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
           continue;
         }
 
-        squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
+        boolean squareFound = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
+
+
+        if (!squareFound)
+        {
+          MissingSquaresUniqueEdgesData missingSquare = new MissingSquaresUniqueEdgesData(iEdge, jEdge);
+          missingSquares.add(missingSquare);
+        }
       }
     }
     currentVertexEdges.stream()
@@ -131,6 +144,16 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     {
       squareHandlingStrategy.colorEdgesWithoutSquare(edgesWithoutSquare);
     }
+
+    missingSquares.stream()
+            .filter(missingSquare -> missingSquare.getBaseEdge().getLabel().getColor() != missingSquare.getOtherEdge().getLabel().getColor())
+            .forEach(missingSquare ->
+            {
+              Edge baseEdge = missingSquare.getBaseEdge();
+              Edge otherEdge = missingSquare.getOtherEdge();
+              squareHandlingStrategy.storeMissingSquareEntry(baseEdge, otherEdge, squareReconstructionData.getMissingSquaresData());
+              squareHandlingStrategy.storeMissingSquareEntry(otherEdge, baseEdge, squareReconstructionData.getMissingSquaresData());
+            });
   }
 
   private List<Edge> collectCurrentVertexEdges(SquareReconstructionData squareReconstructionData)

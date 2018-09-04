@@ -1,7 +1,6 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class SquareReconstructionData
@@ -12,7 +11,7 @@ public class SquareReconstructionData
   Queue<Vertex> postponedVertices;
   boolean[] includedPostponedVertices;
   boolean[][] usedEdges;
-  List<MissingSquareData> missingSquares;
+  MissingSquaresData missingSquaresData;
   Edge[][][] squareFormingEdges;
   Edge multipleSquaresWardenEdge;
 
@@ -25,7 +24,7 @@ public class SquareReconstructionData
     postponedVertices = new LinkedList<>();
     includedPostponedVertices = new boolean[graphSize];
     usedEdges = new boolean[graphSize][graphSize];
-    missingSquares = new LinkedList<>();
+    missingSquaresData = new MissingSquaresData(graphSize);
   }
 
   public Vertex getCurrentVertex()
@@ -63,9 +62,9 @@ public class SquareReconstructionData
     return usedEdges;
   }
 
-  public List<MissingSquareData> getMissingSquares()
+  public MissingSquaresData getMissingSquaresData()
   {
-    return missingSquares;
+    return missingSquaresData;
   }
 
   public Edge[][][] getSquareFormingEdges()
