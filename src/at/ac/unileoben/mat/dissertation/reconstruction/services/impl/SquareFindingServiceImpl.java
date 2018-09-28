@@ -73,12 +73,13 @@ public class SquareFindingServiceImpl implements SquareFindingService
 
                 storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
-                squareHandlingStrategy.queueSquareTopVertexToNextVertices(iSquareEdge.getEndpoint(), squareReconstructionData);
+                squareReconstructionData.getCurrentVertexNeighborsToQueue().add(iSquareEdge.getEndpoint());
               });
     }
 
-    squareHandlingStrategy.queueSquareSideVertexToNextVertices(iEdge.getEndpoint(), squareReconstructionData);
-    squareHandlingStrategy.queueSquareSideVertexToNextVertices(jEdge.getEndpoint(), squareReconstructionData);
+
+    squareReconstructionData.getCurrentVertexNeighborsToQueue().add(iEdge.getEndpoint());
+    squareReconstructionData.getCurrentVertexNeighborsToQueue().add(jEdge.getEndpoint());
 
     return squareFound;
   }

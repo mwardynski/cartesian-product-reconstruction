@@ -111,6 +111,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     }
 
     List<MissingSquaresUniqueEdgesData> missingSquares = new LinkedList<>();
+    squareReconstructionData.setCurrentVertexNeighborsToQueue(new LinkedList<>());
 
     for (int i = 0; i < currentVertexEdges.size() - 1; i++)
     {
@@ -134,6 +135,8 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
         }
       }
     }
+    squareReconstructionData.getCurrentVertexNeighborsToQueue().stream()
+            .forEach(v -> squareHandlingStrategy.queueSquareSideVertexToNextVertices(v, squareReconstructionData));
     currentVertexEdges.stream()
             .peek(e -> squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = true)
             .forEach(e -> squareReconstructionData.getUsedEdges()[e.getEndpoint().getVertexNo()][e.getOrigin().getVertexNo()] = true);

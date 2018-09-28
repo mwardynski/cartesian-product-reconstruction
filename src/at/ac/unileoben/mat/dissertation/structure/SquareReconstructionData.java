@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.structure;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class SquareReconstructionData
@@ -14,6 +15,7 @@ public class SquareReconstructionData
   MissingSquaresData missingSquaresData;
   Edge[][][] squareFormingEdges;
   Edge multipleSquaresWardenEdge;
+  List<Vertex> currentVertexNeighborsToQueue;
 
   SquareMatchingEdgeData[][] squareMatchingEdgesByEdge;
 
@@ -95,5 +97,15 @@ public class SquareReconstructionData
   public void setSquareMatchingEdgesByEdge(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
   {
     this.squareMatchingEdgesByEdge = squareMatchingEdgesByEdge;
+  }
+
+  public List<Vertex> getCurrentVertexNeighborsToQueue()
+  {
+    return currentVertexNeighborsToQueue;
+  }
+
+  public void setCurrentVertexNeighborsToQueue(List<Vertex> currentVertexNeighborsToQueue)
+  {
+    this.currentVertexNeighborsToQueue = currentVertexNeighborsToQueue;
   }
 }
