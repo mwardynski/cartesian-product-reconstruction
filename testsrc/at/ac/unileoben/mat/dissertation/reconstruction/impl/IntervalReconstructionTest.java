@@ -31,23 +31,26 @@ public class IntervalReconstructionTest extends AbstractReconstructionAfterFindi
 
   static
   {
-    examplesList.add(new FactorizationCase("P6xP3.txt", 2, 0));
+
+    examplesList.add(new FactorizationCase("S6xP3.txt", 2, 0));
     examplesList.add(new FactorizationCase("bP3xP6mVbxP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("P6xP4.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("P6xP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("hMxP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("YxP3xP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("hxP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("P3xP4.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("K4-ExS2.txt", 2, 10));
+    examplesList.add(new FactorizationCase("bP3xP6mVbxP4.txt", 2, 0));
+    examplesList.add(new FactorizationCase("hxP3.txt", 2, 0));
+    examplesList.add(new FactorizationCase("P6xP4.txt", 2, 0));
+    examplesList.add(new FactorizationCase("P6xP3.txt", 2, 0));
+    examplesList.add(new FactorizationCase("bP3xK2xK2bmVxP3.txt", 2, 0));
+    examplesList.add(new FactorizationCase("YxP3xP3.txt", 2, 0));
+    examplesList.add(new FactorizationCase("P3xP4.txt", 2, 0));
+    examplesList.add(new FactorizationCase("K4-ExS2.txt", 2, 10));
+    examplesList.add(new FactorizationCase("K3pExP3.txt", 2));
+    examplesList.add(new FactorizationCase("bP3xK2bpExP3.txt", 2, 0));
+    examplesList.add(new FactorizationCase("bP3xP3bpExP3.txt", 2, 4));
+    examplesList.add(new FactorizationCase("bP3xK2xK2bmVxP3.txt", 2, 0)); //same as hMxP3
+    examplesList.add(new FactorizationCase("C6xS2.txt", 2));
+    examplesList.add(new FactorizationCase("handP3.txt", 2));
+
+
 //    examplesList.add(new FactorizationCase("K23xP3.txt", 2, 13));
-//    examplesList.add(new FactorizationCase("K3pExP3.txt", 2));
-//    examplesList.add(new FactorizationCase("bP3xK2bpExP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("bP3xP3bpExP3.txt", 2, 4));
-//    examplesList.add(new FactorizationCase("bP3xK2xK2bmVxP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("S2xK2.txt", 2));
-//    examplesList.add(new FactorizationCase("S2xK2xK2.txt", 3));
-//    examplesList.add(new FactorizationCase("C6xS2.txt", 2));
 //    examplesList.add(new FactorizationCase("P3xK2.txt", 2));
 //    examplesList.add(new FactorizationCase("K23xK2-mirrored.txt", 2));
 //    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
@@ -57,6 +60,7 @@ public class IntervalReconstructionTest extends AbstractReconstructionAfterFindi
 //    examplesList.add(new FactorizationCase("C3xK2.txt", 2));
 //    examplesList.add(new FactorizationCase("C4-ExC4-E.txt", 2));
 //    examplesList.add(new FactorizationCase("handP2.txt", 2));
-//    examplesList.add(new FactorizationCase("handP3.txt", 2));
+//    examplesList.add(new FactorizationCase("S2xK2xK2.txt", 3));
+//    examplesList.add(new FactorizationCase("S2xK2.txt", 2));
   }
 }
