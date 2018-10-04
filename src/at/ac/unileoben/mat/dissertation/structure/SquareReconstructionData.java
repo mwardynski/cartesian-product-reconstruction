@@ -16,6 +16,7 @@ public class SquareReconstructionData
   Edge[][][] squareFormingEdges;
   Edge multipleSquaresWardenEdge;
   List<Vertex> currentVertexNeighborsToQueue;
+  List<OnlyOneSidedMergeData> onlyOneSidedMerges;
 
   SquareMatchingEdgeData[][] squareMatchingEdgesByEdge;
 
@@ -27,6 +28,7 @@ public class SquareReconstructionData
     includedPostponedVertices = new boolean[graphSize];
     usedEdges = new boolean[graphSize][graphSize];
     missingSquaresData = new MissingSquaresData(graphSize);
+    onlyOneSidedMerges = new LinkedList<>();
   }
 
   public Vertex getCurrentVertex()
@@ -107,5 +109,10 @@ public class SquareReconstructionData
   public void setCurrentVertexNeighborsToQueue(List<Vertex> currentVertexNeighborsToQueue)
   {
     this.currentVertexNeighborsToQueue = currentVertexNeighborsToQueue;
+  }
+
+  public List<OnlyOneSidedMergeData> getOnlyOneSidedMerges()
+  {
+    return onlyOneSidedMerges;
   }
 }

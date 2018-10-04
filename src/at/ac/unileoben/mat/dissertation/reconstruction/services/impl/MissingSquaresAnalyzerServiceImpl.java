@@ -24,6 +24,9 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
   @Autowired
   TestCaseContext testCaseContext;
 
+  @Autowired
+  FinalMergeServiceImpl finalMergeService;
+
   @Override
   public void analyseMissingSquares(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
@@ -31,6 +34,7 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     //TODO reconsider MissingSquaresUniqueEdgesData of newly merged colors
 
 //    printOutFoundIrregularMissingSquares(irregularMissingSquaresData);
+    finalMergeService.showStatisticsOfPotentialMerges(squareReconstructionData);
     compareMissingVertexNeighbors(irregularMissingSquaresData);
 
   }
@@ -104,6 +108,7 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       else
       {
         System.out.println("FAILURE - NOT MATCHING VERTICES");
+        throw new RuntimeException("this case went wrong!!!");
       }
     }
   }

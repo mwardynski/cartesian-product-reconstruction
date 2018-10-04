@@ -36,14 +36,9 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
     {
       return extensionColor;
     }
-
-    for (int i = 0; i < squareMatchingEdgesData.getEdgesByColors().length; i++)
+    for (Integer existingColor : squareMatchingEdgesData.getExistingColors())
     {
-      List<Edge> squareMatchingEdges = squareMatchingEdgesData.getEdgesByColors()[i];
-      if (CollectionUtils.isEmpty(squareMatchingEdges))
-      {
-        continue;
-      }
+      List<Edge> squareMatchingEdges = squareMatchingEdgesData.getEdgesByColors()[existingColor];
 
       for (Edge squareMatchingEdge : squareMatchingEdges)
       {
@@ -58,6 +53,16 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
         if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
         {
           possibleExtensionEdges.add(baseEdgeExtendingEdge);
+        }
+        else if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isNotEmpty(squareEdgeSquares))
+        {
+          OnlyOneSidedMergeData onlyOneSidedMergeData = new OnlyOneSidedMergeData(squareEdge, squareEdgeExtendingEdge, otherColorBaseEdge);
+          squareReconstructionData.getOnlyOneSidedMerges().add(onlyOneSidedMergeData);
+        }
+        else if (CollectionUtils.isNotEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
+        {
+          OnlyOneSidedMergeData onlyOneSidedMergeData = new OnlyOneSidedMergeData(baseEdge, baseEdgeExtendingEdge, otherColorBaseEdge);
+          squareReconstructionData.getOnlyOneSidedMerges().add(onlyOneSidedMergeData);
         }
       }
     }
@@ -110,7 +115,7 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
     }
     else if (includedEdge != squareEdge)
     {
-      throw new RuntimeException("colors to merge");
+//      throw new RuntimeException("colors to merge");
     }
   }
 
