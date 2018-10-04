@@ -33,7 +33,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   MissingSquaresAnalyzerService missingSquaresAnalyzerService;
 
   @Autowired
-  SquareMatchingMergingServiceImpl squareMatchingMergingService;
+  SquareMatchingEdgesMergingService squareMatchingEdgesMergingService;
 
   @Override
   public void reconstructUsingSquares(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
@@ -60,7 +60,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
       }
     }
 //    printOutMissingSquares(squareReconstructionData);
-    squareMatchingMergingService.mergeColorsBasedOnSquareMatching(squareReconstructionData);
+    squareMatchingEdgesMergingService.mergeColorsBasedOnSquareMatching(squareReconstructionData);
 
     missingSquaresCleanerService.cleanNotValidMissingSquares(squareReconstructionData);
     missingSquaresAnalyzerService.analyseMissingSquares(squareReconstructionData, squareMatchingEdgesByEdge);
