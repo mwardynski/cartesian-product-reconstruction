@@ -2,9 +2,9 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.MissingSquaresAnalyzerService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionResultVerifier;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,138 +22,18 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
   ColoringService coloringService;
 
   @Autowired
-  TestCaseContext testCaseContext;
+  ReconstructionResultVerifier reconstructionResultVerifier;
 
-  @Autowired
-  FinalMergeServiceImpl finalMergeService;
 
   @Override
   public void analyseMissingSquares(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
-    IrregularMissingSquaresData irregularMissingSquaresData = orderProbablyCorrectMissingSquaresByColor(squareReconstructionData, squareMatchingEdges);
-    //TODO reconsider MissingSquaresUniqueEdgesData of newly merged colors
-
-//    printOutFoundIrregularMissingSquares(irregularMissingSquaresData);
-    finalMergeService.showStatisticsOfPotentialMerges(squareReconstructionData);
-    compareMissingVertexNeighbors(irregularMissingSquaresData);
-
-  }
-
-  private void compareMissingVertexNeighbors(IrregularMissingSquaresData irregularMissingSquaresData)
-  {
-    Set<Integer> expectedNeighborsVertexNumbers = testCaseContext.getRemovedVertexNeighbors();
-
-    Set<Integer> colorIndependentMissingSquaresVertexNumbers = mapIrregularMissingSquaresToOriginVertexNumbers(irregularMissingSquaresData.getIrregularColorIndependentMissingSquares());
-    Set<Integer> noSquareAtAllMissingSquaresVertexNumbers = mapIrregularMissingSquaresToOriginVertexNumbers(irregularMissingSquaresData.getIrregularNoSquareAtAllMissingSquares());
-    Set<Integer> allColorsAccordingMissingSquaresVertexNumbers = mapIrregularMissingSquaresToOriginVertexNumbers(irregularMissingSquaresData.getIrregularAccordingToAllColorsMissingSquares());
-
-    List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = irregularMissingSquaresData.getIrregularMissingSquaresByColor();
-    long notEmptyirregularMissingSquaresByColorCount = Arrays.stream(irregularMissingSquaresByColor)
-            .filter(irregularMissingSquares -> CollectionUtils.isNotEmpty(irregularMissingSquares))
-            .count();
-
-    System.out.println("EXPECTED NEIGHBORS: " + StringUtils.join(expectedNeighborsVertexNumbers, ","));
-
-    HashSet actualNeighborsVertexNumber = new HashSet(noSquareAtAllMissingSquaresVertexNumbers);
-//    actualNeighborsVertexNumber.addAll(allColorsAccordingMissingSquaresVertexNumbers);
-
-    if (expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumber))
-    {
-      System.out.println("SUCCESS - FOUND CORRECT NEIGHBORS FOR MISSING SQUARE: " + StringUtils.join(actualNeighborsVertexNumber, ","));
-    }
-    else
-    {
-      List<Integer> origAllColorsAccordingMissingSquaresVertexNumbers = allColorsAccordingMissingSquaresVertexNumbers.stream()
-              .map(vNo -> graph.getReverseReindexArray()[vNo])
-              .collect(Collectors.toList());
-
-      System.out.println("color independent missing squares: " + StringUtils.join(colorIndependentMissingSquaresVertexNumbers, ",")); //not needed
-      System.out.println("no square at all missing squares: " + StringUtils.join(noSquareAtAllMissingSquaresVertexNumbers, ","));
-      System.out.println("all colors approved missing squares: " + StringUtils.join(allColorsAccordingMissingSquaresVertexNumbers, ","));
-      System.out.println("orig all colors approved missing squares: " + StringUtils.join(origAllColorsAccordingMissingSquaresVertexNumbers, ","));
-      List<Integer> fittingResultColors = new LinkedList<>();
-      for (int i = 0; i < irregularMissingSquaresByColor.length; i++)
-      {
-        List<MissingSquaresUniqueEdgesData> irregularMissingSquares = irregularMissingSquaresByColor[i];
-        if (CollectionUtils.isNotEmpty(irregularMissingSquares))
-        {
-          Set<Integer> irregularMissingSquaresByColorVertexNumbers = mapIrregularMissingSquaresToOriginVertexNumbers(irregularMissingSquares);
-
-          Set<Integer> actualNeighborsVertexNumbers = new HashSet<>(irregularMissingSquaresByColorVertexNumbers);
-//          actualNeighborsVertexNumbers.addAll(allColorsAccordingMissingSquaresVertexNumbers);
-          actualNeighborsVertexNumbers.addAll(noSquareAtAllMissingSquaresVertexNumbers);
-
-          System.out.println(String.format("color: %d, vertices: %s ", i, StringUtils.join(actualNeighborsVertexNumbers, ",")));
-
-          if (expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers))
-          {
-            fittingResultColors.add(i);
-          }
-        }
-      }
-
-      if (CollectionUtils.isNotEmpty(fittingResultColors))
-      {
-        fittingResultColors.stream()
-                .forEach(color ->
-                {
-                  List<MissingSquaresUniqueEdgesData> irregularMissingSquares = irregularMissingSquaresByColor[color];
-                  System.out.println("COLOR: " + color +
-                          ", SUCCESS - FOUND CORRECT NEIGHBORS FOR MISSING SQUARE: "
-                          + StringUtils.join(colorIndependentMissingSquaresVertexNumbers, ",")
-                          + ","
-                          + StringUtils.join(irregularMissingSquares, ","));
-                });
-      }
-      else
-      {
-        System.out.println("FAILURE - NOT MATCHING VERTICES");
-        throw new RuntimeException("this case went wrong!!!");
-      }
-    }
-  }
-
-  private Set<Integer> mapIrregularMissingSquaresToOriginVertexNumbers(List<MissingSquaresUniqueEdgesData> missingSquares)
-  {
-    return missingSquares.stream()
-            .map(missingSquare -> Arrays.asList(missingSquare.getBaseEdge().getEndpoint(), missingSquare.getOtherEdge().getEndpoint()))
-            .flatMap(verticesPairs -> verticesPairs.stream())
-            .map(v -> v.getVertexNo())
-            .map(vNo -> graph.getReverseReindexArray()[vNo])
-            .collect(Collectors.toSet());
-  }
-
-  private void printOutFoundIrregularMissingSquares(IrregularMissingSquaresData irregularMissingSquaresData)
-  {
-    System.out.println("CorrectNoOtherColorToCheckMissingSquares:");
-    irregularMissingSquaresData.getIrregularColorIndependentMissingSquares().stream()
-            .forEach(missingSquare -> System.out.println(String.format("(%d-%d)-(%d-%d)",
-                    missingSquare.getBaseEdge().getOrigin().getVertexNo(),
-                    missingSquare.getBaseEdge().getEndpoint().getVertexNo(),
-                    missingSquare.getOtherEdge().getOrigin().getVertexNo(),
-                    missingSquare.getOtherEdge().getEndpoint().getVertexNo()
-            )));
-
-    System.out.println("IrregularMissingSquaresByColor:");
-    for (int i = 0; i < irregularMissingSquaresData.getIrregularMissingSquaresByColor().length; i++)
-    {
-      List<MissingSquaresUniqueEdgesData> missingSquaresUniqueEdges = irregularMissingSquaresData.getIrregularMissingSquaresByColor()[i];
-      if (CollectionUtils.isNotEmpty(missingSquaresUniqueEdges))
-      {
-        System.out.println(String.format("color %d: ", i));
-        missingSquaresUniqueEdges.stream()
-                .forEach(missingSquare -> System.out.println(String.format("(%d-%d)-(%d-%d)",
-                        missingSquare.getBaseEdge().getOrigin().getVertexNo(),
-                        missingSquare.getBaseEdge().getEndpoint().getVertexNo(),
-                        missingSquare.getOtherEdge().getOrigin().getVertexNo(),
-                        missingSquare.getOtherEdge().getEndpoint().getVertexNo()
-                )));
-      }
-    }
+    ResultMissingSquaresData resultMissingSquaresData = orderProbablyCorrectMissingSquaresByColor(squareReconstructionData, squareMatchingEdges);
+    reconstructionResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
   }
 
 
-  private IrregularMissingSquaresData orderProbablyCorrectMissingSquaresByColor(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
+  private ResultMissingSquaresData orderProbablyCorrectMissingSquaresByColor(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
     List<MissingSquaresEntryData> missingSquaresEntries = squareReconstructionData.getMissingSquaresData().getMissingSquaresEntries();
 
@@ -353,15 +233,13 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
 
     List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = handleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
 
-    IrregularMissingSquaresData irregularMissingSquaresData = new IrregularMissingSquaresData(irregularColorIndependentMissingSquares, irregularMissingSquaresByColorTryTry,
-            irregularNoSquareAtAllMissingSquares, irregularAccordingToAllColorsMissingSquares, includedColors);
-    return irregularMissingSquaresData;
+    ResultMissingSquaresData resultMissingSquaresData = new ResultMissingSquaresData(irregularNoSquareAtAllMissingSquares,
+            irregularMissingSquaresByColorTryTry, includedColors);
+    return resultMissingSquaresData;
   }
 
   private List<MissingSquaresUniqueEdgesData> handleNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
-    investigateNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
-
     if (CollectionUtils.isEmpty(noSquareAtAllMissingSquares))
     {
       return Collections.emptyList();
@@ -713,53 +591,5 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       }
     }
     return correctSingleNoSquareAtAllMissingSquares;
-  }
-
-  private void investigateNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
-  {
-    int spikesQuantity = 0;
-    int cycleOf8Quantity = 0;
-    int bothEdgesWithNoSquareAtAll = 0;
-
-    for (MissingSquaresUniqueEdgesData missingSquare : noSquareAtAllMissingSquares)
-    {
-      int baseEdgeEndpointEdgesQuantity = missingSquare.getBaseEdge().getEndpoint().getEdges().size();
-      int otherEdgeEndpointEdgesQuantity = missingSquare.getOtherEdge().getEndpoint().getEdges().size();
-
-      if (baseEdgeEndpointEdgesQuantity == 1 || otherEdgeEndpointEdgesQuantity == 1)
-      {
-        spikesQuantity++;
-      }
-      else
-      {
-        cycleOf8Quantity++;
-      }
-
-      if (missingSquare.getBaseEdge().getLabel().getName() == -2 && missingSquare.getOtherEdge().getLabel().getName() == -2)
-      {
-        bothEdgesWithNoSquareAtAll++;
-      }
-    }
-
-    if (spikesQuantity > 0 && cycleOf8Quantity > 0)
-    {
-      throw new RuntimeException("spikesQuantity > 0 && cycleOf8Quantity > 0");
-    }
-    else if (spikesQuantity > 0)
-    {
-      System.out.println(" -- spikes: " + spikesQuantity);
-      if (bothEdgesWithNoSquareAtAll > 0)
-      {
-        throw new RuntimeException("spikesQuantity > 0 && bothEdgesWithNoSquareAtAll > 0");
-      }
-    }
-    else if (cycleOf8Quantity > 0)
-    {
-      System.out.println(" -- cycleOf8: " + cycleOf8Quantity);
-    }
-    else
-    {
-      System.out.println("no name=-2 edges");
-    }
   }
 }
