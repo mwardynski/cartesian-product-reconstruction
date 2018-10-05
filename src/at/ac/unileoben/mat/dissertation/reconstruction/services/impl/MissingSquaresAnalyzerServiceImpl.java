@@ -162,6 +162,7 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = new List[graph.getVertices().size()];
     List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColorTry = new List[graph.getVertices().size()];
     List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColorTryTry = new List[graph.getVertices().size()];
+    List<Integer> includedColors = new LinkedList<>();
 
     List<MissingSquaresUniqueEdgesData> irregularAccordingToAllColorsMissingSquares = new LinkedList<>();
 
@@ -178,10 +179,14 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       }
       List<MissingSquaresUniqueEdgesData> allOtherEdges = Arrays.stream(missingSquaresEntry.getIncludedOtherEdges())
               .filter(otherEdge -> otherEdge != null)
-              .filter(otherEdge -> baseEdge.getLabel().getName() != -2 /*&& otherEdge.getLabel().getName() != -2*/)
+              .filter(otherEdge -> baseEdge.getLabel().getName() != -2 && otherEdge.getLabel().getName() != -2)
               .filter(otherEdge -> coloringService.getCurrentColorMapping(graph.getGraphColoring(), otherEdge.getLabel().getColor()) != baseEdgeMappedColor)
               .map(otherEdge -> new MissingSquaresUniqueEdgesData(baseEdge, otherEdge))
               .collect(Collectors.toList());
+      if (CollectionUtils.isNotEmpty(allOtherEdges) && CollectionUtils.isEmpty(collectedMissingSquares))
+      {
+        includedColors.add(baseEdgeMappedColor);
+      }
       collectedMissingSquares.addAll(allOtherEdges);
 
       Edge[] potentiallyCorrectEdgesByMappedColor = new Edge[graph.getVertices().size()];
@@ -349,7 +354,7 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = handleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
 
     IrregularMissingSquaresData irregularMissingSquaresData = new IrregularMissingSquaresData(irregularColorIndependentMissingSquares, irregularMissingSquaresByColorTryTry,
-            irregularNoSquareAtAllMissingSquares, irregularAccordingToAllColorsMissingSquares);
+            irregularNoSquareAtAllMissingSquares, irregularAccordingToAllColorsMissingSquares, includedColors);
     return irregularMissingSquaresData;
   }
 
@@ -394,7 +399,7 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
   private List<MissingSquaresUniqueEdgesData> filterOutCorrectPartOfCycleNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
     NoSquareAtAllGroupsData noSquareAtAllGroupsData = splitPartOfCycleNoSquareAtAllMissingSquaresIntoGroups(noSquareAtAllMissingSquares);
-    return findCycleForNoSquareAtAllGroups(noSquareAtAllGroupsData);
+    return findCycleForNoSquareAtAllGroups(noSquareAtAllGroupsData, squareReconstructionData);
   }
 
   private NoSquareAtAllGroupsData splitPartOfCycleNoSquareAtAllMissingSquaresIntoGroups(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
@@ -507,18 +512,18 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     }
   }
 
-  private List<MissingSquaresUniqueEdgesData> findCycleForNoSquareAtAllGroups(NoSquareAtAllGroupsData noSquareAtAllGroupsData)
+  private List<MissingSquaresUniqueEdgesData> findCycleForNoSquareAtAllGroups(NoSquareAtAllGroupsData noSquareAtAllGroupsData, SquareReconstructionData squareReconstructionData)
   {
     List<List<Edge>> groupedNoSquareAtAllEdges = noSquareAtAllGroupsData.getGroupedNoSquareAtAllEdges();
 
     Edge arbitraryGroupFirstEdge = groupedNoSquareAtAllEdges.get(0).get(0);
-    List<List<NoSquareAtAllCycleNode>> correctCycles = findCycleUsingBfs(arbitraryGroupFirstEdge, groupedNoSquareAtAllEdges, noSquareAtAllGroupsData.getGroupNumbersForNoSquareAtAllEdgesEndpoints());
+    List<List<NoSquareAtAllCycleNode>> correctCycles = findCycleUsingBfs(arbitraryGroupFirstEdge, groupedNoSquareAtAllEdges, noSquareAtAllGroupsData.getGroupNumbersForNoSquareAtAllEdgesEndpoints(), squareReconstructionData);
 
     List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = splitCyclesIntoMissingSquares(correctCycles);
     return correctNoSquareAtAllMissingSquares;
   }
 
-  private List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints)
+  private List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints, SquareReconstructionData squareReconstructionData)
   {
     NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo = new NoSquareAtAllCycleNode[graph.getVertices().size()];
 
@@ -540,11 +545,19 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
         break;
       }
 
+      MissingSquaresEntryData[][] missingSquaresByEdges = squareReconstructionData.getMissingSquaresData().getMissingSquaresEntriesByBaseEdge();
+
       currentVertex.getEdges().stream()
               .map(edge -> edge.getEndpoint())
               .filter(nextVertex -> includeVerticesDifferentThanEndVertex(currentVertex, nextVertex, endVertex, noSquareAtAllCycleNodesByVertexNo))
               .forEach(nextVertex ->
               {
+                if (missingSquaresByEdges[currentVertex.getVertexNo()][nextVertex.getVertexNo()] == null
+                        && missingSquaresByEdges[nextVertex.getVertexNo()][currentVertex.getVertexNo()] == null)
+                {
+                  return;
+                }
+
                 if (noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()] == null)
                 {
                   noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()] = new NoSquareAtAllCycleNode(nextVertex, currentVertexNode.getDistance() + 1);
@@ -585,8 +598,9 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       collectedGroups.remove(null);
       if (groupedNoSquareAtAllEdges.size() == collectedGroups.size())
       {
-        if (groupedNoSquareAtAllEdges.get(0).size() >= 6 ||
-                (groupedNoSquareAtAllEdges.get(0).size() < 6 & collectedMappedColors.size() > 1))
+        if (groupedNoSquareAtAllEdges.size() > 1 ||
+                (groupedNoSquareAtAllEdges.get(0).size() >= 6 ||
+                        (groupedNoSquareAtAllEdges.get(0).size() < 6 & collectedMappedColors.size() > 1)))
         {
           correctCycles.add(currentCycle);
         }
@@ -686,7 +700,8 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
 
       List<Edge> sameColorToNormallyColoredEdgesHavingMissingSquares = normallyColoredEdge.getEndpoint().getEdges().stream()
               .filter(edge -> edge != otherEdgeOpposite)
-              .filter(edge -> edge.getLabel().getColor() == normallyColoredEdge.getLabel().getColor())
+              .filter(edge -> coloringService.getCurrentColorMapping(graph.getGraphColoring(), edge.getLabel().getColor())
+                      == coloringService.getCurrentColorMapping(graph.getGraphColoring(), normallyColoredEdge.getLabel().getColor()))
               .map(Edge::getOpposite)
               .filter(edge -> squareReconstructionData.getMissingSquaresData()
                       .getMissingSquaresEntriesByBaseEdge()[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] != null)
