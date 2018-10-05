@@ -59,9 +59,8 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
         handleNextPostponedVertex(squareReconstructionData);
       }
     }
-//    printOutMissingSquares(squareReconstructionData);
-    squareMatchingEdgesMergingService.mergeColorsBasedOnSquareMatching(squareReconstructionData);
 
+    squareMatchingEdgesMergingService.mergeColorsBasedOnSquareMatching(squareReconstructionData);
     missingSquaresCleanerService.cleanNotValidMissingSquares(squareReconstructionData);
     missingSquaresAnalyzerService.analyseMissingSquares(squareReconstructionData, squareMatchingEdgesByEdge);
   }
