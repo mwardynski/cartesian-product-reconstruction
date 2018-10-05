@@ -8,7 +8,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 @Component
 public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements PartOfCycleNoSquareAtAllMissingSquaresFindingService
@@ -90,8 +92,8 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
     List<List<NoSquareAtAllCycleNode>> correctCycles = new LinkedList<>();
     List<NoSquareAtAllCycleNode> currentCycle = new LinkedList<>();
-    Set<Integer> collectedMappedColors = new HashSet<>();
-    Set<Integer> collectedGroups = new HashSet<>();
+    UniqueList collectedMappedColors = new UniqueList(graph.getVertices().size());
+    UniqueList collectedGroups = new UniqueList(groupedNoSquareAtAllEdges.size());
 
     processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()],
             correctCycles, currentCycle, collectedMappedColors, collectedGroups, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints);
@@ -104,14 +106,13 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
   }
 
   private void processCycle(NoSquareAtAllCycleNode endVertexNode, NoSquareAtAllCycleNode currentVertexNode, List<List<NoSquareAtAllCycleNode>> correctCycles, List<NoSquareAtAllCycleNode> currentCycle,
-                            Set<Integer> collectedMappedColors, Set<Integer> collectedGroups, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints)
+                            UniqueList collectedMappedColors, UniqueList collectedGroups, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints)
   {
     currentCycle.add(currentVertexNode);
     collectedGroups.add(groupNumbersForNoSquareAtAllEdgesEndpoints[currentVertexNode.getVertex().getVertexNo()]);
 
     if (currentVertexNode == endVertexNode)
     {
-      collectedGroups.remove(null);
       if (groupedNoSquareAtAllEdges.size() == collectedGroups.size())
       {
         if (groupedNoSquareAtAllEdges.size() > 1 ||
@@ -129,14 +130,14 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
         NoSquareAtAllCycleNode previousVertexNode = currentVertexNode.getPreviousVerticesNodes().get(i);
 
         List<NoSquareAtAllCycleNode> iterationCurrentCycle;
-        Set<Integer> iterationCollectedMappedColors;
-        Set<Integer> iterationCollectedGroups;
+        UniqueList iterationCollectedMappedColors;
+        UniqueList iterationCollectedGroups;
 
         if (i < currentVertexNode.getPreviousVerticesNodes().size() - 1)
         {
           iterationCurrentCycle = new LinkedList<>(currentCycle);
-          iterationCollectedMappedColors = new HashSet<>(collectedMappedColors);
-          iterationCollectedGroups = new HashSet<>(collectedGroups);
+          iterationCollectedMappedColors = new UniqueList(collectedMappedColors);
+          iterationCollectedGroups = new UniqueList(collectedGroups);
         }
         else
         {
