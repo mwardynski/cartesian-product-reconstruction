@@ -211,11 +211,20 @@ public class GraphHelperImpl implements GraphHelper
   }
 
   @Override
-  public SubgraphData getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices)
+  public SubgraphData getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices, boolean includeCrossEdges)
   {
     List<Vertex> factorVertices = new ArrayList<>(vertices.size());
     Integer[] reindexArray = new Integer[vertices.size()];
-    orderBFS(topVertices, vertices, Optional.empty(), EnumSet.of(EdgeType.UP),
+    EnumSet<EdgeType> edgesTypesToExclude;
+    if (includeCrossEdges)
+    {
+      edgesTypesToExclude = EnumSet.of(EdgeType.UP);
+    }
+    else
+    {
+      edgesTypesToExclude = EnumSet.of(EdgeType.UP, EdgeType.CROSS);
+    }
+    orderBFS(topVertices, vertices, Optional.empty(), edgesTypesToExclude,
             (currentVertex, previousVertex) -> true,
             (currentVertex, previousVertex) ->
             {

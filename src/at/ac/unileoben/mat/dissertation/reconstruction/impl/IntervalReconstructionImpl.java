@@ -113,7 +113,7 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
   private Vertex findNotPrimeInterval(Vertex topVertex, List<Vertex> vertices, Graph originalGraph, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
-    SubgraphData subgraph = graphHelper.getSubgraphForTopVertices(Collections.singletonList(topVertex), vertices);
+    SubgraphData subgraph = graphHelper.getSubgraphForTopVertices(Collections.singletonList(topVertex), vertices, false);
     List<Vertex> subgraphVertices = subgraph.getVertices();
     linearFactorization.factorize(subgraphVertices, subgraphVertices.get(subgraphVertices.size() - 1));
     if (!graphHelper.isMoreThanOneColorLeft(graph))

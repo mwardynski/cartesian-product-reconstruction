@@ -29,7 +29,7 @@ public interface GraphHelper
 
   int getConnectedComponentSizeForColor(List<Vertex> topVertices, List<Vertex> vertices, FactorizationUnitLayerSpecData[] unitLayerSpecs, int color);
 
-  SubgraphData getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices);
+  SubgraphData getSubgraphForTopVertices(List<Vertex> topVertices, List<Vertex> vertices, boolean includeCrossEdges);
 
   void createEdgeBetweenVertices(Vertex factorCurrentVertex, Vertex factorPreviousVertex);
 
