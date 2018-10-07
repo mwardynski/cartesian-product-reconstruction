@@ -51,6 +51,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
           testCaseContext.setRemovedVertexNeighbors(new HashSet<>());
           List<Vertex> incompleteVertices = graphHelper.parseGraph(factorizationCase.getFileName());
           graphFactorizationPreparer.removeVertex(incompleteVertices, vertexNumberToRemove);
+          testCaseContext.setCorrectResult(false);
 
           Graph graph;
           if (factorizationCase.getRootVertexNo() == null)
@@ -66,6 +67,11 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
           assertThat("file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove,
                   graph.getGraphColoring().getActualColors().size(), is(factorizationCase.getAmountOfFactors()));
           assertThat(reconstructionData.getNewVertex(), notNullValue());
+
+          if (!testCaseContext.isCorrectResult())
+          {
+            throw new IllegalStateException("no result!!");
+          }
 
           System.out.print("OK - file: " + factorizationCase.getFileName() + ", removed vertex no: " + vertexNumberToRemove);
           stopWatch.stop();

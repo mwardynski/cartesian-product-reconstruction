@@ -8,6 +8,7 @@ import java.util.Set;
 public class TestCaseContext
 {
   private Set<Integer> removedVertexNeighbors;
+  private boolean correctResult;
 
   public Set<Integer> getRemovedVertexNeighbors()
   {
@@ -17,5 +18,15 @@ public class TestCaseContext
   public void setRemovedVertexNeighbors(Set<Integer> removedVertexNeighbors)
   {
     this.removedVertexNeighbors = removedVertexNeighbors;
+  }
+
+  public boolean isCorrectResult()
+  {
+    return correctResult;
+  }
+
+  public void setCorrectResult(boolean correctResult)
+  {
+    this.correctResult = correctResult;
   }
 }

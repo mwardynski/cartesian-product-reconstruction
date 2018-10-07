@@ -69,10 +69,7 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
       System.out.println("WARN - Subfactors weren't completely merged");
     }
 
-    if (!correctResult)
-    {
-      throw new IllegalStateException("no result!!");
-    }
+    testCaseContext.setCorrectResult(correctResult);
   }
 
   private Set<Integer> mapResultMissingSquaresToOriginVertexNumbers(List<MissingSquaresUniqueEdgesData> missingSquares)

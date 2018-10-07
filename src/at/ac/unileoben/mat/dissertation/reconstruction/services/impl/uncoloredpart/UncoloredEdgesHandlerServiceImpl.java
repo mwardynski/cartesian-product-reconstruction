@@ -33,14 +33,12 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
     {
       boolean cycleToBeSearchedFor = isCycleToBeSearchedFor(noSquareAtAllMissingSquares);
 
-      if (cycleToBeSearchedFor)
+      List<MissingSquaresUniqueEdgesData> correctMissingSquares = partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+      if (CollectionUtils.isEmpty(correctMissingSquares))
       {
-        return partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+        correctMissingSquares = singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
       }
-      else
-      {
-        return singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
-      }
+      return correctMissingSquares;
     }
   }
 
