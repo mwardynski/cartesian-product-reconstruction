@@ -1,8 +1,11 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.uncoloredpart;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.SingleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.MissingSquaresUniqueEdgesData;
 import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import org.apache.commons.collections.CollectionUtils;
@@ -15,6 +18,11 @@ import java.util.List;
 @Component
 public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerService
 {
+  @Autowired
+  Graph graph;
+
+  @Autowired
+  ColoringService coloringService;
 
   @Autowired
   PartOfCycleNoSquareAtAllMissingSquaresFindingService partOfCycleNoSquareAtAllMissingSquaresGeneralService;
@@ -58,5 +66,20 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
       cycleToBeSearchedFor = true;
     }
     return cycleToBeSearchedFor;
+  }
+
+  @Override
+  public boolean areNormalEdgesOfGivenColorProperty(Edge baseEdge, Edge otherEdge, boolean havingSameColorWanted)
+  {
+    int baseEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
+    int otherEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), otherEdge.getLabel().getColor());
+
+    if (baseEdgeColor == 0 || otherEdgeColor == 0)
+    {
+      return false;
+    }
+
+    boolean edgesOfSameColor = baseEdgeColor == otherEdgeColor;
+    return edgesOfSameColor == havingSameColorWanted;
   }
 }

@@ -38,7 +38,6 @@ public class SquareFindingServiceImpl implements SquareFindingService
   public boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
   {
     Vertex currentVertex = squareReconstructionData.getCurrentVertex();
-    List<List<Edge>> squareEdgesList = graphHelper.findSquaresForTwoEdges(iEdge, jEdge);
     SingleSquareList singleSquareList = singleSquaresHandlingService.findSquaresForGivenEdges(iEdge, jEdge, squareReconstructionData);
     boolean squareFound = CollectionUtils.isNotEmpty(singleSquareList);
 

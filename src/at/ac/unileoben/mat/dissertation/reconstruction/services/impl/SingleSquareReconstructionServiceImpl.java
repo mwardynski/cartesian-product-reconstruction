@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.reconstruction.services.*;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import at.ac.unileoben.mat.dissertation.structure.exception.SquareWithoutAnyLabelsException;
 import org.apache.commons.collections.CollectionUtils;
@@ -40,6 +41,9 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
 
   @Autowired
   TestCaseContext testCaseContext;
+
+  @Autowired
+  UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
 
   @Override
   public void reconstructUsingSquares(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
@@ -139,7 +143,8 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
         Edge iEdge = currentVertexEdges.get(i);
         Edge jEdge = currentVertexEdges.get(j);
 
-        if (iEdge.getLabel() != null && jEdge.getLabel() != null && iEdge.getLabel().getColor() == jEdge.getLabel().getColor())
+        if (iEdge.getLabel() != null && jEdge.getLabel() != null
+                && uncoloredEdgesHandlerService.areNormalEdgesOfGivenColorProperty(iEdge, jEdge, true))
         {
           continue;
         }
@@ -169,7 +174,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     }
 
     missingSquares.stream()
-            .filter(missingSquare -> missingSquare.getBaseEdge().getLabel().getColor() != missingSquare.getOtherEdge().getLabel().getColor())
+            .filter(missingSquare -> !(uncoloredEdgesHandlerService.areNormalEdgesOfGivenColorProperty(missingSquare.getBaseEdge(), missingSquare.getOtherEdge(), true)))
             .forEach(missingSquare ->
             {
               Edge baseEdge = missingSquare.getBaseEdge();

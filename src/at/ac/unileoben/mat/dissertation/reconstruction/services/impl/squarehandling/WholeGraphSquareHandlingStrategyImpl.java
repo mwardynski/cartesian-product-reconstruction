@@ -1,6 +1,8 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.squarehandling;
 
+import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -12,15 +14,15 @@ import java.util.List;
 public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandlingStrategy
 {
 
+  @Autowired
+  UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
+
   @Override
   public void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorEdge, SquareReconstructionData squareReconstructionData)
   {
     if (baseEdge.getLabel() != null && squareEdge.getLabel() != null)
     {
-      int baseEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
-      int squareEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), squareEdge.getLabel().getColor());
-
-      if (baseEdgeColor != squareEdgeColor)
+      if (uncoloredEdgesHandlerService.areNormalEdgesOfGivenColorProperty(baseEdge, squareEdge, false))
       {
         coloringService.mergeColorsForEdges(Arrays.asList(baseEdge, squareEdge), MergeTagEnum.DOUBLE_SQUARE_UNIFY_COLORING);
       }
@@ -72,20 +74,34 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
   @Override
   public void colorEdgeWithNewColor(Edge edge, boolean edgeWithSquare)
   {
-    int newColor = addNewColorToGraphColoring();
+    int color;
+    if (edgeWithSquare)
+    {
+      color = addNewColorToGraphColoring();
+    }
+    else
+    {
+      color = 0;
+    }
     int label = edgeWithSquare ? -1 : -2;
-    edge.setLabel(new Label(newColor, label));
-    edge.getOpposite().setLabel(new Label(newColor, label));
+    edge.setLabel(new Label(color, label));
+    edge.getOpposite().setLabel(new Label(color, label));
   }
 
   private int addNewColorToGraphColoring()
   {
     GraphColoring graphColoring = graph.getGraphColoring();
 
+    if (graphColoring.getColorsMapping().size() == 0)
+    {
+      addNewColorToGraphColoring();
+    }
+
     int newColor = graphColoring.getColorsMapping().size();
 
     graphColoring.getColorsMapping().add(newColor);
     graphColoring.getActualColors().add(newColor);
+
 
     return newColor;
   }

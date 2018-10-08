@@ -3,6 +3,7 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.uncoloredp
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresGroupingService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
   @Autowired
   ColoringService coloringService;
+
+  @Autowired
+  UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
 
   @Autowired
   PartOfCycleNoSquareAtAllMissingSquaresGroupingService partOfCycleNoSquareAtAllMissingSquaresGroupingService;
@@ -169,10 +173,7 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
         Edge firstEdge = graph.getAdjacencyMatrix()[correctCycle.get(i).getVertex().getVertexNo()][correctCycle.get(i + 1).getVertex().getVertexNo()];
         Edge secondEdge = graph.getAdjacencyMatrix()[correctCycle.get(i + 1).getVertex().getVertexNo()][correctCycle.get(i + 2).getVertex().getVertexNo()];
 
-        int firstEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), firstEdge.getLabel().getColor());
-        int secondEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), secondEdge.getLabel().getColor());
-
-        if (firstEdgeMappedColor == secondEdgeMappedColor)
+        if (uncoloredEdgesHandlerService.areNormalEdgesOfGivenColorProperty(firstEdge, secondEdge, true))
         {
           for (int j = i; j < i + 8; j += 2)
           {

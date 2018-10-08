@@ -1,7 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.MissingSquaresCleanerService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.MissingSquaresEntryData;
@@ -21,7 +21,7 @@ public class MissingSquaresCleanerServiceImpl implements MissingSquaresCleanerSe
   Graph graph;
 
   @Autowired
-  ColoringService coloringService;
+  UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
 
   @Override
   public void cleanNotValidMissingSquares(SquareReconstructionData squareReconstructionData)
@@ -33,19 +33,18 @@ public class MissingSquaresCleanerServiceImpl implements MissingSquaresCleanerSe
       MissingSquaresEntryData missingSquareEntry = missingSquaresEntriesIterator.next();
 
       Edge baseEdge = missingSquareEntry.getBaseEdge();
-      int baseEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
 
       Iterator<Integer> otherEdgesColorsIterator = missingSquareEntry.getExistingColors().iterator();
       while (otherEdgesColorsIterator.hasNext())
       {
         Integer otherEdgesColor = otherEdgesColorsIterator.next();
-        int otherEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), otherEdgesColor);
 
-        if (baseEdgeMappedColor == otherEdgeMappedColor)
+        List<Edge> otherEdges = missingSquareEntry.getOtherEdgesByColors()[otherEdgesColor];
+        if (uncoloredEdgesHandlerService.areNormalEdgesOfGivenColorProperty(baseEdge, otherEdges.get(0), true))
         {
           otherEdgesColorsIterator.remove();
 
-          List<Edge> otherEdges = missingSquareEntry.getOtherEdgesByColors()[otherEdgesColor];
+
           for (Edge otherEdge : otherEdges)
           {
             missingSquareEntry.getIncludedOtherEdges()[otherEdge.getEndpoint().getVertexNo()] = null;
