@@ -1,7 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.squarehandling;
 
-import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquaresHandlingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,10 +18,10 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
   protected Graph graph;
 
   @Autowired
-  protected GraphHelper graphHelper;
+  protected ColoringService coloringService;
 
   @Autowired
-  protected ColoringService coloringService;
+  SingleSquaresHandlingService singleSquaresHandlingService;
 
   protected int findExtensionColor(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
@@ -47,8 +47,8 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
         Edge baseEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getOrigin().getVertexNo()][squareMatchingEdge.getOrigin().getVertexNo()];
         Edge squareEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getEndpoint().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
 
-        List<List<Edge>> baseEdgeSquares = graphHelper.findSquaresForTwoEdges(baseEdgeExtendingEdge, baseEdge);
-        List<List<Edge>> squareEdgeSquares = graphHelper.findSquaresForTwoEdges(squareEdgeExtendingEdge, squareEdge);
+        SingleSquareList baseEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(baseEdgeExtendingEdge, baseEdge, squareReconstructionData);
+        SingleSquareList squareEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareEdgeExtendingEdge, squareEdge, squareReconstructionData);
 
         if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
         {

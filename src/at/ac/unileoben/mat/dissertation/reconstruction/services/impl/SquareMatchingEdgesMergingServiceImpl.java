@@ -1,7 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquaresHandlingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareMatchingEdgesMergingService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -22,7 +22,7 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
   ColoringService coloringService;
 
   @Autowired
-  GraphHelper graphHelper;
+  SingleSquaresHandlingService singleSquaresHandlingService;
 
   @Override
   public void mergeColorsBasedOnSquareMatching(SquareReconstructionData squareReconstructionData)
@@ -36,13 +36,13 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
 
         if (squareMatchingEdgeData != null)
         {
-          checkAllSquareMatchingPairsForPotentialMerges(edge, squareMatchingEdgeData);
+          checkAllSquareMatchingPairsForPotentialMerges(edge, squareMatchingEdgeData, squareReconstructionData);
         }
       }
     }
   }
 
-  private void checkAllSquareMatchingPairsForPotentialMerges(Edge baseEdge, SquareMatchingEdgeData squareMatchingEdgeData)
+  private void checkAllSquareMatchingPairsForPotentialMerges(Edge baseEdge, SquareMatchingEdgeData squareMatchingEdgeData, SquareReconstructionData squareReconstructionData)
   {
     int squareMatchingsColorsQuantity = squareMatchingEdgeData.getExistingColors().size();
     if (squareMatchingsColorsQuantity < 2)
@@ -67,7 +67,7 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
           List<Edge> firstGroupOfSquareMatchingEdges = squareMatchingEdgeData.getEdgesByColors()[firstColor];
           List<Edge> secondGroupOfSquareMatchingEdges = squareMatchingEdgeData.getEdgesByColors()[secondColor];
 
-          collectEdgesToMergeForGivenColors(baseEdge, firstGroupOfSquareMatchingEdges, secondGroupOfSquareMatchingEdges, edgesOfColorsToBeMerged);
+          collectEdgesToMergeForGivenColors(baseEdge, firstGroupOfSquareMatchingEdges, secondGroupOfSquareMatchingEdges, edgesOfColorsToBeMerged, squareReconstructionData);
         }
 
       }
@@ -79,7 +79,7 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
     }
   }
 
-  private void collectEdgesToMergeForGivenColors(Edge baseEdge, List<Edge> firstGroupOfSquareMatchingEdges, List<Edge> secondGroupOfSquareMatchingEdges, List<Edge> edgesOfColorsToBeMerged)
+  private void collectEdgesToMergeForGivenColors(Edge baseEdge, List<Edge> firstGroupOfSquareMatchingEdges, List<Edge> secondGroupOfSquareMatchingEdges, List<Edge> edgesOfColorsToBeMerged, SquareReconstructionData squareReconstructionData)
   {
     for (Edge firstGroupSquareMatchingEdge : firstGroupOfSquareMatchingEdges)
     {
@@ -88,13 +88,12 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
         Edge squareBaseEdge = graph.getAdjacencyMatrix()[baseEdge.getOrigin().getVertexNo()][firstGroupSquareMatchingEdge.getOrigin().getVertexNo()];
         Edge squareOtherEdge = graph.getAdjacencyMatrix()[baseEdge.getOrigin().getVertexNo()][secondGroupSquareMatchingEdge.getOrigin().getVertexNo()];
 
-        List<List<Edge>> originSideSquares = graphHelper.findSquaresForTwoEdges(squareBaseEdge, squareOtherEdge);
-
+        SingleSquareList originSideSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareBaseEdge, squareOtherEdge, squareReconstructionData);
 
         squareBaseEdge = graph.getAdjacencyMatrix()[baseEdge.getEndpoint().getVertexNo()][firstGroupSquareMatchingEdge.getEndpoint().getVertexNo()];
         squareOtherEdge = graph.getAdjacencyMatrix()[baseEdge.getEndpoint().getVertexNo()][secondGroupSquareMatchingEdge.getEndpoint().getVertexNo()];
 
-        List<List<Edge>> endpointSideSquares = graphHelper.findSquaresForTwoEdges(squareBaseEdge, squareOtherEdge);
+        SingleSquareList endpointSideSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareBaseEdge, squareOtherEdge, squareReconstructionData);
 
         if (CollectionUtils.isEmpty(originSideSquares) && CollectionUtils.isEmpty(endpointSideSquares))
         {
