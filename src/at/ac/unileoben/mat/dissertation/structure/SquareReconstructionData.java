@@ -14,6 +14,7 @@ public class SquareReconstructionData
   boolean[][] usedEdges;
   MissingSquaresData missingSquaresData;
   Edge[][][] squareFormingEdges;
+  SingleSquareList[][][] squares;
   Edge multipleSquaresWardenEdge;
   List<Vertex> currentVertexNeighborsToQueue;
   List<OnlyOneSidedMergeData> onlyOneSidedMerges;
@@ -29,6 +30,7 @@ public class SquareReconstructionData
     usedEdges = new boolean[graphSize][graphSize];
     missingSquaresData = new MissingSquaresData(graphSize);
     onlyOneSidedMerges = new LinkedList<>();
+    squares = new SingleSquareList[graphSize][graphSize][graphSize];
   }
 
   public Vertex getCurrentVertex()
@@ -79,6 +81,11 @@ public class SquareReconstructionData
   public void setSquareFormingEdges(Edge[][][] squareFormingEdges)
   {
     this.squareFormingEdges = squareFormingEdges;
+  }
+
+  public SingleSquareList[][][] getSquares()
+  {
+    return squares;
   }
 
   public Edge getMultipleSquaresWardenEdge()

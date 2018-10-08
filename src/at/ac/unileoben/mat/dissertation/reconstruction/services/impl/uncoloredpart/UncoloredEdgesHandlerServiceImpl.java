@@ -23,6 +23,7 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
   SingleNoSquareAtAllMissingSquaresFindingService singleNoSquareAtAllMissingSquaresFindingService;
 
 
+  @Override
   public List<MissingSquaresUniqueEdgesData> filterCorrectNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
     if (CollectionUtils.isEmpty(noSquareAtAllMissingSquares))
@@ -33,12 +34,14 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
     {
       boolean cycleToBeSearchedFor = isCycleToBeSearchedFor(noSquareAtAllMissingSquares);
 
-      List<MissingSquaresUniqueEdgesData> correctMissingSquares = partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
-      if (CollectionUtils.isEmpty(correctMissingSquares))
+      if (cycleToBeSearchedFor)
       {
-        correctMissingSquares = singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+        return partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
       }
-      return correctMissingSquares;
+      else
+      {
+        return singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+      }
     }
   }
 

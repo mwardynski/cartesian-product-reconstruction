@@ -79,6 +79,15 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
     linearFactorization.prepare(vertices, root, false);
     Edge[][] adjacencyMatrix = graphHelper.createAdjacencyMatrix();
     graph.setAdjacencyMatrix(adjacencyMatrix);
+    reconstructionData.setMergeOperations(new LinkedList<>());
+
+    SquareMatchingEdgeData[][] squareMatchingEdgesByEdgeAndColor1 = new SquareMatchingEdgeData[vertices.size()][vertices.size()];
+    singleSquareReconstructionService.reconstructUsingSquares(squareMatchingEdgesByEdgeAndColor1);
+
+    if (true)
+    {
+      return null;
+    }
 
     Graph originalGraph = new Graph(graph);
 

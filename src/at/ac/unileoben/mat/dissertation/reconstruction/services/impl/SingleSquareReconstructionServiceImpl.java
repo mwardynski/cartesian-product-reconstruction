@@ -35,13 +35,28 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   @Autowired
   SquareMatchingEdgesMergingService squareMatchingEdgesMergingService;
 
+  @Autowired
+  SingleSquaresHandlingService singleSquaresHandlingService;
+
+  @Autowired
+  TestCaseContext testCaseContext;
+
   @Override
   public void reconstructUsingSquares(SquareMatchingEdgeData[][] squareMatchingEdgesByEdge)
   {
     SquareReconstructionData squareReconstructionData = new SquareReconstructionData(graph.getVertices().size());
-    squareReconstructionData.getNextVertices().add(graph.getRoot());
-    squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
     squareReconstructionData.setSquareMatchingEdgesByEdge(squareMatchingEdgesByEdge);
+
+    singleSquaresHandlingService.collectAllSingleSquares(squareReconstructionData);
+//    squareReconstructionData.getNextVertices().add(graph.getRoot());
+//    squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
+
+    //SXxP3
+    if (CollectionUtils.isEmpty(squareReconstructionData.getNextVertices()))
+    {
+      testCaseContext.setCorrectResult(true);
+      return;
+    }
 
     while (CollectionUtils.isNotEmpty(squareReconstructionData.getNextVertices()))
     {

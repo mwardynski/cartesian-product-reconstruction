@@ -1,17 +1,18 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquaresHandlingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
-import at.ac.unileoben.mat.dissertation.structure.Vertex;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import at.ac.unileoben.mat.dissertation.structure.exception.SquareWithoutAnyLabelsException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 @Component
@@ -27,20 +28,27 @@ public class SquareFindingServiceImpl implements SquareFindingService
   @Autowired
   SquareHandlingStrategy squareHandlingStrategy;
 
+  @Autowired
+  SingleSquaresHandlingService singleSquaresHandlingService;
+
+  @Autowired
+  ColoringService coloringService;
+
   @Override
   public boolean findAndProcessSquareForTwoEdges(SquareReconstructionData squareReconstructionData, Edge iEdge, Edge jEdge)
   {
     Vertex currentVertex = squareReconstructionData.getCurrentVertex();
     List<List<Edge>> squareEdgesList = graphHelper.findSquaresForTwoEdges(iEdge, jEdge);
-    boolean squareFound = CollectionUtils.isNotEmpty(squareEdgesList);
+    SingleSquareList singleSquareList = singleSquaresHandlingService.findSquaresForGivenEdges(iEdge, jEdge, squareReconstructionData);
+    boolean squareFound = CollectionUtils.isNotEmpty(singleSquareList);
 
     if (squareFound)
     {
-      squareEdgesList.stream()
-              .forEach(edgesPair ->
+      singleSquareList.stream()
+              .forEach(singleSquare ->
               {
-                Edge iSquareEdge = edgesPair.get(0);
-                Edge jSquareEdge = edgesPair.get(1);
+                Edge iSquareEdge = singleSquare.getSquareBaseEdge();
+                Edge jSquareEdge = singleSquare.getSquareOtherEdge();
 
                 if (iEdge.getLabel() != null)
                 {
@@ -74,6 +82,21 @@ public class SquareFindingServiceImpl implements SquareFindingService
                 storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
 
                 squareReconstructionData.getCurrentVertexNeighborsToQueue().add(iSquareEdge.getEndpoint());
+
+                if (CollectionUtils.isNotEmpty(singleSquare.getDiagonals()))
+                {
+                  singleSquare.getDiagonals().stream()
+                          .forEach(diagonal ->
+                          {
+                            int baseEdgeColor = singleSquare.getBaseEdge().getLabel().getColor();
+                            diagonal.setLabel(new Label(baseEdgeColor, -1));
+                          });
+
+                  List<Edge> edgesToMerge = new LinkedList<>(singleSquare.getDiagonals());
+                  edgesToMerge.addAll(Arrays.asList(singleSquare.getBaseEdge(), singleSquare.getOtherEdge(),
+                          singleSquare.getSquareBaseEdge(), singleSquare.getSquareOtherEdge()));
+                  coloringService.mergeColorsForEdges(edgesToMerge, MergeTagEnum.SQUARE_WITH_DIAGONAL);
+                }
               });
     }
 
