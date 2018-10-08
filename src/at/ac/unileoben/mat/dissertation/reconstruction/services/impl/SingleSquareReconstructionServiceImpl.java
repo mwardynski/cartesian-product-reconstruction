@@ -147,7 +147,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
         boolean squareFound = squareFindingService.findAndProcessSquareForTwoEdges(squareReconstructionData, iEdge, jEdge);
 
 
-        if (!squareFound)
+        if (!squareFound && isPotentialMissingSquareWithoutDiagonal(iEdge, jEdge))
         {
           MissingSquaresUniqueEdgesData missingSquare = new MissingSquaresUniqueEdgesData(iEdge, jEdge);
           missingSquares.add(missingSquare);
@@ -198,5 +198,14 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
             }
     );
     return resultEdges;
+  }
+
+  private boolean isPotentialMissingSquareWithoutDiagonal(Edge baseEdge, Edge otherEdge)
+  {
+    Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
+
+    Edge diagonal = adjacencyMatrix[baseEdge.getEndpoint().getVertexNo()][otherEdge.getEndpoint().getVertexNo()];
+
+    return diagonal == null;
   }
 }
