@@ -89,6 +89,7 @@ public class SquareFindingServiceImpl implements SquareFindingService
                           {
                             int baseEdgeColor = singleSquare.getBaseEdge().getLabel().getColor();
                             diagonal.setLabel(new Label(baseEdgeColor, -1));
+                            diagonal.getOpposite().setLabel(new Label(baseEdgeColor, -1));
                           });
 
                   List<Edge> edgesToMerge = new LinkedList<>(singleSquare.getDiagonals());

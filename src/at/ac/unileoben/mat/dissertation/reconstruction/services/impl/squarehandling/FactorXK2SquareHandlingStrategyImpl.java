@@ -22,7 +22,7 @@ public class FactorXK2SquareHandlingStrategyImpl extends AbstractSquareHandlingS
   {
     if (baseEdge.getLabel() == null && squareEdge.getLabel() == null && otherColorBaseEdge.getLabel() != null && otherColorBaseEdge.getLabel().getColor() == SECOND_COLOR)
     {
-      int color = findExtensionColor(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
+      int color = handleExtensionColor(baseEdge, squareEdge, otherColorBaseEdge, squareReconstructionData);
       if (color != -1)
       {
         baseEdge.setLabel(new Label(color, -1));
