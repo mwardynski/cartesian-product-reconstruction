@@ -41,6 +41,10 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
   @Override
   public void removeVertex(List<Vertex> vertices, int vertexIndex)
   {
+    if (vertexIndex == -1)
+    {
+      return;
+    }
     Iterator<Vertex> vertexIterator = vertices.iterator();
     while (vertexIterator.hasNext())
     {
