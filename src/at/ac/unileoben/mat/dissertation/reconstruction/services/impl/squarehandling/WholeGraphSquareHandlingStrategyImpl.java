@@ -41,7 +41,7 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
       }
       else
       {
-        color = handleExtensionColor(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
+        color = findExtensionColor(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
 
         if (color == -1)
         {
@@ -62,8 +62,6 @@ public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandling
     }
 
     storeSquareMatchingEdges(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
-
-    handleExtensionColor(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
   }
 
   @Override

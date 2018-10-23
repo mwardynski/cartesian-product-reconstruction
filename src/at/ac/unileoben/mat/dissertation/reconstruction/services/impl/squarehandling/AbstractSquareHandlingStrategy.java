@@ -22,28 +22,26 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
   @Autowired
   SingleSquaresHandlingService singleSquaresHandlingService;
 
-  protected int handleExtensionColor(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
+  protected int findExtensionColor(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {
     int extensionColor = -1;
 
     SquareMatchingEdgeData[][] squareMatchingEdgesByEdge = squareReconstructionData.getSquareMatchingEdgesByEdge();
     SquareMatchingEdgeData squareMatchingEdgesData = squareMatchingEdgesByEdge[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
 
-    List<Edge> possibleExtensionEdges = new LinkedList<>();
-
     if (squareMatchingEdgesData == null)
     {
       return extensionColor;
     }
+    Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
+    Edge otherColorSquareEdge = adjacencyMatrix[baseEdge.getEndpoint().getVertexNo()][squareEdge.getEndpoint().getVertexNo()];
+
     for (Integer existingColor : squareMatchingEdgesData.getExistingColors())
     {
       List<Edge> squareMatchingEdges = squareMatchingEdgesData.getEdgesByColors()[existingColor];
 
       for (Edge squareMatchingEdge : squareMatchingEdges)
       {
-        Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
-
-        Edge otherColorSquareEdge = adjacencyMatrix[baseEdge.getEndpoint().getVertexNo()][squareEdge.getEndpoint().getVertexNo()];
         if (squareMatchingEdge == otherColorSquareEdge)
         {
           continue;
@@ -57,7 +55,8 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
 
         if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
         {
-          possibleExtensionEdges.add(baseEdgeExtendingEdge);
+          extensionColor = baseEdgeExtendingEdge.getLabel().getColor();
+          break;
         }
         //FIXME remove this elses
         else if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isNotEmpty(squareEdgeSquares))
@@ -71,38 +70,12 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
           squareReconstructionData.getOnlyOneSidedMerges().add(onlyOneSidedMergeData);
         }
       }
-    }
 
-    UniqueList possibleExtensionEdgesColors = new UniqueList(graph.getVertices().size());
-    possibleExtensionEdges.stream()
-            .forEach(edge -> possibleExtensionEdgesColors.add(coloringService.getCurrentColorMapping(graph.getGraphColoring(), edge.getLabel().getColor())));
-
-
-    if (baseEdge.getLabel() == null)
-    {
-      if (possibleExtensionEdgesColors.size() == 1)
+      if (extensionColor != -1)
       {
-        extensionColor = possibleExtensionEdges.get(0).getLabel().getColor();
-      }
-      else if (possibleExtensionEdgesColors.size() > 1)
-      {
-        extensionColor = possibleExtensionEdges.stream().mapToInt(edge -> edge.getLabel().getColor()).min().getAsInt();
-        coloringService.mergeColorsForEdges(possibleExtensionEdges, MergeTagEnum.MULTIPLE_COLORING_EXTENSIONS);
+        break;
       }
     }
-    else
-    {
-      int baseEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
-      if (possibleExtensionEdgesColors.size() > 0 && possibleExtensionEdgesColors.getEntries().get(0) != baseEdgeMappedColor)
-      {
-        possibleExtensionEdges.add(baseEdge);
-      }
-      if (possibleExtensionEdges.size() > 1)
-      {
-        coloringService.mergeColorsForEdges(possibleExtensionEdges, MergeTagEnum.MULTIPLE_COLORING_EXTENSIONS);
-      }
-    }
-
     return extensionColor;
   }
 
