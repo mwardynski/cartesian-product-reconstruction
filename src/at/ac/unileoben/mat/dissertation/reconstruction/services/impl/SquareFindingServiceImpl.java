@@ -101,6 +101,12 @@ public class SquareFindingServiceImpl implements SquareFindingService
     }
 
 
+    if (singleSquareList.size() > 1)
+    {
+      List<Edge> edgesToMerge = Arrays.asList(iEdge, jEdge);
+      coloringService.mergeColorsForEdges(edgesToMerge, MergeTagEnum.SQUARE_WITH_DIAGONAL);
+    }
+
     squareReconstructionData.getCurrentVertexNeighborsToQueue().add(iEdge.getEndpoint());
     squareReconstructionData.getCurrentVertexNeighborsToQueue().add(jEdge.getEndpoint());
 
