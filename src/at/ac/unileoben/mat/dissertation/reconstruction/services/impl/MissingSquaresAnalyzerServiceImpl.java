@@ -9,6 +9,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,7 +45,8 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
 
     List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares = new LinkedList<>();
     List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = new List[graph.getVertices().size()];
-    List<Integer> includedColors = new LinkedList<>();
+    UniqueList normalColorsEdgesPairIncludedColors = new UniqueList(graph.getVertices().size());
+    UniqueList noSquareAtAllEdgesPairIncludedColors = new UniqueList(graph.getVertices().size());
 
     for (MissingSquaresEntryData missingSquaresEntry : missingSquaresEntries)
     {
@@ -66,38 +68,66 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
         while (otherEdgesItertor.hasNext())
         {
           Edge otherEdge = otherEdgesItertor.next();
-
           int otherEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), otherEdge.getLabel().getColor());
 
-          if (baseEdgeMappedColor == otherEdgeMappedColor)
+          MissingSquaresUniqueEdgesData missingSquaresUniqueEdgesData = new MissingSquaresUniqueEdgesData(baseEdge, otherEdge);
+          if (baseEdgeMappedColor == 0 || otherEdge.getLabel().getColor() == 0)
           {
-            otherEdgesItertor.remove();
-            continue;
+            noSquareAtAllMissingSquares.add(missingSquaresUniqueEdgesData);
+            if (baseEdgeMappedColor != 0)
+            {
+              noSquareAtAllEdgesPairIncludedColors.add(baseEdgeMappedColor);
+            }
+            else if (otherEdgeMappedColor != 0)
+            {
+              noSquareAtAllEdgesPairIncludedColors.add(otherEdgeMappedColor);
+            }
           }
+
           else
           {
-            MissingSquaresUniqueEdgesData missingSquaresUniqueEdgesData = new MissingSquaresUniqueEdgesData(baseEdge, otherEdge);
-            if (baseEdge.getLabel().getName() == -2 || otherEdge.getLabel().getName() == -2)
-            {
-              noSquareAtAllMissingSquares.add(missingSquaresUniqueEdgesData);
-            }
-            else if (coloringService.getCurrentColorMapping(graph.getGraphColoring(), otherEdge.getLabel().getColor()) != baseEdgeMappedColor)
-            {
-              if (CollectionUtils.isEmpty(collectedMissingSquares))
-              {
-                includedColors.add(baseEdgeMappedColor);
-              }
-              collectedMissingSquares.add(missingSquaresUniqueEdgesData);
-            }
+            normalColorsEdgesPairIncludedColors.add(baseEdgeMappedColor);
+            collectedMissingSquares.add(missingSquaresUniqueEdgesData);
           }
         }
       }
     }
 
-    List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+    boolean cycleOfIrregularNoSquareAtAllMissingSquares = false;
+    List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = Collections.emptyList();
+    if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
+    {
+      cycleOfIrregularNoSquareAtAllMissingSquares = isCycleToBeSearchedFor(noSquareAtAllMissingSquares);
+      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, cycleOfIrregularNoSquareAtAllMissingSquares);
+    }
+
+    List<Integer> includedColorsEdges;
+    if (!cycleOfIrregularNoSquareAtAllMissingSquares && noSquareAtAllEdgesPairIncludedColors.size() > 0)
+    {
+      includedColorsEdges = noSquareAtAllEdgesPairIncludedColors.getEntries();
+    }
+    else
+    {
+      includedColorsEdges = normalColorsEdgesPairIncludedColors.getEntries();
+    }
 
     ResultMissingSquaresData resultMissingSquaresData = new ResultMissingSquaresData(irregularNoSquareAtAllMissingSquares,
-            irregularMissingSquaresByColor, includedColors);
+            irregularMissingSquaresByColor, includedColorsEdges, cycleOfIrregularNoSquareAtAllMissingSquares);
     return resultMissingSquaresData;
+  }
+
+  private boolean isCycleToBeSearchedFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  {
+    boolean cycleToBeSearchedFor = false;
+
+    MissingSquaresUniqueEdgesData arbitraryMissingSquare = noSquareAtAllMissingSquares.get(0);
+    int baseEdgeEndpointEdgesQuantity = arbitraryMissingSquare.getBaseEdge().getEndpoint().getEdges().size();
+    int otherEdgeEndpointEdgesQuantity = arbitraryMissingSquare.getOtherEdge().getEndpoint().getEdges().size();
+
+    if (baseEdgeEndpointEdgesQuantity > 1 && otherEdgeEndpointEdgesQuantity > 1)
+    {
+      cycleToBeSearchedFor = true;
+    }
+    return cycleToBeSearchedFor;
   }
 }

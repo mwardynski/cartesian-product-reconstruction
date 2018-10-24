@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionResultVerifier;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.MissingSquaresUniqueEdgesData;
@@ -22,6 +23,9 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
   @Autowired
   TestCaseContext testCaseContext;
 
+  @Autowired
+  ColoringService coloringService;
+
   public void compareFoundMissingVertexWithCorrectResult(ResultMissingSquaresData resultMissingSquaresData)
   {
     Set<Integer> expectedNeighborsVertexNumbers = testCaseContext.getRemovedVertexNeighbors();
@@ -34,7 +38,7 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
     List<Integer> resultIncludedColors = resultMissingSquaresData.getResultIncludedColors();
     List<Integer> resultFittingColors = new LinkedList<>();
 
-    if (CollectionUtils.isEmpty(resultIncludedColors))
+    if (resultMissingSquaresData.isCycleOfIrregularNoSquareAtAllMissingSquares())
     {
       Set<Integer> actualNeighborsVertexNumbers = new HashSet<>(noSquareAtAllMissingSquaresVertexNumbers);
       if (expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers))
@@ -44,30 +48,33 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
     }
     else
     {
+      Set<Integer> baseNeighborsVertexNumbers = new HashSet<>();
+      if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquaresVertexNumbers))
+      {
+        baseNeighborsVertexNumbers.addAll(noSquareAtAllMissingSquaresVertexNumbers);
+      }
+
       for (Integer includedColor : resultIncludedColors)
       {
         List<MissingSquaresUniqueEdgesData> resultMissingSquares = resultMissingSquaresByColor[includedColor];
-        if (CollectionUtils.isNotEmpty(resultMissingSquares))
+        Set<Integer> resultMissingSquaresByColorVertexNumbers = mapResultMissingSquaresToOriginVertexNumbers(resultMissingSquares);
+
+        Set<Integer> actualNeighborsVertexNumbers = new HashSet<>(baseNeighborsVertexNumbers);
+        actualNeighborsVertexNumbers.addAll(resultMissingSquaresByColorVertexNumbers);
+
+        if (expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers))
         {
-          Set<Integer> resultMissingSquaresByColorVertexNumbers = mapResultMissingSquaresToOriginVertexNumbers(resultMissingSquares);
-
-          Set<Integer> actualNeighborsVertexNumbers = new HashSet<>(resultMissingSquaresByColorVertexNumbers);
-          actualNeighborsVertexNumbers.addAll(noSquareAtAllMissingSquaresVertexNumbers);
-
-
-          if (expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers))
-          {
-            correctResult = true;
-            resultFittingColors.add(includedColor);
-          }
+          correctResult = true;
+          resultFittingColors.add(includedColor);
         }
+      }
+
+      if (!resultFittingColors.containsAll(resultIncludedColors))
+      {
+        System.out.println("WARN - Subfactors weren't completely merged");
       }
     }
 
-    if (!resultFittingColors.containsAll(resultIncludedColors))
-    {
-      System.out.println("WARN - Subfactors weren't completely merged");
-    }
 
     testCaseContext.setCorrectResult(correctResult);
   }
