@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,8 +51,6 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     squareReconstructionData.setSquareMatchingEdgesByEdge(squareMatchingEdgesByEdge);
 
     singleSquaresHandlingService.collectAllSingleSquares(squareReconstructionData);
-//    squareReconstructionData.getNextVertices().add(graph.getRoot());
-//    squareReconstructionData.getIncludedVertices()[graph.getRoot().getVertexNo()] = true;
 
     //SXxP3
     if (CollectionUtils.isEmpty(squareReconstructionData.getNextVertices()))
@@ -106,23 +103,6 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     }
   }
 
-  private void printOutMissingSquares(SquareReconstructionData squareReconstructionData)
-  {
-    squareReconstructionData.getMissingSquaresData().getMissingSquaresEntries().stream()
-            .forEach(missingSquaresEntry ->
-            {
-              Edge baseEdge = missingSquaresEntry.getBaseEdge();
-              Arrays.stream(missingSquaresEntry.getOtherEdgesByColors())
-                      .filter(edgesByColor -> CollectionUtils.isNotEmpty(edgesByColor))
-                      .flatMap(edgesByColor -> edgesByColor.stream())
-                      .forEach(otherEdge ->
-                              System.out.println(String.format("%d-%d(%d), %d-%d(%d)",
-                                      baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(), baseEdge.getLabel().getColor(),
-                                      otherEdge.getOrigin().getVertexNo(), otherEdge.getEndpoint().getVertexNo(), otherEdge.getLabel().getColor()))
-                      );
-            });
-  }
-
   private void reconstructForCurrentVertex(SquareReconstructionData squareReconstructionData)
   {
     squareReconstructionData.setCurrentVertex(squareReconstructionData.getNextVertices().poll());
@@ -161,9 +141,6 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     }
     squareReconstructionData.getCurrentVertexNeighborsToQueue().stream()
             .forEach(v -> squareHandlingStrategy.queueSquareSideVertexToNextVertices(v, squareReconstructionData));
-    currentVertexEdges.stream()
-            .peek(e -> squareReconstructionData.getUsedEdges()[e.getOrigin().getVertexNo()][e.getEndpoint().getVertexNo()] = true)
-            .forEach(e -> squareReconstructionData.getUsedEdges()[e.getEndpoint().getVertexNo()][e.getOrigin().getVertexNo()] = true);
 
     List<Edge> edgesWithoutSquare = currentVertexEdges.stream()
             .filter(e -> e.getLabel() == null)

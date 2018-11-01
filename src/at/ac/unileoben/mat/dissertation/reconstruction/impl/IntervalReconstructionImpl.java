@@ -5,7 +5,6 @@ import at.ac.unileoben.mat.dissertation.common.impl.GraphHelperImpl;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.reconstruction.Reconstruction;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.FactorsFromIntervalReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquareReconstructionService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
@@ -37,9 +36,6 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
   @Autowired
   SingleSquareReconstructionService singleSquareReconstructionService;
-
-  @Autowired
-  FactorsFromIntervalReconstructionService factorsFromIntervalReconstructionService;
 
   @Autowired
   SquareHandlingStrategy squareHandlingStrategy;

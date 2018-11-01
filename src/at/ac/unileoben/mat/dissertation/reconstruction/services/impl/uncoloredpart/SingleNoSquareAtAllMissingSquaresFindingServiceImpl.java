@@ -67,7 +67,6 @@ public class SingleNoSquareAtAllMissingSquaresFindingServiceImpl implements Sing
     List<MissingSquaresUniqueEdgesData>[] missingSquaresByMiddleVertexIncluded = new List[graph.getVertices().size()];
 
     noSquareAtAllMissingSquares.stream()
-            .filter(missingSquare -> missingSquare.getBaseEdge().getLabel().getName() == -2)
             .forEach(missingSquare ->
             {
               Edge baseEdge = missingSquare.getBaseEdge();

@@ -1,6 +1,5 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionResultVerifier;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
 import at.ac.unileoben.mat.dissertation.structure.MissingSquaresUniqueEdgesData;
@@ -22,9 +21,6 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
 
   @Autowired
   TestCaseContext testCaseContext;
-
-  @Autowired
-  ColoringService coloringService;
 
   public void compareFoundMissingVertexWithCorrectResult(ResultMissingSquaresData resultMissingSquaresData)
   {

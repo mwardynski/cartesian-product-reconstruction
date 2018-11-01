@@ -10,8 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-@Profile("whole")
-public class WholeGraphSquareHandlingStrategyImpl extends AbstractSquareHandlingStrategy
+public class GraphSquaresHandlingStrategyImpl extends AbstractSquareHandlingStrategy
 {
 
   @Autowired

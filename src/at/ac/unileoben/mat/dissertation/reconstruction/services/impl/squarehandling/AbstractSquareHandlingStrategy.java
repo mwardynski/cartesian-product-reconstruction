@@ -58,17 +58,6 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
           extensionColor = baseEdgeExtendingEdge.getLabel().getColor();
           break;
         }
-        //FIXME remove this elses
-        else if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isNotEmpty(squareEdgeSquares))
-        {
-          OnlyOneSidedMergeData onlyOneSidedMergeData = new OnlyOneSidedMergeData(squareEdge, squareEdgeExtendingEdge, otherColorBaseEdge);
-          squareReconstructionData.getOnlyOneSidedMerges().add(onlyOneSidedMergeData);
-        }
-        else if (CollectionUtils.isNotEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
-        {
-          OnlyOneSidedMergeData onlyOneSidedMergeData = new OnlyOneSidedMergeData(baseEdge, baseEdgeExtendingEdge, otherColorBaseEdge);
-          squareReconstructionData.getOnlyOneSidedMerges().add(onlyOneSidedMergeData);
-        }
       }
 
       if (extensionColor != -1)
@@ -111,10 +100,6 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
         squareMatchingEdgesToBaseEdge.getExistingColors().add(otherColor);
       }
       edgesByColor.add(squareEdge);
-    }
-    else if (includedEdge != squareEdge)
-    {
-//      throw new RuntimeException("colors to merge");
     }
   }
 

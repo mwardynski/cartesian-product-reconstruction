@@ -68,23 +68,15 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
         while (otherEdgesItertor.hasNext())
         {
           Edge otherEdge = otherEdgesItertor.next();
-          int otherEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), otherEdge.getLabel().getColor());
 
           MissingSquaresUniqueEdgesData missingSquaresUniqueEdgesData = new MissingSquaresUniqueEdgesData(baseEdge, otherEdge);
-          if (baseEdgeMappedColor == 0 || otherEdge.getLabel().getColor() == 0)
+          if (baseEdgeMappedColor == 0)
           {
             noSquareAtAllMissingSquares.add(missingSquaresUniqueEdgesData);
-            if (baseEdgeMappedColor != 0)
-            {
-              noSquareAtAllEdgesPairIncludedColors.add(baseEdgeMappedColor);
-            }
-            else if (otherEdgeMappedColor != 0)
-            {
-              noSquareAtAllEdgesPairIncludedColors.add(otherEdgeMappedColor);
-            }
+            noSquareAtAllEdgesPairIncludedColors.add(baseEdgeMappedColor);
           }
 
-          else
+          else if (otherEdgesColor != 0)
           {
             normalColorsEdgesPairIncludedColors.add(baseEdgeMappedColor);
             collectedMissingSquares.add(missingSquaresUniqueEdgesData);

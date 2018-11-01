@@ -59,10 +59,11 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
         Integer firstColor = squareMatchingEdgeData.getExistingColors().get(i);
         Integer secondColor = squareMatchingEdgeData.getExistingColors().get(j);
 
-        int firstColorMapped = coloringService.getCurrentColorMapping(graph.getGraphColoring(), firstColor);
-        int secondColorMapped = coloringService.getCurrentColorMapping(graph.getGraphColoring(), secondColor);
+        int baseEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
+        int firstMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), firstColor);
+        int secondMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), secondColor);
 
-        if (firstColorMapped != secondColorMapped)
+        if (baseEdgeMappedColor != firstMappedColor && baseEdgeMappedColor != secondMappedColor && firstMappedColor != secondMappedColor)
         {
           List<Edge> firstGroupOfSquareMatchingEdges = squareMatchingEdgeData.getEdgesByColors()[firstColor];
           List<Edge> secondGroupOfSquareMatchingEdges = squareMatchingEdgeData.getEdgesByColors()[secondColor];

@@ -11,13 +11,9 @@ public class SquareReconstructionData
   boolean[] includedVertices;
   Queue<Vertex> postponedVertices;
   boolean[] includedPostponedVertices;
-  boolean[][] usedEdges;
   MissingSquaresData missingSquaresData;
-  Edge[][][] squareFormingEdges;
   SingleSquareList[][][] squares;
-  Edge multipleSquaresWardenEdge;
   List<Vertex> currentVertexNeighborsToQueue;
-  List<OnlyOneSidedMergeData> onlyOneSidedMerges;
 
   SquareMatchingEdgeData[][] squareMatchingEdgesByEdge;
 
@@ -27,9 +23,7 @@ public class SquareReconstructionData
     includedVertices = new boolean[graphSize];
     postponedVertices = new LinkedList<>();
     includedPostponedVertices = new boolean[graphSize];
-    usedEdges = new boolean[graphSize][graphSize];
     missingSquaresData = new MissingSquaresData(graphSize);
-    onlyOneSidedMerges = new LinkedList<>();
     squares = new SingleSquareList[graphSize][graphSize][graphSize];
   }
 
@@ -63,39 +57,14 @@ public class SquareReconstructionData
     return includedPostponedVertices;
   }
 
-  public boolean[][] getUsedEdges()
-  {
-    return usedEdges;
-  }
-
   public MissingSquaresData getMissingSquaresData()
   {
     return missingSquaresData;
   }
 
-  public Edge[][][] getSquareFormingEdges()
-  {
-    return squareFormingEdges;
-  }
-
-  public void setSquareFormingEdges(Edge[][][] squareFormingEdges)
-  {
-    this.squareFormingEdges = squareFormingEdges;
-  }
-
   public SingleSquareList[][][] getSquares()
   {
     return squares;
-  }
-
-  public Edge getMultipleSquaresWardenEdge()
-  {
-    return multipleSquaresWardenEdge;
-  }
-
-  public void setMultipleSquaresWardenEdge(Edge multipleSquaresWardenEdge)
-  {
-    this.multipleSquaresWardenEdge = multipleSquaresWardenEdge;
   }
 
   public SquareMatchingEdgeData[][] getSquareMatchingEdgesByEdge()
@@ -116,10 +85,5 @@ public class SquareReconstructionData
   public void setCurrentVertexNeighborsToQueue(List<Vertex> currentVertexNeighborsToQueue)
   {
     this.currentVertexNeighborsToQueue = currentVertexNeighborsToQueue;
-  }
-
-  public List<OnlyOneSidedMergeData> getOnlyOneSidedMerges()
-  {
-    return onlyOneSidedMerges;
   }
 }
