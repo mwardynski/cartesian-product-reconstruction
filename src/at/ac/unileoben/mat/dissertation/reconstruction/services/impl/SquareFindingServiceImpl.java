@@ -78,10 +78,6 @@ public class SquareFindingServiceImpl implements SquareFindingService
                   }
                 }
 
-                storeSquareFormingEdges(iEdge, jEdge, iSquareEdge, jSquareEdge, squareReconstructionData);
-
-                squareReconstructionData.getCurrentVertexNeighborsToQueue().add(iSquareEdge.getEndpoint());
-
                 if (CollectionUtils.isNotEmpty(singleSquare.getDiagonals()))
                 {
                   singleSquare.getDiagonals().stream()
@@ -117,46 +113,5 @@ public class SquareFindingServiceImpl implements SquareFindingService
   {
     squareHandlingStrategy.colorEdge(baseEdge, squareEdge, otherBaseEdge, squareReconstructionData);
     squareHandlingStrategy.colorEdge(otherBaseEdge, otherSquareEdge, baseEdge, squareReconstructionData);
-  }
-
-  private void storeSquareFormingEdges(Edge iEdge, Edge jEdge, Edge iSquareEdge, Edge jSquareEdge, SquareReconstructionData squareReconstructionData)
-  {
-    if (squareReconstructionData.getSquareFormingEdges() == null)
-    {
-      return;
-    }
-    storePairOfSquareFormingEdges(iEdge, jEdge, jSquareEdge, squareReconstructionData);
-    storePairOfSquareFormingEdges(iEdge.getOpposite(), jSquareEdge, jEdge, squareReconstructionData);
-    storePairOfSquareFormingEdges(jEdge, iEdge, iSquareEdge, squareReconstructionData);
-    storePairOfSquareFormingEdges(jEdge.getOpposite(), iSquareEdge, iEdge, squareReconstructionData);
-
-    storePairOfSquareFormingEdges(iSquareEdge, jEdge.getOpposite(), jSquareEdge.getOpposite(), squareReconstructionData);
-    storePairOfSquareFormingEdges(iSquareEdge.getOpposite(), jSquareEdge.getOpposite(), jEdge.getOpposite(), squareReconstructionData);
-    storePairOfSquareFormingEdges(jSquareEdge, iEdge.getOpposite(), iSquareEdge.getOpposite(), squareReconstructionData);
-    storePairOfSquareFormingEdges(jSquareEdge.getOpposite(), iSquareEdge.getOpposite(), iEdge.getOpposite(), squareReconstructionData);
-  }
-
-  private void storePairOfSquareFormingEdges(Edge referenceEdge, Edge firstParallelEdge, Edge secondParallelEdge, SquareReconstructionData squareReconstructionData)
-  {
-    Edge[][][] squareFormingEdges = squareReconstructionData.getSquareFormingEdges();
-    Edge[] parallelEdges = squareFormingEdges[referenceEdge.getOrigin().getVertexNo()][referenceEdge.getEndpoint().getVertexNo()];
-
-    Edge parallelEdge = parallelEdges[firstParallelEdge.getEndpoint().getVertexNo()];
-
-    if (parallelEdge == squareReconstructionData.getMultipleSquaresWardenEdge())
-    {
-      return;
-    }
-    else
-    {
-      Edge edgeToAssign = secondParallelEdge;
-
-      if (parallelEdge != secondParallelEdge)
-      {
-        edgeToAssign = squareReconstructionData.getMultipleSquaresWardenEdge();
-      }
-
-      parallelEdges[firstParallelEdge.getEndpoint().getVertexNo()] = edgeToAssign;
-    }
   }
 }
