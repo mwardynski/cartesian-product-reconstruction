@@ -16,8 +16,9 @@ public class FactorizationStep
   private Vertex[] verticesInLayer;
   private List<List<Vertex>> layer;
   private int firstVertexInLayerIndex;
+  private Edge[] firstLayerPerVertexEdges;
 
-  public FactorizationStep(int firstVertexInLayerIndex, int layerSize)
+  public FactorizationStep(int firstVertexInLayerIndex, int layerSize, int graphSize)
   {
     this.firstVertexInLayerIndex = firstVertexInLayerIndex;
     verticesInLayer = new Vertex[layerSize];
@@ -26,6 +27,7 @@ public class FactorizationStep
     {
       layer.add(new LinkedList<Vertex>());
     }
+    firstLayerPerVertexEdges = new Edge[graphSize];
   }
 
   public Vertex[] getVerticesInLayer()
@@ -41,5 +43,10 @@ public class FactorizationStep
   public int getFirstVertexInLayerIndex()
   {
     return firstVertexInLayerIndex;
+  }
+
+  public Edge[] getFirstLayerPerVertexEdges()
+  {
+    return firstLayerPerVertexEdges;
   }
 }

@@ -9,7 +9,7 @@ package at.ac.unileoben.mat.dissertation.printout.utils;
  */
 public enum VertexColorEnum
 {
-  BLACK("black/25"), ORANGE("orange/75");
+  BLACK("black/25"), ORANGE("orange/75"), LIME("lime/50");
 
   String definition;
 

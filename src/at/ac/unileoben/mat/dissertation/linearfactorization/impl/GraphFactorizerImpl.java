@@ -5,9 +5,17 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.GraphFactorizer;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.CrossEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.DownEdgesLabeler;
 import at.ac.unileoben.mat.dissertation.linearfactorization.label.impl.UpEdgesLabeler;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.DetermineFactorsService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.OperationOnGraph;
+import at.ac.unileoben.mat.dissertation.structure.ReconstructionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * Created with IntelliJ IDEA.
@@ -23,6 +31,9 @@ public class GraphFactorizerImpl implements GraphFactorizer
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   DownEdgesLabeler downEdgesLabeler;
 
   @Autowired
@@ -33,6 +44,16 @@ public class GraphFactorizerImpl implements GraphFactorizer
 
   @Autowired
   ConsistencyChecker consistencyChecker;
+  @Autowired
+  VertexService vertexService;
+  @Autowired
+  ColoringService coloringService;
+
+  @Autowired
+  DetermineFactorsService determineFactorsService;
+
+  @Autowired
+  ReconstructionBackupLayerService reconstructionBackupLayerService;
 
   @Override
   public void factorize()
@@ -40,10 +61,34 @@ public class GraphFactorizerImpl implements GraphFactorizer
     int layersAmount = graph.getLayers().size();
     for (int currentLayerNo = 2; currentLayerNo < layersAmount; currentLayerNo++)
     {
-      downEdgesLabeler.labelEdges(currentLayerNo);
-      crossEdgesLabeler.labelEdges(currentLayerNo);
-      upEdgesLabeler.labelEdges(currentLayerNo);
+      reconstructionData.setCurrentLayerNo(currentLayerNo);
+      reconstructionBackupLayerService.storeCurrentLayerBackup();
+      factorizeSingleLayer(currentLayerNo);
+      if (reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
+      {
+        currentLayerNo = reconstructionData.getLayerNoToRefactorizeFromOptional().get() - 1;
+        reconstructionData.setLayerNoToRefactorizeFromOptional(Optional.empty());
+        layersAmount = graph.getLayers().size();
+      }
+    }
+  }
+
+  @Override
+  public void factorizeSingleLayer(int currentLayerNo)
+  {
+    downEdgesLabeler.labelEdges(currentLayerNo);
+    crossEdgesLabeler.labelEdges(currentLayerNo);
+    upEdgesLabeler.labelEdges(currentLayerNo);
+
+    if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT)
+    {
       consistencyChecker.checkConsistency(currentLayerNo);
+    }
+    else
+    {
+      determineFactorsService.findReconstructionComponents(currentLayerNo, false);
+      consistencyChecker.checkConsistency(currentLayerNo);
+      determineFactorsService.findReconstructionComponents(currentLayerNo, true);
     }
   }
 }

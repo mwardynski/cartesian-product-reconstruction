@@ -12,11 +12,10 @@ import java.util.List;
 public class EdgesRef
 {
   List<ColorGroupLocation> colorPositions;
-  int colorsAmount;
 
-  public EdgesRef(int colorsAmount)
+  public List<ColorGroupLocation> getColorPositions()
   {
-    this.colorsAmount = colorsAmount;
+    return colorPositions;
   }
 
   public void setColorPositions(List<ColorGroupLocation> colorPositions)
@@ -24,19 +23,26 @@ public class EdgesRef
     this.colorPositions = colorPositions;
   }
 
-  public List<ColorGroupLocation> getColorPositions()
-  {
-    return colorPositions;
-  }
-
-  public int getColorsAmount()
-  {
-    return colorsAmount;
-  }
-
   @Override
   public String toString()
   {
     return colorPositions.toString();
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (this == o)
+    {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass())
+    {
+      return false;
+    }
+
+    EdgesRef edgesRef = (EdgesRef) o;
+
+    return colorPositions.toString().equals(edgesRef.colorPositions.toString());
   }
 }

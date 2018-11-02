@@ -20,8 +20,8 @@ public class GraphColoring
   public GraphColoring(int colorsAmount)
   {
     originalColorsAmount = colorsAmount;
-    colorsMapping = new ArrayList<Integer>(originalColorsAmount);
-    actualColors = new LinkedList<Integer>();
+    colorsMapping = new ArrayList<>(originalColorsAmount);
+    actualColors = new LinkedList<>();
     for (int i = 0; i < originalColorsAmount; i++)
     {
       colorsMapping.add(i);
@@ -29,9 +29,21 @@ public class GraphColoring
     }
   }
 
+  public GraphColoring(GraphColoring graphColoring)
+  {
+    this.originalColorsAmount = graphColoring.getOriginalColorsAmount();
+    this.colorsMapping = new ArrayList<>(graphColoring.getColorsMapping());
+    this.actualColors = new LinkedList<>(graphColoring.getActualColors());
+  }
+
   public int getOriginalColorsAmount()
   {
     return originalColorsAmount;
+  }
+
+  public void setOriginalColorsAmount(int originalColorsAmount)
+  {
+    this.originalColorsAmount = originalColorsAmount;
   }
 
   public List<Integer> getColorsMapping()

@@ -28,4 +28,6 @@ public interface ColoringService
   List<Integer> getColorsForEdges(GraphColoring graphColoring, List<Edge> edges);
 
   boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag);
+
+  boolean mergeColorsForEdges(List<Edge> edges, MergeOperation mergeOperation);
 }

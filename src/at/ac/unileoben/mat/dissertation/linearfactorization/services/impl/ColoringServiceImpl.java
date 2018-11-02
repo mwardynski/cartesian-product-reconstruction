@@ -22,6 +22,9 @@ public class ColoringServiceImpl implements ColoringService
   @Autowired
   Graph graph;
 
+  @Autowired
+  ReconstructionData reconstructionData;
+
   @Override
   public boolean mergeColors(GraphColoring graphColoring, List<Integer> colors)
   {
@@ -56,7 +59,12 @@ public class ColoringServiceImpl implements ColoringService
   @Override
   public int getCurrentColorMapping(GraphColoring graphColoring, int colorKey)
   {
-    return graphColoring.getColorsMapping().get(colorKey);
+    int mappedColor = colorKey;
+    if (graphColoring.getColorsMapping().size() > colorKey)
+    {
+      mappedColor = graphColoring.getColorsMapping().get(colorKey);
+    }
+    return mappedColor;
   }
 
   @Override
@@ -90,24 +98,17 @@ public class ColoringServiceImpl implements ColoringService
     int actualIndex = 0;
     for (int i = 0; i < colorAmounts.length; i++)
     {
-      if (colorAmounts[i] > 0)
-      {
-        ColorGroupLocation colorGroupLocation = new ColorGroupLocation(actualIndex, colorAmounts[i]);
-        actualIndex += colorAmounts[i];
-        colorPositionsArray[i] = colorGroupLocation;
-      }
+      ColorGroupLocation colorGroupLocation = new ColorGroupLocation(actualIndex, colorAmounts[i]);
+      actualIndex += colorAmounts[i];
+      colorPositionsArray[i] = colorGroupLocation;
     }
-    edgesRef.setColorPositions(Arrays.asList(colorPositionsArray));
+    edgesRef.setColorPositions(new ArrayList<>(Arrays.asList(colorPositionsArray)));
   }
 
   @Override
   public List<Integer> getPositionsForColor(EdgesRef edgesRef, int color)
   {
     ColorGroupLocation colorGroupLocation = edgesRef.getColorPositions().get(color);
-    if (colorGroupLocation == null)
-    {
-      return new ArrayList<Integer>();
-    }
     List<Integer> positionsForColor = new ArrayList<Integer>(colorGroupLocation.getLength());
     for (int i = 0; i < colorGroupLocation.getLength(); i++)
     {
@@ -120,7 +121,7 @@ public class ColoringServiceImpl implements ColoringService
   public int getPositionForLabel(EdgesRef edgesRef, Label label)
   {
     ColorGroupLocation colorGroupLocation = edgesRef.getColorPositions().get(label.getColor());
-    if (colorGroupLocation == null || colorGroupLocation.getLength() <= label.getName())
+    if (colorGroupLocation.getLength() <= label.getName())
     {
       return -1;
     }
@@ -130,7 +131,7 @@ public class ColoringServiceImpl implements ColoringService
   @Override
   public List<Integer> getColorsForEdges(GraphColoring graphColoring, List<Edge> edges)
   {
-    boolean[] colorPresence = new boolean[graphColoring.getOriginalColorsAmount()];
+    boolean[] colorPresence = new boolean[graphColoring.getColorsMapping().size()];
     for (Edge e : edges)
     {
       Label label = e.getLabel();
@@ -154,7 +155,15 @@ public class ColoringServiceImpl implements ColoringService
   @Override
   public boolean mergeColorsForEdges(List<Edge> edges, MergeTagEnum mergeTag)
   {
+    MergeOperation mergeOperation = new MergeOperation(edges, mergeTag);
+    return mergeColorsForEdges(edges, mergeOperation);
+  }
+
+  @Override
+  public boolean mergeColorsForEdges(List<Edge> edges, MergeOperation mergeOperation)
+  {
     GraphColoring graphColoring = graph.getGraphColoring();
+    GraphColoring graphColoringBackup = new GraphColoring(graph.getGraphColoring());
     List<Integer> colorsToMerge = getColorsForEdges(graphColoring, edges);
     boolean colorsMerged = false;
     if (colorsToMerge.size() > 0)
@@ -163,7 +172,10 @@ public class ColoringServiceImpl implements ColoringService
     }
     if (colorsMerged)
     {
-      graph.getAnalyzeData().addMergeOperation(graphColoring.getActualColors().size(), edges, mergeTag);
+      reconstructionData.getMergeOperations().add(mergeOperation);
+      graph.getAnalyzeData().addMergeOperation(mergeOperation);
+      mergeOperation.setMergedColors(colorsToMerge);
+      mergeOperation.setMergeGraphColoring(graphColoringBackup);
     }
     return colorsMerged;
   }

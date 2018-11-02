@@ -11,17 +11,18 @@ public class AdjacencyVector
 {
   Edge vector[];
 
-  public AdjacencyVector(int graphSize, Vertex originVertex)
+  public AdjacencyVector(Edge vector[])
   {
-    vector = new Edge[graphSize];
-    for (Edge edge : originVertex.getEdges())
-    {
-      vector[edge.getEndpoint().getVertexNo()] = edge;
-    }
+    this.vector = vector;
   }
 
   public Edge[] getVector()
   {
     return vector;
+  }
+
+  public void setVector(Edge[] vector)
+  {
+    this.vector = vector;
   }
 }

@@ -2,7 +2,9 @@ package at.ac.unileoben.mat.dissertation.linearfactorization.services.impl;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionBackupLayerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +26,19 @@ public class VertexServiceImpl implements VertexService
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   ColoringService coloringService;
+
+  @Autowired
+  ReconstructionBackupLayerService reconstructionBackupLayerService;
+
+  @Override
+  public int getGraphSize()
+  {
+    return graph.getVertices().size();
+  }
 
   @Override
   public List<Vertex> getGraphLayer(int i)
@@ -55,23 +69,41 @@ public class VertexServiceImpl implements VertexService
   }
 
   @Override
-  public void assignVertexToUnitLayerAndMergeColors(Vertex v, boolean mergeCrossEdges, MergeTagEnum mergeTag) //mergeCrossEdges always true
+  public void assignVertexToUnitLayerAndMergeColors(Vertex v, MergeTagEnum mergeTag)
   {
-    v.setUnitLayer(true);
-    List<Edge> vDownEdges = v.getDownEdges().getEdges();
-    List<Edge> edgesToRelabel = new LinkedList<Edge>(vDownEdges);
-    if (mergeCrossEdges)
+    assignVertexToUnitLayerAndMergeColorsInternal(v, mergeTag, new LinkedList<>());
+  }
+
+  private void assignVertexToUnitLayerAndMergeColorsInternal(Vertex v, MergeTagEnum mergeTag, List<Edge> originalEdgesToRelabel)
+  {
+    if (!v.isUnitLayer())
     {
-      List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
-      edgesToRelabel.addAll(vCrossEdges);
+      v.setUnitLayer(true);
+      reconstructionBackupLayerService.addNewVertexToLayerBackup(v);
     }
-    boolean[] colorPresence = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+    List<Edge> vDownEdges = v.getDownEdges().getEdges();
+    List<Edge> edgesToRelabel = new LinkedList<>(vDownEdges);
+    List<Edge> vCrossEdges = v.getCrossEdges().getEdges();
+    edgesToRelabel.addAll(vCrossEdges);
     for (Edge vw : edgesToRelabel)
     {
       Vertex w = vw.getEndpoint();
-      w.setUnitLayer(true);
+      if (!w.isUnitLayer())
+      {
+        List<Edge> edgesToPass = CollectionUtils.isNotEmpty(originalEdgesToRelabel) ? originalEdgesToRelabel : edgesToRelabel;
+        assignVertexToUnitLayerAndMergeColorsInternal(w, mergeTag, edgesToPass);
+      }
     }
-    coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
+    if (CollectionUtils.isEmpty(originalEdgesToRelabel))
+    {
+      coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
+    }
+    else
+    {
+      MergeOperation mergeOperation = new MergeOperation(originalEdgesToRelabel, mergeTag);
+      coloringService.mergeColorsForEdges(edgesToRelabel, mergeOperation);
+    }
+
   }
 
 }

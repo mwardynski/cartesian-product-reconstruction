@@ -1,16 +1,20 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.linearfactorization.ConsistencyChecker;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.EdgeService;
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.VertexService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.InPlaceReconstructionSetUpService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionShiftLayerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,6 +30,12 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
+  ReconstructionService reconstructionService;
+
+  @Autowired
   EdgeService edgeService;
 
   @Autowired
@@ -34,23 +44,64 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
   @Autowired
   VertexService vertexService;
 
+  @Autowired
+  InPlaceReconstructionSetUpService inPlaceReconstructionSetUpService;
+
+  @Autowired
+  ReconstructionShiftLayerService reconstructionShiftLayerService;
+
+  @Autowired
+  GraphHelper graphHelper;
+
   @Override
   public void checkConsistency(int currentLayerNo)
   {
-    List<Vertex> currentLayer = vertexService.getGraphLayer(currentLayerNo);
-    List<Vertex> previousLayer = vertexService.getGraphLayer(currentLayerNo - 1);
-    checkPreviousLayerUpEdgesConsistency(previousLayer);
-    checkCurrentLayerAllEdgesConsistency(currentLayer);
+
+    if (graphHelper.isMoreThanOneColorLeft(graph))
+    {
+      checkConsistencyInternal(currentLayerNo);
+    }
+    if (inPlaceReconstructionSetUpService.isInPlaceReconstructionToBeStarted())
+    {
+      inPlaceReconstructionSetUpService.setUpReconstructionInPlace();
+      if (!reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
+      {
+        checkConsistency(currentLayerNo);
+      }
+    }
+    else if (reconstructionShiftLayerService.isVertexToShiftAvailable())
+    {
+      reconstructionShiftLayerService.shiftVertex();
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.IN_PLACE_RECONSTRUCTION)
+    {
+      if (reconstructionService.isTopVertexMissingByReconstruction(currentLayerNo))
+      {
+        reconstructionService.prepareTopVertexReconstruction(vertexService.getGraphLayer(currentLayerNo));
+      }
+      reconstructionService.reconstructWithCollectedData();
+    }
+  }
+
+  private void checkConsistencyInternal(int currentLayerNo)
+  {
+    List<Vertex> currentLayerVertices = vertexService.getGraphLayer(currentLayerNo);
+    List<Vertex> previousLayerVertices = vertexService.getGraphLayer(currentLayerNo - 1);
+
+    checkPreviousLayerUpEdgesConsistency(previousLayerVertices);
+    checkCurrentLayerAllEdgesConsistency(currentLayerVertices);
   }
 
   private void checkCurrentLayerAllEdgesConsistency(List<Vertex> layer)
   {
+    if (reconstructionData.getLayerNoToRefactorizeFromOptional().isPresent())
+    {
+      return;
+    }
     for (Vertex u : layer)
     {
       if (u.isUnitLayer())
       {
-        List<Edge> unitLayerEdges = collectUnitLayerEdges(u);
-        coloringService.mergeColorsForEdges(unitLayerEdges, MergeTagEnum.CONSISTENCY_DOWN);
         continue;
       }
       Edge uv = u.getDownEdges().getEdges().get(0);
@@ -58,7 +109,7 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
       Edge uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       if (uw == null)
       {
-        vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
+        vertexService.assignVertexToUnitLayerAndMergeColors(u, MergeTagEnum.CONSISTENCY_DOWN);//not invoked
         continue;
       }
       EnumSet<EdgeType> edgeTypes = EnumSet.of(EdgeType.DOWN, EdgeType.CROSS);
@@ -67,49 +118,47 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         if (!checkPivotSquares(uv, edgeType).isEmpty() || !checkPivotSquares(uw, edgeType).isEmpty())
         {
           MergeTagEnum mergeTagEnum = edgeType == EdgeType.DOWN ? MergeTagEnum.CONSISTENCY_DOWN : MergeTagEnum.CONSISTENCY_CROSS;
-          vertexService.assignVertexToUnitLayerAndMergeColors(u, true, mergeTagEnum);
+          vertexService.assignVertexToUnitLayerAndMergeColors(u, mergeTagEnum);
           break;
         }
       }
-      if (isUpEdgesAmountNotAppropriateBetweenLayers(u, uv, uw))
+      if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCT
+              && reconstructionData.getOperationOnGraph() != OperationOnGraph.IN_PLACE_RECONSTRUCTION)
       {
-        vertexService.assignVertexToUnitLayerAndMergeColors(u, true, MergeTagEnum.CONSISTENCY_UP);
-        break;
+        int upEdgesAmountDifference = calculateUpEdgesAmountDifference(u, uv, uw);
+        if (upEdgesAmountDifference != 0)
+        {
+          if (reconstructionData.getOperationOnGraph() != OperationOnGraph.RECONSTRUCTION_ANALYSIS)
+          {
+            vertexService.assignVertexToUnitLayerAndMergeColors(u, upEdgesAmountDifference < 0 ? MergeTagEnum.CONSISTENCY_UP_AMOUNT_BELOW : MergeTagEnum.CONSISTENCY_UP_AMOUNT_ABOVE);
+          }
+          else
+          {
+            System.out.println(String.format(" --- edges amount check for %s %s: %d", uv, uw, upEdgesAmountDifference));
+          }
+        }
       }
     }
   }
 
-  private List<Edge> collectUnitLayerEdges(Vertex u)
-  {
-    List<Edge> unitLayerEdges = new LinkedList<Edge>();
-    List<Edge> uDownEdges = u.getDownEdges().getEdges();
-    for (Edge uDownEdge : uDownEdges)
-    {
-      Vertex v = uDownEdge.getEndpoint();
-      Edge firstVDownEdge = v.getDownEdges().getEdges().iterator().next();
-      unitLayerEdges.add(firstVDownEdge);
-    }
-    return unitLayerEdges;
-  }
 
-
-  private boolean isUpEdgesAmountNotAppropriateBetweenLayers(Vertex u, Edge uv, Edge uw)
+  private int calculateUpEdgesAmountDifference(Vertex u, Edge uv, Edge uw)
   {
     Vertex v = uv.getEndpoint();
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
     Vertex w = uw.getEndpoint();
-    List<List<Edge>> wDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(w, uw.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
+    List<List<Edge>> wDifferentThanUw = edgeService.getAllEdgesOfDifferentColor(w, uw.getLabel().getColor(), graph.getGraphColoring(), EdgeType.UP);
     int upEdgesTotalSize = 0;
     for (int i = 0; i < vDifferentThanUv.size(); i++)
     {
       int upEdgesSize = vDifferentThanUv.get(i).size();
       if (upEdgesSize == 0)
       {
-        upEdgesSize = wDifferentThanUv.get(i).size();
+        upEdgesSize = wDifferentThanUw.get(i).size();
       }
       upEdgesTotalSize += upEdgesSize;
     }
-    return u.getUpEdges().getEdges().size() != upEdgesTotalSize;
+    return u.getUpEdges().getEdges().size() - upEdgesTotalSize;
   }
 
   private void checkPreviousLayerUpEdgesConsistency(List<Vertex> layer)
@@ -123,48 +172,66 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         int uvMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uv.getLabel().getColor());
         uw = edgeService.getEdgeOfDifferentColor(u, uvMappedColor, graph.getGraphColoring());
       }
-      List<Edge> uvInconsistentEdges = checkPivotSquares(uv, EdgeType.UP);
-      List<Edge> uwInconsistentEdges = null;
+      List<InconsistentEdge> uvInconsistentEdges = checkPivotSquares(uv, EdgeType.UP);
+      List<InconsistentEdge> uwInconsistentEdges = new LinkedList<>();
       if (uw != null)
       {
         uwInconsistentEdges = checkPivotSquares(uw, EdgeType.UP);
       }
-      if (uvInconsistentEdges != null && !uvInconsistentEdges.isEmpty())
+
+      Optional<Vertex> correspondingVertexOptional = inPlaceReconstructionSetUpService.findCorrespondingVertexToMissingVertexToBeCreatedLater(uvInconsistentEdges, uwInconsistentEdges);
+      if (correspondingVertexOptional.isPresent())
       {
-        handleInconsistentUpEdges(uv, uvInconsistentEdges);
+        inPlaceReconstructionSetUpService.reconstructMissingVertexToBeCreatedLater(correspondingVertexOptional.get());
+        break;
       }
-      if (uwInconsistentEdges != null && !uwInconsistentEdges.isEmpty())
+      else
       {
-        handleInconsistentUpEdges(uw, uwInconsistentEdges);
+        if (CollectionUtils.isNotEmpty(uvInconsistentEdges))
+        {
+          handleInconsistentUpEdges(uv, uvInconsistentEdges);
+        }
+        if (CollectionUtils.isNotEmpty(uwInconsistentEdges))
+        {
+          handleInconsistentUpEdges(uw, uwInconsistentEdges);
+        }
       }
     }
   }
 
-  private void handleInconsistentUpEdges(Edge uv, List<Edge> inconsistentEdges)
+  private void handleInconsistentUpEdges(Edge uv, List<InconsistentEdge> inconsistentEdges)
   {
-    List<Edge> edgesToRelabel = new LinkedList<Edge>(inconsistentEdges);
+    boolean allEdgesInconsistentBeacauseOfLabel = inconsistentEdges.stream()
+            .map(inconsistentEdge -> inconsistentEdge.getInconsistentEdgeTag())
+            .allMatch(inconsistentEdgeTag -> inconsistentEdgeTag == InconsistentEdgeTag.NO_EDGE_FOR_LABEL);
+    List<Edge> edgesToRelabel = inconsistentEdges.stream().map(inconsistentEdge -> inconsistentEdge.getEdge()).collect(Collectors.toList());
     edgesToRelabel.add(uv);
     List<Integer> colors = coloringService.getColorsForEdges(graph.getGraphColoring(), edgesToRelabel);
-    coloringService.mergeColorsForEdges(edgesToRelabel, MergeTagEnum.CONSISTENCY_UP);
+    MergeTagEnum mergeTag = allEdgesInconsistentBeacauseOfLabel ? MergeTagEnum.CONSISTENCY_UP_LABELS : MergeTagEnum.CONSISTENCY_UP;
+    coloringService.mergeColorsForEdges(edgesToRelabel, mergeTag);
 
     Vertex u = uv.getOrigin();
     List<Edge> allUpEdgesOfGivenColors = edgeService.getAllEdgesOfColors(u, colors, EdgeType.UP);
     for (Edge edgeOfGivenColor : allUpEdgesOfGivenColors)
     {
       Vertex endpointVertex = edgeOfGivenColor.getEndpoint();
-      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, true, MergeTagEnum.CONSISTENCY_UP);
+      vertexService.assignVertexToUnitLayerAndMergeColors(endpointVertex, mergeTag);
     }
   }
 
-  private List<Edge> checkPivotSquares(Edge uv, EdgeType edgeType)
+  private List<InconsistentEdge> checkPivotSquares(Edge uv, EdgeType edgeType)
   {
-    List<Edge> inconsistentEdges = new LinkedList<Edge>();
+    List<InconsistentEdge> inconsistentEdges = new LinkedList<>();
     Vertex u = uv.getOrigin();
     Vertex v = uv.getEndpoint();
     List<List<Edge>> uDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(u, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
     List<List<Edge>> vDifferentThanUv = edgeService.getAllEdgesOfDifferentColor(v, uv.getLabel().getColor(), graph.getGraphColoring(), edgeType);
-    List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
-    inconsistentEdges.addAll(notCorrespondingEdges);
+    if (edgeType != EdgeType.UP
+            || (edgeType == EdgeType.UP && reconstructionService.isCorrespondingEdgesCheckForUpEdgesReasonable()))
+    {
+      List<Edge> notCorrespondingEdges = getNotCorrespondingEdgesRegardingColor(uDifferentThanUv, vDifferentThanUv);
+      notCorrespondingEdges.stream().forEach(edge -> inconsistentEdges.add(new InconsistentEdge(edge, InconsistentEdgeTag.NOT_CORRESPONDING_EDGE)));
+    }
     for (List<Edge> uzForColor : uDifferentThanUv)
     {
       for (Edge uz : uzForColor)
@@ -173,7 +240,8 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge vzp = edgeService.getEdgeByLabel(v, uzLabel, edgeType);
         if (vzp == null)
         {
-          inconsistentEdges.add(uz);
+          //for K23 upEdges
+          inconsistentEdges.add(new InconsistentEdge(uz, InconsistentEdgeTag.NO_EDGE_FOR_LABEL));
           continue;
         }
         Vertex z = uz.getEndpoint();
@@ -181,25 +249,127 @@ public class ConsistencyCheckerImpl implements ConsistencyChecker
         Edge zzp = edgeService.getEdgeByLabel(z, uv.getLabel(), EdgeType.DOWN);
         if (zzp == null || !zzp.getEndpoint().equals(zp))
         {
-          inconsistentEdges.add(uz);//not invoked
+          //never called during factorization
+          inconsistentEdges.add(new InconsistentEdge(uz, InconsistentEdgeTag.PARALLEL_EDGE_PROBLEM));
         }
       }
     }
-    return inconsistentEdges;
+    if (reconstructionService.isReconstructionSuitableByConsistencyCheck()
+            && !inconsistentEdges.isEmpty())
+    {
+      List<InconsistentEdge> edgesToAssign = inconsistentEdges;
+      List<InconsistentEdge> edgesToRefactor = new LinkedList<>();
+      List<InconsistentEdge> edgesToReconstruct = new LinkedList<>();
+      assignInconsistentEdgesToRefactorOrReconstruction(edgesToAssign, edgesToRefactor, edgesToReconstruct);
+
+      if (edgeType == EdgeType.UP && edgesToReconstruct.size() > 1)
+      {
+        boolean[] uMappedColors = new boolean[graph.getGraphColoring().getOriginalColorsAmount()];
+        for (List<Edge> uEdges : uDifferentThanUv)
+        {
+          if (CollectionUtils.isNotEmpty(uEdges))
+          {
+            int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), uEdges.get(0).getLabel().getColor());
+            uMappedColors[edgeColorMapping] = true;
+          }
+        }
+        collectNotCorrespondingColors(uDifferentThanUv, uMappedColors);
+
+        for (Iterator<InconsistentEdge> edgesToReconstructIt = edgesToReconstruct.iterator(); edgesToReconstructIt.hasNext(); )
+        {
+          InconsistentEdge inconsistentEdge = edgesToReconstructIt.next();
+          int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), inconsistentEdge.getEdge().getLabel().getColor());
+          if (!uMappedColors[edgeColorMapping])
+          {
+            edgesToRefactor.add(inconsistentEdge);
+            edgesToReconstructIt.remove();
+          }
+        }
+      }
+      if (CollectionUtils.isNotEmpty(edgesToReconstruct))
+      {
+        List<Edge> edgesToReconstructSimpleList = edgesToReconstruct.stream().map(InconsistentEdge::getEdge).collect(Collectors.toList());
+        reconstructionService.addEdgesToReconstruction(edgesToReconstructSimpleList, uv.getOrigin(), edgeType);
+      }
+      return edgesToRefactor;
+    }
+    else
+    {
+      return inconsistentEdges;
+    }
+  }
+
+
+  private void assignInconsistentEdgesToRefactorOrReconstruction(List<InconsistentEdge> edgesToAssign, List<InconsistentEdge> edgesToRefactor, List<InconsistentEdge> edgesToReconstruct)
+  {
+    for (Iterator<InconsistentEdge> edgesToAssignIt = edgesToAssign.iterator(); edgesToAssignIt.hasNext(); )
+    {
+      InconsistentEdge inconsistentEdge = edgesToAssignIt.next();
+      if (inconsistentEdge.getInconsistentEdgeTag() == InconsistentEdgeTag.NO_EDGE_FOR_LABEL)
+      {
+        edgesToRefactor.add(inconsistentEdge);
+      }
+      else
+      {
+        edgesToReconstruct.add(inconsistentEdge);
+      }
+      edgesToAssignIt.remove();
+    }
+  }
+
+  private boolean collectNotCorrespondingColors(List<List<Edge>> groupedByColorEdges, boolean[] existingMappedColors)
+  {
+    boolean existingMappedColorsNotEmpty = false;
+    for (List<Edge> sameColorEdges : groupedByColorEdges)
+    {
+      if (CollectionUtils.isNotEmpty(sameColorEdges))
+      {
+        int edgeColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), sameColorEdges.get(0).getLabel().getColor());
+        existingMappedColors[edgeColorMapping] = true;
+        existingMappedColorsNotEmpty = true;
+      }
+    }
+    return existingMappedColorsNotEmpty;
   }
 
   private List<Edge> getNotCorrespondingEdgesRegardingColor(List<List<Edge>> uEdges, List<List<Edge>> vEdges)
   {
-    List<Edge> notCorrespondingEdges = new LinkedList<Edge>();
+    List<Edge> notCorrespondingEdges = new LinkedList<>();
     for (int i = 0; i < uEdges.size(); i++)
     {
       List<Edge> uEdgesOfColorI = uEdges.get(i);
       List<Edge> vEdgesOfColorI = vEdges.get(i);
       if (uEdgesOfColorI.size() != vEdgesOfColorI.size())
       {
-        notCorrespondingEdges.addAll(uEdgesOfColorI);
-        notCorrespondingEdges.addAll(vEdgesOfColorI);
+        Edge[] matchingEdges = new Edge[graph.getVertices().size()];
+
+        for (Edge e : uEdgesOfColorI)
+        {
+          matchingEdges[e.getSquareMatchingEdge().getEndpoint().getVertexNo()] = e;
+        }
+
+        for (Edge e : vEdgesOfColorI)
+        {
+          Edge matchingEdge = matchingEdges[e.getEndpoint().getVertexNo()];
+          if (matchingEdge != null)
+          {
+            matchingEdges[e.getEndpoint().getVertexNo()] = null;
+          }
+          else
+          {
+            notCorrespondingEdges.add(e);
+          }
+        }
+
+        for (Edge e : matchingEdges)
+        {
+          if (e != null)
+          {
+            notCorrespondingEdges.add(e);
+          }
+        }
       }
+
     }
     return notCorrespondingEdges;
   }

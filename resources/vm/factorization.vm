@@ -2,6 +2,14 @@
 
 \usepackage{tikz}
 \usepackage{verbatim}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{
+a4paper,
+total={300mm,300mm},
+left=5mm,
+top=5mm,
+}
 
 \usetikzlibrary{arrows,shapes}
 
@@ -14,6 +22,12 @@
 \tikzstyle{selected vertex} = [vertex, fill=red!24]
 \tikzstyle{edge} = [draw,thick]
 \tikzstyle{weight} = [font=\small]
+\tikzstyle{backwardEdgeLabel} = [font=\small, very near start, sloped, above]
+\tikzstyle{forwardEdgeLabel} = [font=\small, very near end, sloped, below]
+
+#foreach( $color in $colors )
+\definecolor{color$foreach.index}{RGB}$color
+#end
 
 
 #foreach( $step in $steps )

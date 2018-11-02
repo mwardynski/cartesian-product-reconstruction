@@ -1,5 +1,7 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.impl;
 
+import at.ac.unileoben.mat.dissertation.common.FactorizationCase;
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.config.FactorizationConfig;
 import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
@@ -27,35 +29,11 @@ import static org.junit.Assert.assertThat;
 @ContextConfiguration(classes = {FactorizationConfig.class})
 public class FactorizationTest
 {
+  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
+  @Autowired
+  GraphHelper graphHelper;
   @Autowired
   LinearFactorization linearFactorization;
-
-  private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
-
-  static
-  {
-    examplesList.add(new FactorizationCase("additionalVertex.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample2.txt", 2));
-    examplesList.add(new FactorizationCase("breakExample3.txt", 3));
-    examplesList.add(new FactorizationCase("breakExample4.txt", 2));
-    examplesList.add(new FactorizationCase("c.txt", 3));
-    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
-    examplesList.add(new FactorizationCase("CartesianProductWithCrossEdges.txt", 2));
-    examplesList.add(new FactorizationCase("g1", 2));
-    examplesList.add(new FactorizationCase("cd.txt", 1));
-    examplesList.add(new FactorizationCase("g3", 1));
-//    examplesList.add(new FactorizationCase("newEx.txt", -1));
-    examplesList.add(new FactorizationCase("newExCart.txt", 2));
-    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1));
-    examplesList.add(new FactorizationCase("przyklad.txt", 1));
-//    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
-    examplesList.add(new FactorizationCase("simpleExample.txt", 1));
-    examplesList.add(new FactorizationCase("example.txt", 1));
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct.txt", 2));
-    examplesList.add(new FactorizationCase("exampleOfCartesianProduct3.txt", 3));
-//    examplesList.add(new FactorizationCase("victory.txt", 3));
-  }
 
   @Test
   public void checkExamples()
@@ -64,14 +42,47 @@ public class FactorizationTest
     {
       try
       {
-        List<Vertex> vertices = linearFactorization.parseGraph(factorizationCase.getFileName());
-        Graph resultGraph = linearFactorization.factorize(vertices, null);
+        List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
+        Vertex root = null;
+        if (factorizationCase.getRootVertexNo() != null)
+        {
+          root = vertices.get(factorizationCase.getRootVertexNo());
+        }
+        Graph resultGraph = linearFactorization.factorize(vertices, root);
         int amountOfFactors = resultGraph.getGraphColoring().getActualColors().size();
         assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+        System.out.println("OK - file: " + factorizationCase.getFileName());
       }
       catch (IllegalArgumentException | IllegalStateException e)
       {
       }
     }
+  }
+
+  static
+  {
+    examplesList.add(new FactorizationCase("K4-ExS2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("K23xK2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("S2xK2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("S3xK2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("S3xS2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("S2xK2xK2.txt", 3, 0));
+    examplesList.add(new FactorizationCase("C6xS2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("P3xK2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("K23xK2-mirrored.txt", 2, 0));
+    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
+    examplesList.add(new FactorizationCase("K4-ExK2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("C3xK2xK2.txt", 3, 0));
+    examplesList.add(new FactorizationCase("C3xK2.txt", 2, 0));
+    examplesList.add(new FactorizationCase("C4-ExC4-E.txt", 2, 0));
+    examplesList.add(new FactorizationCase("cd.txt", 1, 0));
+    examplesList.add(new FactorizationCase("g3", 1, 0));
+    examplesList.add(new FactorizationCase("newExCart-mod.txt", 1, 0));
+    examplesList.add(new FactorizationCase("przyklad.txt", 1, 0));
+    examplesList.add(new FactorizationCase("simpleExample.txt", 1, 0));
+    examplesList.add(new FactorizationCase("example.txt", 1, 0));
+//    examplesList.add(new FactorizationCase("victory.txt", 3));
+//    examplesList.add(new FactorizationCase("newEx.txt", -1));
+//    examplesList.add(new FactorizationCase("easyPartialCube2.txt", -1));
   }
 }

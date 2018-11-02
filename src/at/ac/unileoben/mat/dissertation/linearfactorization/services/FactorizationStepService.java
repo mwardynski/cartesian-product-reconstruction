@@ -1,5 +1,6 @@
 package at.ac.unileoben.mat.dissertation.linearfactorization.services;
 
+import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationStep;
 import at.ac.unileoben.mat.dissertation.structure.FactorizationSteps;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
@@ -19,7 +20,11 @@ public interface FactorizationStepService
 
   List<Vertex> getAssignedVertices(FactorizationStep factorizationStep, Vertex referenceVertex);
 
-  void initialVertexInsertForDownEdges(FactorizationSteps factorizationSteps, Vertex u, Vertex v, Vertex x);
+  void initialVertexInsertForDownEdges(FactorizationSteps factorizationSteps, Edge uv, Edge vx);
 
-  void initialVertexInsertForCrossEdges(FactorizationSteps factorizationSteps, Vertex u, Vertex w);
+  void initialVertexInsertForCrossEdges(FactorizationSteps factorizationSteps, Edge uw);
+
+  Edge getFirstLayerEdgeForVertexInFactorizationStep(FactorizationStep factorizationStep, Vertex u);
+
+  void assignFirstLayerEdgeForVertexInFactorizationStep(FactorizationStep factorizationStep, Vertex u, Edge firstLayerEdge);
 }
