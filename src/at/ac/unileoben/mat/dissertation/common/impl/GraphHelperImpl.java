@@ -413,9 +413,9 @@ public class GraphHelperImpl implements GraphHelper
     List<Vertex> vertices = graph.getVertices();
     Integer[] reverseReindexArray = graph.getReverseReindexArray();
     reindex(vertices, reverseReindexArray);
-//    vertices = sortVertices(vertices);
-//    sortEdges(vertices);
-//    graph.setVertices(vertices);
+    vertices = sortVertices(vertices);
+    sortEdges(vertices);
+    graph.setVertices(vertices);
   }
 
   private Vertex findVertexWithMinDegree(List<Vertex> vertices)

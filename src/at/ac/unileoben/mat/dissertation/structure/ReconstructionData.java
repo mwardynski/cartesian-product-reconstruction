@@ -27,6 +27,8 @@ public class ReconstructionData
   Optional<Integer> layerNoToRefactorizeFromOptional = Optional.empty();
   Vertex shiftVertex;
   IntervalData intervalData;
+  int completeMergeLayerNo;
+  MergeOperation completeMergeOperation;
 
 
   public ReconstructionData()
@@ -162,5 +164,25 @@ public class ReconstructionData
   public void setIntervalData(IntervalData intervalData)
   {
     this.intervalData = intervalData;
+  }
+
+  public int getCompleteMergeLayerNo()
+  {
+    return completeMergeLayerNo;
+  }
+
+  public void setCompleteMergeLayerNo(int completeMergeLayerNo)
+  {
+    this.completeMergeLayerNo = completeMergeLayerNo;
+  }
+
+  public MergeOperation getCompleteMergeOperation()
+  {
+    return completeMergeOperation;
+  }
+
+  public void setCompleteMergeOperation(MergeOperation completeMergeOperation)
+  {
+    this.completeMergeOperation = completeMergeOperation;
   }
 }
