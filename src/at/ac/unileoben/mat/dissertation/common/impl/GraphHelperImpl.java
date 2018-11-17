@@ -32,6 +32,9 @@ public class GraphHelperImpl implements GraphHelper
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   GraphReader graphReader;
 
   @Autowired
@@ -543,7 +546,15 @@ public class GraphHelperImpl implements GraphHelper
     graph.setVertices(vertices);
     graph.setLayers(vertexService.createLayersList(vertices));
     graph.setReverseReindexArray(createReverseReindexArray(reindexArray));
-    graph.setGraphColoring(new GraphColoring(root.getEdges().size()));
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
+    {
+      graph.setGraphColoring(new GraphColoring(1));
+    }
+    else
+    {
+      graph.setGraphColoring(new GraphColoring(root.getEdges().size()));
+    }
+
     graph.setAnalyzeData(new AnalyzeData());
   }
 
