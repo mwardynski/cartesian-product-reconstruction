@@ -75,6 +75,9 @@ public class Edge
   @Override
   public String toString()
   {
-    return String.format("%d-%d (%s)", origin.getVertexNo(), endpoint.getVertexNo(), label);
+    return String.format("%d-%d (%s)",
+            origin != null ? origin.getVertexNo() : -1,
+            endpoint != null ? endpoint.getVertexNo() : -1,
+            label);
   }
 }
