@@ -1,28 +1,22 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.MissingSquaresAnalyzerService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionResultVerifier;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Component
-public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzerService
+@Profile("missingVertex")
+public class MissingSquaresAnalyzerServiceImpl extends AbstractMissingSquareAnalyzerService
 {
-
-  @Autowired
-  Graph graph;
-
-  @Autowired
-  ColoringService coloringService;
 
   @Autowired
   UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
@@ -45,45 +39,20 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
 
     List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares = new LinkedList<>();
     List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = new List[graph.getVertices().size()];
+
+    groupMissingSquareEntries(missingSquaresEntries, noSquareAtAllMissingSquares, irregularMissingSquaresByColor);
+
     UniqueList normalColorsEdgesPairIncludedColors = new UniqueList(graph.getVertices().size());
     UniqueList noSquareAtAllEdgesPairIncludedColors = new UniqueList(graph.getVertices().size());
 
-    for (MissingSquaresEntryData missingSquaresEntry : missingSquaresEntries)
-    {
-      Edge baseEdge = missingSquaresEntry.getBaseEdge();
-      int baseEdgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor());
+    noSquareAtAllMissingSquares.stream()
+            .map(missingSquare -> missingSquare.getBaseEdge())
+            .map(baseEdge -> coloringService.getCurrentColorMapping(graph.getGraphColoring(), baseEdge.getLabel().getColor()))
+            .forEach(baseEdgeMappedColor -> noSquareAtAllEdgesPairIncludedColors.add(baseEdgeMappedColor));
 
-      List<MissingSquaresUniqueEdgesData> collectedMissingSquares = irregularMissingSquaresByColor[baseEdgeMappedColor];
-      if (collectedMissingSquares == null)
-      {
-        collectedMissingSquares = new LinkedList<>();
-        irregularMissingSquaresByColor[baseEdgeMappedColor] = collectedMissingSquares;
-      }
-
-      for (Integer otherEdgesColor : missingSquaresEntry.getExistingColors())
-      {
-        List<Edge> otherEdges = missingSquaresEntry.getOtherEdgesByColors()[otherEdgesColor];
-
-        Iterator<Edge> otherEdgesItertor = otherEdges.iterator();
-        while (otherEdgesItertor.hasNext())
-        {
-          Edge otherEdge = otherEdgesItertor.next();
-
-          MissingSquaresUniqueEdgesData missingSquaresUniqueEdgesData = new MissingSquaresUniqueEdgesData(baseEdge, otherEdge);
-          if (baseEdgeMappedColor == 0)
-          {
-            noSquareAtAllMissingSquares.add(missingSquaresUniqueEdgesData);
-            noSquareAtAllEdgesPairIncludedColors.add(baseEdgeMappedColor);
-          }
-
-          else if (otherEdgesColor != 0)
-          {
-            normalColorsEdgesPairIncludedColors.add(baseEdgeMappedColor);
-            collectedMissingSquares.add(missingSquaresUniqueEdgesData);
-          }
-        }
-      }
-    }
+    IntStream.range(0, irregularMissingSquaresByColor.length)
+            .filter(color -> CollectionUtils.isNotEmpty(irregularMissingSquaresByColor[color]))
+            .forEach(color -> normalColorsEdgesPairIncludedColors.add(color));
 
     boolean cycleOfIrregularNoSquareAtAllMissingSquares = false;
     List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = Collections.emptyList();

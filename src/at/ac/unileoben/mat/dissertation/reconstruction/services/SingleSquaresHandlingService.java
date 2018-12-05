@@ -10,4 +10,6 @@ public interface SingleSquaresHandlingService
   SingleSquareList findSquaresForGivenEdges(Edge baseEdge, Edge otherEdge, SquareReconstructionData squareReconstructionData);
 
   void collectAllSingleSquares(SquareReconstructionData squareReconstructionData);
+
+  void findSquaresForSingleEdge(Edge edge, SquareReconstructionData squareReconstructionData, boolean handleFirstSquare);
 }

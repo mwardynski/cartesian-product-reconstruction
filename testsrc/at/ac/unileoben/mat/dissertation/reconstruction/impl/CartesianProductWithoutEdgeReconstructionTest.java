@@ -14,13 +14,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {FactorizationConfig.class})
@@ -40,6 +38,9 @@ public class CartesianProductWithoutEdgeReconstructionTest
   @Qualifier("intervalReconstructionImpl")
   Reconstruction intervalReconstruction;
 
+  @Autowired
+  TestCaseContext testCaseContext;
+
   private final static List<FactorizationCase> examplesList = new LinkedList<FactorizationCase>();
 
   @Test
@@ -54,6 +55,19 @@ public class CartesianProductWithoutEdgeReconstructionTest
         for (long i = 1; ; i++)
         {
           List<Edge> edgesToRemove = selectEdgesToRemove(i, edgeToRemoveOrigin);
+          if (i == 1)
+          {
+            edgesToRemove = Arrays.asList(new Edge(originalVertices.get(2), originalVertices.get(3)), new Edge(originalVertices.get(2), originalVertices.get(10)));
+          }
+          else
+          {
+            return;
+          }
+
+          testCaseContext.setRemovedEdges(edgesToRemove);
+          testCaseContext.setCorrectResult(false);
+
+
           if (CollectionUtils.isEmpty(edgesToRemove))
           {
             break;
@@ -77,13 +91,22 @@ public class CartesianProductWithoutEdgeReconstructionTest
                   numberOfEdgesBeforeDeletion, numberOfEdgesAfterDeletion,
                   factorizationCase.getAmountOfFactors(), amountOfFactors, speciallyColoredEdges.size()));
 
+          if (!testCaseContext.isCorrectResult())
+          {
+            return;
+          }
+
           if (CollectionUtils.isEmpty(speciallyColoredEdges))
           {
             if (amountOfFactors != factorizationCase.getAmountOfFactors())
             {
-              return;
+              System.out.println("diff: " + (amountOfFactors - factorizationCase.getAmountOfFactors()));
+              if (!testCaseContext.isCorrectResult())
+              {
+                System.out.println("FORGET");
+              }
             }
-            assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
+//            assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
           }
 
 //          assertThat(factorizationCase.getFileName(), amountOfFactors, is(1));
@@ -180,7 +203,7 @@ public class CartesianProductWithoutEdgeReconstructionTest
 //    examplesList.add(new FactorizationCase("cubexK2.txt", 4));
     examplesList.add(new FactorizationCase("cube-ExK2.txt", 2));
 //    examplesList.add(new FactorizationCase("cube-2ExK2.txt", 2));
-//    examplesList.add(new FactorizationCase("P3xK2.txt", 2));
+//    examplesList.add(new FactorizationCase("cube-2ExP3.txt", 2));
 //    examplesList.add(new FactorizationCase("K23xK2-mirrored.txt", 2));
 //    examplesList.add(new FactorizationCase("notAllEdgesLabeled-root_v3.txt", 2, 3));
 //    examplesList.add(new FactorizationCase("cartFactExample.txt", 2));
@@ -190,11 +213,9 @@ public class CartesianProductWithoutEdgeReconstructionTest
 //    examplesList.add(new FactorizationCase("C4-ExC4-E.txt", 2));
 //    examplesList.add(new FactorizationCase("handP2.txt", 2));
 //    examplesList.add(new FactorizationCase("S2xK2xK2.txt", 3));
-//    examplesList.add(new FactorizationCase("S2xK2.txt", 2));
 //    examplesList.add(new FactorizationCase("hxh.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("cube-vxcube-v.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("cube-VxP3.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("S6xP3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("S6xP4.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("S3xS3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("bP3xP6mVbxP3.txt", 2, 0));
@@ -217,6 +238,11 @@ public class CartesianProductWithoutEdgeReconstructionTest
 //    examplesList.add(new FactorizationCase("handP3.txt", 2));
 //    examplesList.add(new FactorizationCase("hxhxh.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("victory.txt", 2));
+    //no square
+    //    examplesList.add(new FactorizationCase("P3xK2.txt", 2));
+    //    examplesList.add(new FactorizationCase("S2xK2.txt", 2));
+    //    examplesList.add(new FactorizationCase("S6xP3.txt", 2, 0));
+
 
   }
 }

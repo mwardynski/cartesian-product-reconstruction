@@ -11,6 +11,7 @@ public class SquareReconstructionData
   boolean[] includedVertices;
   Queue<Vertex> postponedVertices;
   boolean[] includedPostponedVertices;
+  List<Vertex> noticedPostponedVertices;
   MissingSquaresData missingSquaresData;
   SingleSquareList[][][] squares;
   List<Vertex> currentVertexNeighborsToQueue;
@@ -23,6 +24,7 @@ public class SquareReconstructionData
     includedVertices = new boolean[graphSize];
     postponedVertices = new LinkedList<>();
     includedPostponedVertices = new boolean[graphSize];
+    noticedPostponedVertices = new LinkedList<>();
     missingSquaresData = new MissingSquaresData(graphSize);
     squares = new SingleSquareList[graphSize][graphSize][graphSize];
   }
@@ -55,6 +57,11 @@ public class SquareReconstructionData
   public boolean[] getIncludedPostponedVertices()
   {
     return includedPostponedVertices;
+  }
+
+  public List<Vertex> getNoticedPostponedVertices()
+  {
+    return noticedPostponedVertices;
   }
 
   public MissingSquaresData getMissingSquaresData()

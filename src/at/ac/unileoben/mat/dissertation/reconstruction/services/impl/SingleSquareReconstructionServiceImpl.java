@@ -94,6 +94,7 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
     while (CollectionUtils.isNotEmpty(squareReconstructionData.getPostponedVertices()))
     {
       Vertex nextPostponedVertex = squareReconstructionData.getPostponedVertices().poll();
+      squareReconstructionData.getNoticedPostponedVertices().add(nextPostponedVertex);
       if (!squareReconstructionData.getIncludedVertices()[nextPostponedVertex.getVertexNo()])
       {
         squareReconstructionData.getNextVertices().add(nextPostponedVertex);

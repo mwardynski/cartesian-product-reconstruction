@@ -38,39 +38,60 @@ public class SingleSquaresHandlingServiceImpl implements SingleSquaresHandlingSe
     {
       for (Edge edge : vertex.getEdges())
       {
-        Edge baseEdge = edge.getOpposite();
-        for (Edge otherEdge : edge.getEndpoint().getEdges())
+        findSquaresForSingleEdge(edge, squareReconstructionData, true);
+      }
+    }
+  }
+
+  @Override
+  public void findSquaresForSingleEdge(Edge edge, SquareReconstructionData squareReconstructionData, boolean initialProcessing)
+  {
+    Edge baseEdge = edge.getOpposite();
+    for (Edge otherEdge : edge.getEndpoint().getEdges())
+    {
+      if (otherEdge == baseEdge)
+      {
+        continue;
+      }
+
+      SingleSquareList[][][] allSquares = squareReconstructionData.getSquares();
+
+      if (allSquares[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()][otherEdge.getEndpoint().getVertexNo()] == null)
+      {
+        List<List<Edge>> edgesCompletingSquares = findEdgesCompletingSquares(baseEdge, otherEdge);
+
+        SingleSquareList singleSquaresForGivenEdges = new SingleSquareList();
+        for (List<Edge> edgesCompletingSquare : edgesCompletingSquares)
         {
-          if (otherEdge == baseEdge)
-          {
-            continue;
-          }
+          Edge squareBaseEdge = edgesCompletingSquare.get(0);
+          Edge squareOtherEdge = edgesCompletingSquare.get(1);
 
-          SingleSquareList[][][] allSquares = squareReconstructionData.getSquares();
-
-          if (allSquares[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()][otherEdge.getEndpoint().getVertexNo()] == null)
-          {
-            List<List<Edge>> edgesCompletingSquares = findEdgesCompletingSquares(baseEdge, otherEdge);
-
-            SingleSquareList singleSquaresForGivenEdges = new SingleSquareList();
-            for (List<Edge> edgesCompletingSquare : edgesCompletingSquares)
-            {
-              Edge squareBaseEdge = edgesCompletingSquare.get(0);
-              Edge squareOtherEdge = edgesCompletingSquare.get(1);
-
-              SingleSquareData singleSquare = createSingleSquare(baseEdge, otherEdge, squareBaseEdge, squareOtherEdge, squareReconstructionData);
-              singleSquaresForGivenEdges.add(singleSquare);
-            }
-
-            squareReconstructionData.getSquares()
-                    [baseEdge.getOrigin().getVertexNo()]
-                    [baseEdge.getEndpoint().getVertexNo()]
-                    [otherEdge.getEndpoint().getVertexNo()] = singleSquaresForGivenEdges;
-
-            storeFirstVertexAndColorFirstSquare(singleSquaresForGivenEdges, squareReconstructionData);
-          }
+          SingleSquareData singleSquare = createSingleSquare(baseEdge, otherEdge, squareBaseEdge, squareOtherEdge, squareReconstructionData);
+          singleSquaresForGivenEdges.add(singleSquare);
         }
 
+        squareReconstructionData.getSquares()
+                [baseEdge.getOrigin().getVertexNo()]
+                [baseEdge.getEndpoint().getVertexNo()]
+                [otherEdge.getEndpoint().getVertexNo()] = singleSquaresForGivenEdges;
+
+        if (!initialProcessing)
+        {
+          SingleSquareList oppositeSingleSquaresForGivenEdges = new SingleSquareList();
+
+          singleSquaresForGivenEdges.stream()
+                  .map(singleSquare -> new SingleSquareData(singleSquare.getOtherEdge(), singleSquare.getBaseEdge(), singleSquare.getSquareOtherEdge(), singleSquare.getSquareBaseEdge()))
+                  .forEach(oppositeSingleSquaresForGivenEdges::add);
+
+          squareReconstructionData.getSquares()
+                  [otherEdge.getOrigin().getVertexNo()]
+                  [otherEdge.getEndpoint().getVertexNo()]
+                  [baseEdge.getEndpoint().getVertexNo()] = oppositeSingleSquaresForGivenEdges;
+        }
+        else
+        {
+          storeFirstVertexAndColorFirstSquare(singleSquaresForGivenEdges, squareReconstructionData);
+        }
       }
     }
   }
