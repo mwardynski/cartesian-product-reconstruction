@@ -67,7 +67,8 @@ public class SquareFindingServiceImpl implements SquareFindingService
                 }
                 else
                 {
-                  if (squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()])
+                  if (squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()]
+                          && CollectionUtils.isNotEmpty(squareReconstructionData.getNoticedPostponedVertices()))
                   {
                     squareHandlingStrategy.colorEdgeWithNewColor(iEdge, true);
                     colorEdgesFormingSquare(jEdge, jSquareEdge, iEdge, iSquareEdge, squareReconstructionData);

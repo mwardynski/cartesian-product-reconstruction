@@ -84,23 +84,25 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   private void addCurrentVertexToPostponedVertices(SquareReconstructionData squareReconstructionData)
   {
     Vertex currentVertex = squareReconstructionData.getCurrentVertex();
-    squareReconstructionData.getIncludedVertices()[currentVertex.getVertexNo()] = false;
-    squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()] = true;
-    squareReconstructionData.getPostponedVertices().add(currentVertex);
+    if (!squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()])
+    {
+      squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()] = true;
+      squareReconstructionData.getPostponedVertices().add(currentVertex);
+    }
   }
 
   private void handleNextPostponedVertex(SquareReconstructionData squareReconstructionData)
   {
-    while (CollectionUtils.isNotEmpty(squareReconstructionData.getPostponedVertices()))
+    if (CollectionUtils.isNotEmpty(squareReconstructionData.getPostponedVertices()))
     {
+      if (CollectionUtils.isEmpty(squareReconstructionData.getNoticedPostponedVertices()))
+      {
+        GraphColoring graphColoringBeforePostponedVertices = new GraphColoring(graph.getGraphColoring());
+        squareReconstructionData.setGraphColoringBeforePostponedVertices(graphColoringBeforePostponedVertices);
+      }
       Vertex nextPostponedVertex = squareReconstructionData.getPostponedVertices().poll();
       squareReconstructionData.getNoticedPostponedVertices().add(nextPostponedVertex);
-      if (!squareReconstructionData.getIncludedVertices()[nextPostponedVertex.getVertexNo()])
-      {
-        squareReconstructionData.getNextVertices().add(nextPostponedVertex);
-        squareReconstructionData.getIncludedVertices()[nextPostponedVertex.getVertexNo()] = true;
-        break;
-      }
+      squareReconstructionData.getNextVertices().add(nextPostponedVertex);
     }
   }
 

@@ -13,6 +13,7 @@ public class SquareReconstructionData
   boolean[] includedPostponedVertices;
   List<Vertex> noticedPostponedVertices;
   MissingSquaresData missingSquaresData;
+  GraphColoring graphColoringBeforePostponedVertices;
   SingleSquareList[][][] squares;
   List<Vertex> currentVertexNeighborsToQueue;
 
@@ -67,6 +68,16 @@ public class SquareReconstructionData
   public MissingSquaresData getMissingSquaresData()
   {
     return missingSquaresData;
+  }
+
+  public GraphColoring getGraphColoringBeforePostponedVertices()
+  {
+    return graphColoringBeforePostponedVertices;
+  }
+
+  public void setGraphColoringBeforePostponedVertices(GraphColoring graphColoringBeforePostponedVertices)
+  {
+    this.graphColoringBeforePostponedVertices = graphColoringBeforePostponedVertices;
   }
 
   public SingleSquareList[][][] getSquares()
