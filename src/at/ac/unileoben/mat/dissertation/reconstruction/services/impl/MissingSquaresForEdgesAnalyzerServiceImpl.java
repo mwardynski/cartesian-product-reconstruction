@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Profile("missingEdges")
@@ -23,7 +24,7 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
     List<MissingSquaresEntryData> missingSquaresEntries = squareReconstructionData.getMissingSquaresData().getMissingSquaresEntries();
 
     List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares = new LinkedList<>();
-    List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = new List[graph.getVertices().size()];
+    List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = new List[graph.getGraphColoring().getColorsMapping().size()];
 
     groupMissingSquareEntries(missingSquaresEntries, noSquareAtAllMissingSquares, irregularMissingSquaresByColor);
 
@@ -34,69 +35,146 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
     }
     else if (CollectionUtils.isNotEmpty(squareReconstructionData.getNoticedPostponedVertices()))
     {
-      System.out.println("new coloring after postponed vertex");
-      testCaseContext.setCorrectResult(true);
+      findResultForColoringIncludingNewColorsAfterPostponedVertex(squareReconstructionData, irregularMissingSquaresByColor);
     }
     else
     {
-      Edge missingEdgesWarden = new Edge(null, null);
+      findResultForTypicalColoring(irregularMissingSquaresByColor);
+    }
 
-      for (int selectedColor = 1; selectedColor < irregularMissingSquaresByColor.length; selectedColor++)
+    if (testCaseContext.isCorrectResult())
+    {
+      System.out.println("OK!");
+    }
+    else
+    {
+      System.out.println("WRONG!");
+    }
+  }
+
+  private void findResultForColoringIncludingNewColorsAfterPostponedVertex(SquareReconstructionData squareReconstructionData, List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor)
+  {
+    int afterPostponedVertexColorsLowestIndex = squareReconstructionData.getGraphColoringBeforePostponedVertices().getActualColors().size();
+
+    List<Integer> afterPostponedVertexColors = graph.getGraphColoring().getActualColors().stream()
+            .filter(color -> color >= afterPostponedVertexColorsLowestIndex)
+            .collect(Collectors.toList());
+
+
+    selectedColorLoop:
+    for (Integer selectedColor : graph.getGraphColoring().getActualColors())
+    {
+      if (selectedColor == 0)
       {
-
-        if (CollectionUtils.isEmpty(irregularMissingSquaresByColor[selectedColor]))
-        {
-          continue;
-        }
-
-        List<Edge> missingEdges = new LinkedList<>();
-        List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
-        boolean[][] collectedMissingEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
-
-        collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor, selectedColor, missingEdges, missingSquareEdges, collectedMissingEdgesArray, missingEdgesWarden);
-        convertMissingSquaresToMissingEdges(missingEdges, missingSquareEdges, collectedMissingEdgesArray);
-
-        boolean[][] reconstructedEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
-        for (Edge missingEdge : missingEdges)
-        {
-          Integer originVertexNo = graph.getReverseReindexArray()[missingEdge.getOrigin().getVertexNo()];
-          Integer endpointVertexNo = graph.getReverseReindexArray()[missingEdge.getEndpoint().getVertexNo()];
-
-          reconstructedEdgesArray[originVertexNo][endpointVertexNo] = true;
-          reconstructedEdgesArray[endpointVertexNo][originVertexNo] = true;
-        }
-
-
-        boolean correctResult = testCaseContext.getRemovedEdges().size() == missingEdges.size();
-        for (Edge removedEdge : testCaseContext.getRemovedEdges())
-        {
-          if (!reconstructedEdgesArray[removedEdge.getOrigin().getVertexNo()][removedEdge.getEndpoint().getVertexNo()])
-          {
-            correctResult = false;
-          }
-        }
-        if (correctResult)
-        {
-          testCaseContext.setCorrectResult(true);
-          break;
-        }
+        continue;
+      }
+      if (selectedColor >= afterPostponedVertexColorsLowestIndex)
+      {
+        break;
       }
 
+      for (Integer selectedColorCorrespondingColor : afterPostponedVertexColors)
+      {
+        List<MissingSquaresUniqueEdgesData>[] currentIrregularMissingSquaresByColor =
+                composeCurrentIrregularMissingSquaresByColor(selectedColor, selectedColorCorrespondingColor, afterPostponedVertexColorsLowestIndex, irregularMissingSquaresByColor);
+        findResultForIrregularMissingSquaresByColor(selectedColor, currentIrregularMissingSquaresByColor);
+        if (testCaseContext.isCorrectResult())
+        {
+          break selectedColorLoop;
+        }
+      }
+    }
+  }
+
+  private void findResultForTypicalColoring(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor)
+  {
+    for (Integer selectedColor : graph.getGraphColoring().getActualColors())
+    {
+      if (selectedColor == 0)
+      {
+        continue;
+      }
+
+      findResultForIrregularMissingSquaresByColor(selectedColor, irregularMissingSquaresByColor);
       if (testCaseContext.isCorrectResult())
       {
-        System.out.println("OK!");
+        break;
+      }
+    }
+  }
+
+  private List<MissingSquaresUniqueEdgesData>[] composeCurrentIrregularMissingSquaresByColor(int selectedColor, int selectedColorCorrespondingColor, int afterPostponedVertexColorsLowestIndex, List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor)
+  {
+    int otherColor = graph.getGraphColoring().getActualColors().get(1) != selectedColor
+            ? graph.getGraphColoring().getActualColors().get(1)
+            : graph.getGraphColoring().getActualColors().get(2);
+
+    List<MissingSquaresUniqueEdgesData>[] currentIrregularMissingSquaresByColor = new List[afterPostponedVertexColorsLowestIndex];
+    for (Integer color : graph.getGraphColoring().getActualColors())
+    {
+      if (color == 0)
+      {
+        continue;
+      }
+      if (color < afterPostponedVertexColorsLowestIndex)
+      {
+        currentIrregularMissingSquaresByColor[color] = new LinkedList(irregularMissingSquaresByColor[color]);
+      }
+      else if (color == selectedColorCorrespondingColor)
+      {
+        currentIrregularMissingSquaresByColor[selectedColor].addAll(irregularMissingSquaresByColor[color]);
       }
       else
       {
-        System.out.println("WRONG!");
+        currentIrregularMissingSquaresByColor[otherColor].addAll(irregularMissingSquaresByColor[color]);
       }
+    }
+    return currentIrregularMissingSquaresByColor;
+  }
+
+  private void findResultForIrregularMissingSquaresByColor(int selectedColor, List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor)
+  {
+    if (CollectionUtils.isEmpty(irregularMissingSquaresByColor[selectedColor]))
+    {
+      return;
+    }
+
+    List<Edge> missingEdges = new LinkedList<>();
+    List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
+    boolean[][] collectedMissingEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+
+    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor, selectedColor, missingEdges, missingSquareEdges, collectedMissingEdgesArray);
+    convertMissingSquaresToMissingEdges(missingEdges, missingSquareEdges, collectedMissingEdgesArray);
+
+    boolean[][] reconstructedEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+    for (Edge missingEdge : missingEdges)
+    {
+      Integer originVertexNo = graph.getReverseReindexArray()[missingEdge.getOrigin().getVertexNo()];
+      Integer endpointVertexNo = graph.getReverseReindexArray()[missingEdge.getEndpoint().getVertexNo()];
+
+      reconstructedEdgesArray[originVertexNo][endpointVertexNo] = true;
+      reconstructedEdgesArray[endpointVertexNo][originVertexNo] = true;
+    }
+
+    boolean correctResult = testCaseContext.getRemovedEdges().size() == missingEdges.size();
+    for (Edge removedEdge : testCaseContext.getRemovedEdges())
+    {
+      if (!reconstructedEdgesArray[removedEdge.getOrigin().getVertexNo()][removedEdge.getEndpoint().getVertexNo()])
+      {
+        correctResult = false;
+      }
+    }
+    if (correctResult)
+    {
+      testCaseContext.setCorrectResult(true);
     }
   }
 
   private void collectMissingEdgesForSelectedColor(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, int selectedColor,
                                                    List<Edge> missingEdges, List<MissingSquaresUniqueEdgesData> missingSquareEdges,
-                                                   boolean[][] collectedMissingEdgesArray, Edge missingEdgesWarden)
+                                                   boolean[][] collectedMissingEdgesArray)
   {
+    Edge missingEdgesWarden = new Edge(null, null);
     Edge[][] oneEdgeByOtherEdge = new Edge[graph.getVertices().size()][graph.getVertices().size()];
 
     for (MissingSquaresUniqueEdgesData missingSquare : irregularMissingSquaresByColor[selectedColor])
