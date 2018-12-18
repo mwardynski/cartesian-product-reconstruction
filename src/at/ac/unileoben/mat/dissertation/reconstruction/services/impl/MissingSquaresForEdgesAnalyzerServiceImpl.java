@@ -65,6 +65,16 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
 
   private void findResultForSpeciallyColoredEdges(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
   {
+    List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares);
+
+
+    Vertex vertexToRemoveForResult = handleSpikesSpecialCases(noSquareAtAllEdgesWithDegreeOneAtEndpoint);
+    checkSelectedVertexCorrectness(vertexToRemoveForResult);
+    if (testCaseContext.isCorrectResult())
+    {
+      return;
+    }
+
     for (Integer selectedColor : graph.getGraphColoring().getActualColors())
     {
       if (selectedColor == 0)
@@ -133,8 +143,6 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
         }
       }
 
-      List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares);
-
       if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeOneAtEndpoint))
       {
 
@@ -182,7 +190,6 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
           }
         }
 
-        Vertex vertexToRemoveForResult;
         if (potentialVerticesToRemoveForResult.size() > 1)
         {
           List<Vertex> potentialSpikeEndpoints = potentialVerticesToRemoveForResult.stream()
@@ -201,12 +208,7 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
         {
           vertexToRemoveForResult = potentialVerticesToRemoveForResult.get(0);
         }
-
-
-        boolean correctResult = testCaseContext.getVerticesToRemoveForResult().stream()
-                .filter(acceptableVertex -> acceptableVertex.getVertexNo() == graph.getReverseReindexArray()[vertexToRemoveForResult.getVertexNo()])
-                .findAny().isPresent();
-        testCaseContext.setCorrectResult(correctResult);
+        checkSelectedVertexCorrectness(vertexToRemoveForResult);
       }
       else
       {
@@ -220,6 +222,77 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
       }
     }
 
+  }
+
+  private Vertex handleSpikesSpecialCases(List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint)
+  {
+    Vertex vertexToRemoveForResult = null;
+    for (Edge spikeBeginning : noSquareAtAllEdgesWithDegreeOneAtEndpoint)
+    {
+      Edge currentEdge = spikeBeginning;
+      int spikeLength = 1;
+
+      while (currentEdge != null)
+      {
+        List<Edge> followingEdges = currentEdge.getOrigin().getEdges();
+        Edge currentEdgeForComparision = currentEdge;
+        List<Edge> potentialNextEdges = followingEdges.stream()
+                .filter(edge -> edge != currentEdgeForComparision)
+                .filter(edge -> edge.getLabel().getColor() == 0)
+                .collect(Collectors.toList());
+
+        if (followingEdges.size() == potentialNextEdges.size() + 1 && potentialNextEdges.size() > 1 && spikeLength == 1)
+        {
+          currentEdge = null;
+          spikeLength = -1;
+        }
+        else if (followingEdges.size() == 2 && potentialNextEdges.size() == 1)
+        {
+          currentEdge = potentialNextEdges.get(0).getOpposite();
+          spikeLength++;
+        }
+        else
+        {
+          currentEdge = null;
+        }
+      }
+
+      if (spikeLength == -1 || spikeLength > 3)
+      {
+        vertexToRemoveForResult = spikeBeginning.getEndpoint();
+      }
+      else if (spikeLength == 3)
+      {
+        if (noSquareAtAllEdgesWithDegreeOneAtEndpoint.size() == 1)
+        {
+          vertexToRemoveForResult = spikeBeginning.getEndpoint();
+        }
+        else if (noSquareAtAllEdgesWithDegreeOneAtEndpoint.size() == 2)
+        {
+          vertexToRemoveForResult = spikeBeginning != noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(0)
+                  ? noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(0).getEndpoint()
+                  : noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(1).getEndpoint();
+        }
+        else
+        {
+          System.out.println("INFO - spike of length==3 and more than one other spikes");
+        }
+      }
+    }
+    return vertexToRemoveForResult;
+  }
+
+  private void checkSelectedVertexCorrectness(Vertex vertexToRemoveForResult)
+  {
+    if (vertexToRemoveForResult == null)
+    {
+      return;
+    }
+    Integer vertexNumberToRemoveForResult = graph.getReverseReindexArray()[vertexToRemoveForResult.getVertexNo()];
+    boolean correctResult = testCaseContext.getVerticesToRemoveForResult().stream()
+            .filter(acceptableVertex -> acceptableVertex.getVertexNo() == vertexNumberToRemoveForResult)
+            .findAny().isPresent();
+    testCaseContext.setCorrectResult(correctResult);
   }
 
   private void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, Set<Edge>[] potentialEdgesToReconstruct, Edge missingEdge)
