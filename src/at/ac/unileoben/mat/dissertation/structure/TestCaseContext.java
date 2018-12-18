@@ -10,6 +10,7 @@ public class TestCaseContext
 {
   private Set<Integer> removedVertexNeighbors;
   private List<Edge> removedEdges;
+  private List<Vertex> verticesToRemoveForResult;
   private boolean correctResult;
 
   public Set<Integer> getRemovedVertexNeighbors()
@@ -30,6 +31,16 @@ public class TestCaseContext
   public void setRemovedEdges(List<Edge> removedEdges)
   {
     this.removedEdges = removedEdges;
+  }
+
+  public List<Vertex> getVerticesToRemoveForResult()
+  {
+    return verticesToRemoveForResult;
+  }
+
+  public void setVerticesToRemoveForResult(List<Vertex> verticesToRemoveForResult)
+  {
+    this.verticesToRemoveForResult = verticesToRemoveForResult;
   }
 
   public boolean isCorrectResult()

@@ -14,10 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,59 +52,37 @@ public class CartesianProductWithoutEdgeReconstructionTest
         for (long i = 1; ; i++)
         {
           List<Edge> edgesToRemove = selectEdgesToRemove(i, edgeToRemoveOrigin);
-          if (i == 1)
-          {
-            edgesToRemove = Arrays.asList(new Edge(originalVertices.get(2), originalVertices.get(3)), new Edge(originalVertices.get(2), originalVertices.get(10)));
-          }
-          else
-          {
-            return;
-          }
-
-          testCaseContext.setRemovedEdges(edgesToRemove);
-          testCaseContext.setCorrectResult(false);
-
+//          if (i == 1)
+//          {
+//            edgesToRemove = Arrays.asList(new Edge(originalVertices.get(3), originalVertices.get(1)), new Edge(originalVertices.get(3), originalVertices.get(2)), new Edge(originalVertices.get(3), originalVertices.get(8)));
+//          }
+//          else
+//          {
+//            return;
+//          }
 
           if (CollectionUtils.isEmpty(edgesToRemove))
           {
             break;
           }
 
+
+          testCaseContext.setRemovedEdges(edgesToRemove);
+          testCaseContext.setVerticesToRemoveForResult(findVerticesToRemoveForResult(edgesToRemove));
+          testCaseContext.setCorrectResult(false);
+
           List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
           int numberOfEdgesBeforeDeletion = countAllEdges(vertices);
           removeEdges(edgesToRemove, vertices);
           int numberOfEdgesAfterDeletion = countAllEdges(vertices);
 
-          intervalReconstruction.reconstruct(vertices);
-          int amountOfFactors = graph.getGraphColoring().getActualColors().size() - 1;
-
-          List<Edge> speciallyColoredEdges = findSpeciallyColoredEdges(vertices);
           String removedEdges = edgesToRemove.stream()
                   .map(edge -> String.format("%d-%d", edge.getOrigin().getVertexNo(), edge.getEndpoint().getVertexNo()))
                   .collect(Collectors.joining(","));
+          System.out.println(String.format("%s-v:%d,e:{%s}", factorizationCase.getFileName(),
+                  edgeToRemoveOrigin.getVertexNo(), removedEdges));
 
-          System.out.println(String.format("%s-v:%d,e:{%s}(qb:%d,qa:%d): expected: %d, actual: %d, special: %d", factorizationCase.getFileName(),
-                  edgeToRemoveOrigin.getVertexNo(), removedEdges,
-                  numberOfEdgesBeforeDeletion, numberOfEdgesAfterDeletion,
-                  factorizationCase.getAmountOfFactors(), amountOfFactors, speciallyColoredEdges.size()));
-
-          if (!testCaseContext.isCorrectResult())
-          {
-            return;
-          }
-
-          if (CollectionUtils.isEmpty(speciallyColoredEdges))
-          {
-            if (amountOfFactors != factorizationCase.getAmountOfFactors())
-            {
-              System.out.println("diff: " + (amountOfFactors - factorizationCase.getAmountOfFactors()));
-              if (!testCaseContext.isCorrectResult())
-              {
-                System.out.println("FORGET");
-              }
-            }
-//            assertThat(factorizationCase.getFileName(), amountOfFactors, is(factorizationCase.getAmountOfFactors()));
-          }
+          intervalReconstruction.reconstruct(vertices);
 
 //          assertThat(factorizationCase.getFileName(), amountOfFactors, is(1));
           /*int edgeToRemoveOriginBfsLayer = graph.getVertices().get(edgeToRemove.getOrigin().getVertexNo()).getBfsLayer();
@@ -197,11 +172,35 @@ public class CartesianProductWithoutEdgeReconstructionTest
     return doubleNumberOfEdges / 2;
   }
 
+  private List<Vertex> findVerticesToRemoveForResult(List<Edge> edgesToRemove)
+  {
+    List<Vertex> verticesToRemoveForResult;
+    if (edgesToRemove.size() == 1)
+    {
+      verticesToRemoveForResult = Arrays.asList(edgesToRemove.get(0).getOrigin(), edgesToRemove.get(0).getEndpoint());
+    }
+    else
+    {
+      Set<Vertex> existingVertices = new HashSet<>(Arrays.asList(edgesToRemove.get(0).getOrigin(), edgesToRemove.get(0).getEndpoint()));
+      if (existingVertices.contains(edgesToRemove.get(1).getOrigin()))
+      {
+        verticesToRemoveForResult = Collections.singletonList(edgesToRemove.get(1).getOrigin());
+      }
+      else
+      {
+        verticesToRemoveForResult = Collections.singletonList(edgesToRemove.get(1).getEndpoint());
+      }
+    }
+
+    return verticesToRemoveForResult;
+  }
+
   static
   {
 
+    examplesList.add(new FactorizationCase("hxK2.txt", 2));
 //    examplesList.add(new FactorizationCase("cubexK2.txt", 4));
-    examplesList.add(new FactorizationCase("cube-ExK2.txt", 2));
+//    examplesList.add(new FactorizationCase("cube-ExK2.txt", 2));
 //    examplesList.add(new FactorizationCase("cube-2ExK2.txt", 2));
 //    examplesList.add(new FactorizationCase("cube-2ExP3.txt", 2));
 //    examplesList.add(new FactorizationCase("K23xK2-mirrored.txt", 2));

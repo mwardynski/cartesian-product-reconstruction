@@ -1,14 +1,15 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
+import at.ac.unileoben.mat.dissertation.common.GraphHelper;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 @Profile("missingEdges")
@@ -17,6 +18,9 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
 
   @Autowired
   TestCaseContext testCaseContext;
+
+  @Autowired
+  GraphHelper graphHelper;
 
   @Override
   public void analyseMissingSquares(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
@@ -30,8 +34,15 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
 
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
-      System.out.println("special coloring");
-      testCaseContext.setCorrectResult(true);
+      findResultForSpeciallyColoredEdges(irregularMissingSquaresByColor, noSquareAtAllMissingSquares);
+
+
+//      if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeOneAtEndpoint))
+//
+//      {
+//        System.out.println("special coloring");
+//      }
+//      testCaseContext.setCorrectResult(true);
     }
     else if (CollectionUtils.isNotEmpty(squareReconstructionData.getNoticedPostponedVertices()))
     {
@@ -50,6 +61,201 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
     {
       System.out.println("WRONG!");
     }
+  }
+
+  private void findResultForSpeciallyColoredEdges(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  {
+    for (Integer selectedColor : graph.getGraphColoring().getActualColors())
+    {
+      if (selectedColor == 0)
+      {
+        continue;
+      }
+
+
+//      if (CollectionUtils.isEmpty(irregularMissingSquaresByColor[selectedColor]))
+//      {
+//        continue;
+//      }
+
+      List<Edge> missingEdges = new LinkedList<>();
+      List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
+      boolean[][] collectedMissingEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+
+      Edge missingEdgesWarden = new Edge(null, null);
+      Edge[][] missingSquarePairsForSelectedColor = findMissingSquarePairsForSelectedColor(selectedColor, irregularMissingSquaresByColor, missingEdgesWarden);
+      collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor, selectedColor, missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
+
+
+      int[] potentialEdgesNumberToReconstructPerVertex = new int[graph.getVertices().size()];
+      boolean[][] potenrialEdgesToReconstructPerVertex = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+      Set<Edge>[] potentialEdgesToReconstruct = new Set[graph.getVertices().size()];
+
+
+      missingEdges.stream()
+              .filter(missingEdge -> !potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
+              .forEach(missingEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstruct, missingEdge));
+
+      for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquare : noSquareAtAllMissingSquares)
+      {
+        if (noSquareAtAllMissingSquare.getBaseEdge().getLabel().getColor() != 0 || noSquareAtAllMissingSquare.getOtherEdge().getLabel().getColor() != 0)
+        {
+          Edge speciallyColoredEdge = noSquareAtAllMissingSquare.getBaseEdge().getLabel().getColor() == 0 ? noSquareAtAllMissingSquare.getBaseEdge() : noSquareAtAllMissingSquare.getOtherEdge();
+          Edge typicallyColoredEdge = noSquareAtAllMissingSquare.getBaseEdge().getLabel().getColor() != 0 ? noSquareAtAllMissingSquare.getBaseEdge() : noSquareAtAllMissingSquare.getOtherEdge();
+          Edge typicallyColoredOppositeEdge = typicallyColoredEdge.getOpposite();
+
+          Edge missingSquareEdgeToTypicallyColoredEdge = missingSquarePairsForSelectedColor[typicallyColoredOppositeEdge.getOrigin().getVertexNo()][typicallyColoredOppositeEdge.getEndpoint().getVertexNo()];
+          if (missingSquareEdgeToTypicallyColoredEdge != null && missingSquareEdgeToTypicallyColoredEdge.getOrigin() != null && missingSquareEdgeToTypicallyColoredEdge.getEndpoint() != null)
+          {
+            Edge potentialMissingEdge = new Edge(speciallyColoredEdge.getEndpoint(), missingSquareEdgeToTypicallyColoredEdge.getEndpoint());
+            if (!potenrialEdgesToReconstructPerVertex[potentialMissingEdge.getOrigin().getVertexNo()][potentialMissingEdge.getEndpoint().getVertexNo()])
+            {
+              storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstruct, potentialMissingEdge);
+            }
+          }
+        }
+        else
+        {
+          Edge baseEdge = noSquareAtAllMissingSquare.getBaseEdge();
+          Edge otherEdge = noSquareAtAllMissingSquare.getOtherEdge();
+          for (Edge followingEdge : baseEdge.getEndpoint().getEdges())
+          {
+            if (followingEdge == baseEdge.getOpposite())
+            {
+              continue;
+            }
+
+            Edge missingEdge = new Edge(otherEdge.getEndpoint(), followingEdge.getEndpoint());
+            storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstruct, missingEdge);
+          }
+          int followingEdgesNumber = baseEdge.getEndpoint().getEdges().size() - 1;
+          potentialEdgesNumberToReconstructPerVertex[otherEdge.getEndpoint().getVertexNo()] -= Math.max(0, followingEdgesNumber - 1);
+        }
+      }
+
+      List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares);
+
+      if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeOneAtEndpoint))
+      {
+
+        Edge arbitrarySingleEdgeWithSpecialColor = noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(0);
+        int[] distanceVectorFromArbitrarySingleEdgeWithSpecialColor = graphHelper.calculateDistanceVector(arbitrarySingleEdgeWithSpecialColor.getEndpoint());
+        Vertex arbitrarySingleEdgeEndpointWithSpecialColor = arbitrarySingleEdgeWithSpecialColor.getEndpoint();
+
+
+        List<Integer> properDistanceFromSpikeVertexNumbers = IntStream.range(0, graph.getVertices().size())
+                .filter(vertexNumber -> potentialEdgesNumberToReconstructPerVertex[vertexNumber] != 0)
+                .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 3
+                        || distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
+                .mapToObj(Integer::valueOf)
+                .collect(Collectors.toList());
+
+        int additionalPotentialEdgesNumberToReconstruct = 0;
+        if (arbitrarySingleEdgeWithSpecialColor.getOrigin().getEdges().size() > 2)
+        {
+          additionalPotentialEdgesNumberToReconstruct = (int) properDistanceFromSpikeVertexNumbers.stream()
+                  .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
+                  .count();
+        }
+
+        int maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()] + additionalPotentialEdgesNumberToReconstruct;
+        List<Vertex> potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(arbitrarySingleEdgeEndpointWithSpecialColor));
+
+        for (Integer properDistanceFromSpikeVertexNumber : properDistanceFromSpikeVertexNumbers)
+        {
+          Vertex properDistanceFromSpikeVertex = graph.getVertices().get(properDistanceFromSpikeVertexNumber);
+
+          int potentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[properDistanceFromSpikeVertexNumber];
+          if (distanceVectorFromArbitrarySingleEdgeWithSpecialColor[properDistanceFromSpikeVertexNumber] == 5)
+          {
+            potentialEdgesNumberToReconstruct++;
+          }
+
+          if (maxPotentialEdgesNumberToReconstruct < potentialEdgesNumberToReconstruct)
+          {
+            maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstruct;
+            potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(properDistanceFromSpikeVertex));
+          }
+          else if (maxPotentialEdgesNumberToReconstruct == potentialEdgesNumberToReconstruct)
+          {
+            potentialVerticesToRemoveForResult.add(properDistanceFromSpikeVertex);
+          }
+        }
+
+        Vertex vertexToRemoveForResult;
+        if (potentialVerticesToRemoveForResult.size() > 1)
+        {
+          List<Vertex> potentialSpikeEndpoints = potentialVerticesToRemoveForResult.stream()
+                  .filter(vertex -> vertex.getEdges().size() == 1)
+                  .collect(Collectors.toList());
+          if (potentialSpikeEndpoints.size() == 1)
+          {
+            vertexToRemoveForResult = potentialSpikeEndpoints.get(0);
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else
+        {
+          vertexToRemoveForResult = potentialVerticesToRemoveForResult.get(0);
+        }
+
+
+        boolean correctResult = testCaseContext.getVerticesToRemoveForResult().stream()
+                .filter(acceptableVertex -> acceptableVertex.getVertexNo() == graph.getReverseReindexArray()[vertexToRemoveForResult.getVertexNo()])
+                .findAny().isPresent();
+        testCaseContext.setCorrectResult(correctResult);
+      }
+      else
+      {
+        System.out.println("no spikes");
+        testCaseContext.setCorrectResult(true);
+      }
+
+      if (testCaseContext.isCorrectResult())
+      {
+        break;
+      }
+    }
+
+  }
+
+  private void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, Set<Edge>[] potentialEdgesToReconstruct, Edge missingEdge)
+  {
+    if (potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
+    {
+      return;
+    }
+
+    potentialEdgesNumberToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()]++;
+    potentialEdgesNumberToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()]++;
+    potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()] = true;
+    potenrialEdgesToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()][missingEdge.getOrigin().getVertexNo()] = true;
+
+    Edge oppositeMissingEdge = new Edge(missingEdge.getEndpoint(), missingEdge.getOrigin());
+    if (potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()] == null)
+    {
+      potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()] = new HashSet<>();
+    }
+    potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()].add(missingEdge);
+
+    if (potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()] == null)
+    {
+      potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()] = new HashSet<>();
+    }
+    potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()].add(oppositeMissingEdge);
+  }
+
+
+  private List<Edge> findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  {
+    List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = noSquareAtAllMissingSquares.stream()
+            .map(missingSquare -> missingSquare.getBaseEdge())
+            .filter(edge -> edge.getEndpoint().getEdges().size() == 1)
+            .collect(Collectors.toList());
+    return noSquareAtAllEdgesWithDegreeOneAtEndpoint;
   }
 
   private void findResultForColoringIncludingNewColorsAfterPostponedVertex(SquareReconstructionData squareReconstructionData, List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor)
@@ -143,7 +349,9 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
     List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
     boolean[][] collectedMissingEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
 
-    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor, selectedColor, missingEdges, missingSquareEdges, collectedMissingEdgesArray);
+    Edge missingEdgesWarden = new Edge(null, null);
+    Edge[][] missingSquarePairsForSelectedColor = findMissingSquarePairsForSelectedColor(selectedColor, irregularMissingSquaresByColor, missingEdgesWarden);
+    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor, selectedColor, missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
     convertMissingSquaresToMissingEdges(missingEdges, missingSquareEdges, collectedMissingEdgesArray);
 
     boolean[][] reconstructedEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
@@ -172,30 +380,19 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
 
   private void collectMissingEdgesForSelectedColor(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, int selectedColor,
                                                    List<Edge> missingEdges, List<MissingSquaresUniqueEdgesData> missingSquareEdges,
-                                                   boolean[][] collectedMissingEdgesArray)
+                                                   Edge[][] missingSquarePairsForSelectedColor,
+                                                   boolean[][] collectedMissingEdgesArray, Edge missingEdgesWarden)
   {
-    Edge missingEdgesWarden = new Edge(null, null);
-    Edge[][] oneEdgeByOtherEdge = new Edge[graph.getVertices().size()][graph.getVertices().size()];
-
     for (MissingSquaresUniqueEdgesData missingSquare : irregularMissingSquaresByColor[selectedColor])
     {
       Edge baseEdge = missingSquare.getBaseEdge();
       Edge otherEdge = missingSquare.getOtherEdge();
 
-      storeOneEdgeByOtherEdge(oneEdgeByOtherEdge, baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(), otherEdge, missingEdgesWarden);
-      storeOneEdgeByOtherEdge(oneEdgeByOtherEdge, otherEdge.getOrigin().getVertexNo(), otherEdge.getEndpoint().getVertexNo(), baseEdge, missingEdgesWarden);
-    }
-
-    for (MissingSquaresUniqueEdgesData missingSquare : irregularMissingSquaresByColor[selectedColor])
-    {
-      Edge baseEdge = missingSquare.getBaseEdge();
-      Edge otherEdge = missingSquare.getOtherEdge();
-
-      Edge matchingEdge = oneEdgeByOtherEdge[baseEdge.getEndpoint().getVertexNo()][baseEdge.getOrigin().getVertexNo()];
+      Edge matchingEdge = missingSquarePairsForSelectedColor[baseEdge.getEndpoint().getVertexNo()][baseEdge.getOrigin().getVertexNo()];
       Vertex edgeEndpoint = otherEdge.getEndpoint();
       if (matchingEdge == null || matchingEdge == missingEdgesWarden)
       {
-        matchingEdge = oneEdgeByOtherEdge[otherEdge.getEndpoint().getVertexNo()][otherEdge.getOrigin().getVertexNo()];
+        matchingEdge = missingSquarePairsForSelectedColor[otherEdge.getEndpoint().getVertexNo()][otherEdge.getOrigin().getVertexNo()];
         edgeEndpoint = baseEdge.getEndpoint();
       }
       if (matchingEdge != null && matchingEdge != missingEdgesWarden
@@ -212,6 +409,21 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
         missingSquareEdges.add(missingSquare);
       }
     }
+  }
+
+  private Edge[][] findMissingSquarePairsForSelectedColor(int selectedColor, List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, Edge missingEdgesWarden)
+  {
+    Edge[][] oneEdgeByOtherEdge = new Edge[graph.getVertices().size()][graph.getVertices().size()];
+
+    for (MissingSquaresUniqueEdgesData missingSquare : irregularMissingSquaresByColor[selectedColor])
+    {
+      Edge baseEdge = missingSquare.getBaseEdge();
+      Edge otherEdge = missingSquare.getOtherEdge();
+
+      storeOneEdgeByOtherEdge(oneEdgeByOtherEdge, baseEdge.getOrigin().getVertexNo(), baseEdge.getEndpoint().getVertexNo(), otherEdge, missingEdgesWarden);
+      storeOneEdgeByOtherEdge(oneEdgeByOtherEdge, otherEdge.getOrigin().getVertexNo(), otherEdge.getEndpoint().getVertexNo(), baseEdge, missingEdgesWarden);
+    }
+    return oneEdgeByOtherEdge;
   }
 
   private void storeOneEdgeByOtherEdge(Edge[][] oneEdgeByOtherEdge, int edgeOriginNo, int edgeEndpointNo, Edge otherEdge, Edge missingEdgesWarden)
@@ -247,7 +459,6 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
       else
       {
         MissingSquaresUniqueEdgesData firstDoubleMissingEdge = missingSquareEdges.get(0);
-        Vertex baseEdgeEndpoint = firstDoubleMissingEdge.getBaseEdge().getEndpoint();
         if (firstMissingEdge.getOrigin() == firstDoubleMissingEdge.getBaseEdge().getEndpoint()
                 || firstMissingEdge.getOrigin() == firstDoubleMissingEdge.getOtherEdge().getEndpoint())
         {

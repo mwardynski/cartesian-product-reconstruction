@@ -663,4 +663,23 @@ public class GraphHelperImpl implements GraphHelper
 
     return squareEdgesForGivenTwoEdges;
   }
+
+  @Override
+  public int[] calculateDistanceVector(Vertex distanceVectorRoot)
+  {
+    int[] distanceVector = new int[graph.getVertices().size()];
+    distanceVector[distanceVectorRoot.getVertexNo()] = 0;
+
+    orderBFS(Collections.singletonList(distanceVectorRoot), graph.getVertices(), Optional.empty(), Collections.emptySet(),
+            (currentVertex, previousVertex) ->
+            {
+              distanceVector[currentVertex.getVertexNo()] = distanceVector[previousVertex.getVertexNo()] + 1;
+              return true;
+            },
+            (currentVertex, previousVertex) ->
+            {
+            });
+
+    return distanceVector;
+  }
 }
