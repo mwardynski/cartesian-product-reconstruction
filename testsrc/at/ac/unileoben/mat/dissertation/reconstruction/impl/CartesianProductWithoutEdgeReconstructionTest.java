@@ -54,7 +54,7 @@ public class CartesianProductWithoutEdgeReconstructionTest
           List<Edge> edgesToRemove = selectEdgesToRemove(i, edgeToRemoveOrigin);
 //          if (i == 1)
 //          {
-//            edgesToRemove = Arrays.asList(new Edge(originalVertices.get(3), originalVertices.get(1)), new Edge(originalVertices.get(3), originalVertices.get(2)), new Edge(originalVertices.get(3), originalVertices.get(8)));
+//            edgesToRemove = Arrays.asList(new Edge(originalVertices.get(8), originalVertices.get(6)), new Edge(originalVertices.get(8), originalVertices.get(7)));
 //          }
 //          else
 //          {
@@ -199,6 +199,8 @@ public class CartesianProductWithoutEdgeReconstructionTest
   {
 
     examplesList.add(new FactorizationCase("hxK2.txt", 2));
+    examplesList.add(new FactorizationCase("hxP3.txt", 2, 0));
+    examplesList.add(new FactorizationCase("hxP4.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("cubexK2.txt", 4));
 //    examplesList.add(new FactorizationCase("cube-ExK2.txt", 2));
 //    examplesList.add(new FactorizationCase("cube-2ExK2.txt", 2));
@@ -219,7 +221,6 @@ public class CartesianProductWithoutEdgeReconstructionTest
 //    examplesList.add(new FactorizationCase("S3xS3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("bP3xP6mVbxP3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("bP3xP6mVbxP4.txt", 2, 0));
-//    examplesList.add(new FactorizationCase("hxP3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("P6xP4.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("P6xP3.txt", 2, 0));
 //    examplesList.add(new FactorizationCase("bP3xK2xK2bmVxP3.txt", 2, 0));

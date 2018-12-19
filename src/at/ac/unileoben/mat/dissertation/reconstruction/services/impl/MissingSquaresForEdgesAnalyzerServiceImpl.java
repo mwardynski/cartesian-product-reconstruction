@@ -31,20 +31,14 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
     List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor = new List[graph.getGraphColoring().getColorsMapping().size()];
 
     groupMissingSquareEntries(missingSquaresEntries, noSquareAtAllMissingSquares, irregularMissingSquaresByColor);
+    List<Integer> afterPostponedVertexColors = collectAfterPostponedVertexColors(squareReconstructionData);
 
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
       findResultForSpeciallyColoredEdges(irregularMissingSquaresByColor, noSquareAtAllMissingSquares);
-
-
-//      if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeOneAtEndpoint))
-//
-//      {
-//        System.out.println("special coloring");
-//      }
-//      testCaseContext.setCorrectResult(true);
     }
-    else if (CollectionUtils.isNotEmpty(squareReconstructionData.getNoticedPostponedVertices()))
+    else if (CollectionUtils.isNotEmpty(squareReconstructionData.getNoticedPostponedVertices())
+            && CollectionUtils.isNotEmpty(afterPostponedVertexColors))
     {
       findResultForColoringIncludingNewColorsAfterPostponedVertex(squareReconstructionData, irregularMissingSquaresByColor);
     }
@@ -329,9 +323,7 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
   {
     int afterPostponedVertexColorsLowestIndex = squareReconstructionData.getGraphColoringBeforePostponedVertices().getActualColors().size();
 
-    List<Integer> afterPostponedVertexColors = graph.getGraphColoring().getActualColors().stream()
-            .filter(color -> color >= afterPostponedVertexColorsLowestIndex)
-            .collect(Collectors.toList());
+    List<Integer> afterPostponedVertexColors = collectAfterPostponedVertexColors(squareReconstructionData);
 
 
     selectedColorLoop:
@@ -357,6 +349,21 @@ public class MissingSquaresForEdgesAnalyzerServiceImpl extends AbstractMissingSq
         }
       }
     }
+  }
+
+  private List<Integer> collectAfterPostponedVertexColors(SquareReconstructionData squareReconstructionData)
+  {
+    GraphColoring graphColoringBeforePostponedVertices = squareReconstructionData.getGraphColoringBeforePostponedVertices();
+    if (graphColoringBeforePostponedVertices == null)
+    {
+      return Collections.emptyList();
+    }
+
+    int afterPostponedVertexColorsLowestIndex = graphColoringBeforePostponedVertices.getActualColors().size();
+
+    return graph.getGraphColoring().getActualColors().stream()
+            .filter(color -> color >= afterPostponedVertexColorsLowestIndex)
+            .collect(Collectors.toList());
   }
 
   private void findResultForTypicalColoring(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor)
