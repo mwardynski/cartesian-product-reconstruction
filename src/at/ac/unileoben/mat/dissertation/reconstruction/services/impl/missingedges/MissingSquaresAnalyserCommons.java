@@ -1,6 +1,5 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.missingedges;
 
-import at.ac.unileoben.mat.dissertation.reconstruction.services.impl.MissingSquaresForEdgesAnalyzerServiceImpl;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,32 @@ public class MissingSquaresAnalyserCommons
             .filter(acceptableVertex -> acceptableVertex.getVertexNo() == vertexNumberToRemoveForResult)
             .findAny().isPresent();
     testCaseContext.setCorrectResult(correctResult);
+  }
+
+  public void checkSelectedEdgesCorrectness(List<Edge> missingEdges)
+  {
+    boolean[][] reconstructedEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+    for (Edge missingEdge : missingEdges)
+    {
+      Integer originVertexNo = graph.getReverseReindexArray()[missingEdge.getOrigin().getVertexNo()];
+      Integer endpointVertexNo = graph.getReverseReindexArray()[missingEdge.getEndpoint().getVertexNo()];
+
+      reconstructedEdgesArray[originVertexNo][endpointVertexNo] = true;
+      reconstructedEdgesArray[endpointVertexNo][originVertexNo] = true;
+    }
+
+    boolean correctResult = testCaseContext.getRemovedEdges().size() == missingEdges.size();
+    for (Edge removedEdge : testCaseContext.getRemovedEdges())
+    {
+      if (!reconstructedEdgesArray[removedEdge.getOrigin().getVertexNo()][removedEdge.getEndpoint().getVertexNo()])
+      {
+        correctResult = false;
+      }
+    }
+    if (correctResult)
+    {
+      testCaseContext.setCorrectResult(true);
+    }
   }
 
   public Edge[][] findMissingSquarePairsForSelectedColor(List<MissingSquaresUniqueEdgesData> selectedIrregularMissingSquaresByColor, Edge missingEdgesWarden)
@@ -81,28 +106,7 @@ public class MissingSquaresAnalyserCommons
     collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
     convertMissingSquaresToMissingEdges(missingEdges, missingSquareEdges, collectedMissingEdgesArray);
 
-    boolean[][] reconstructedEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
-    for (Edge missingEdge : missingEdges)
-    {
-      Integer originVertexNo = graph.getReverseReindexArray()[missingEdge.getOrigin().getVertexNo()];
-      Integer endpointVertexNo = graph.getReverseReindexArray()[missingEdge.getEndpoint().getVertexNo()];
-
-      reconstructedEdgesArray[originVertexNo][endpointVertexNo] = true;
-      reconstructedEdgesArray[endpointVertexNo][originVertexNo] = true;
-    }
-
-    boolean correctResult = testCaseContext.getRemovedEdges().size() == missingEdges.size();
-    for (Edge removedEdge : testCaseContext.getRemovedEdges())
-    {
-      if (!reconstructedEdgesArray[removedEdge.getOrigin().getVertexNo()][removedEdge.getEndpoint().getVertexNo()])
-      {
-        correctResult = false;
-      }
-    }
-    if (correctResult)
-    {
-      testCaseContext.setCorrectResult(true);
-    }
+    checkSelectedEdgesCorrectness(missingEdges);
   }
 
   public void collectMissingEdgesForSelectedColor(List<MissingSquaresUniqueEdgesData> selectedIrregularMissingSquaresByColor,

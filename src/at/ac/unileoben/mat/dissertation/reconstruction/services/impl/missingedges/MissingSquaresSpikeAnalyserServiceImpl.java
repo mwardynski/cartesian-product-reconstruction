@@ -139,6 +139,28 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       Edge[][] missingSquarePairsForSelectedColor = missingSquaresAnalyserCommons.findMissingSquarePairsForSelectedColor(missingSquaresToProcess, missingEdgesWarden);
       missingSquaresAnalyserCommons.collectMissingEdgesForSelectedColor(missingSquaresToProcess, missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
 
+      boolean[] missingSquareEdgesIncludedEndpoints = new boolean[graph.getVertices().size()];
+      List<Vertex> missingSquareEdgesEndpoints = new LinkedList<>();
+
+      for (MissingSquaresUniqueEdgesData missingSquareEdge : missingSquareEdges)
+      {
+        if (missingSquareEdge.getBaseEdge().getLabel().getColor() != 0 && missingSquareEdge.getOtherEdge().getLabel().getColor() != 0)
+        {
+          if (!missingSquareEdgesIncludedEndpoints[missingSquareEdge.getBaseEdge().getEndpoint().getVertexNo()])
+          {
+            missingSquareEdgesIncludedEndpoints[missingSquareEdge.getBaseEdge().getEndpoint().getVertexNo()] = true;
+            missingSquareEdgesEndpoints.add(missingSquareEdge.getBaseEdge().getEndpoint());
+          }
+
+          if (!missingSquareEdgesIncludedEndpoints[missingSquareEdge.getOtherEdge().getEndpoint().getVertexNo()])
+          {
+            missingSquareEdgesIncludedEndpoints[missingSquareEdge.getOtherEdge().getEndpoint().getVertexNo()] = true;
+            missingSquareEdgesEndpoints.add(missingSquareEdge.getOtherEdge().getEndpoint());
+
+          }
+        }
+      }
+
 
       int[] potentialEdgesNumberToReconstructPerVertex = new int[graph.getVertices().size()];
       boolean[][] potenrialEdgesToReconstructPerVertex = new boolean[graph.getVertices().size()][graph.getVertices().size()];
@@ -225,6 +247,13 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
         if (potentialVerticesToRemoveForResult.size() > 1)
         {
+          potentialVerticesToRemoveForResult = potentialVerticesToRemoveForResult.stream()
+                  .filter(vertex -> !missingSquareEdgesIncludedEndpoints[vertex.getVertexNo()])
+                  .collect(Collectors.toList());
+        }
+
+        if (potentialVerticesToRemoveForResult.size() > 1)
+        {
           List<Vertex> potentialSpikeEndpoints = potentialVerticesToRemoveForResult.stream()
                   .filter(vertex -> vertex.getEdges().size() == 1)
                   .collect(Collectors.toList());
@@ -237,11 +266,44 @@ public class MissingSquaresSpikeAnalyserServiceImpl
         {
           vertexToRemoveForResult = potentialVerticesToRemoveForResult.get(0);
         }
-        missingSquaresAnalyserCommons.checkSelectedVertexCorrectness(vertexToRemoveForResult);
+//        missingSquaresAnalyserCommons.checkSelectedVertexCorrectness(vertexToRemoveForResult);
 
-        if (testCaseContext.isCorrectResult())
+        List<Edge> baseRestultEdges = new LinkedList<>();
+        if (CollectionUtils.isNotEmpty(potentialEdgesToReconstructSure[vertexToRemoveForResult.getVertexNo()]))
         {
-          this.getClass();
+          baseRestultEdges.addAll(potentialEdgesToReconstructSure[vertexToRemoveForResult.getVertexNo()]);
+        }
+
+        boolean[] potentialResultIncludedEndpoints = new boolean[graph.getVertices().size()];
+        baseRestultEdges.forEach(edge -> potentialResultIncludedEndpoints[edge.getEndpoint().getVertexNo()] = true);
+
+        for (Vertex missingSquareEdgesEndpoint : missingSquareEdgesEndpoints)
+        {
+          if (!potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()])
+          {
+            Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, missingSquareEdgesEndpoint);
+            baseRestultEdges.add(missingSquarePotentialResultEdge);
+          }
+        }
+
+        if (CollectionUtils.isEmpty(potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()]))
+        {
+          missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(baseRestultEdges);
+        }
+        else
+        {
+          for (Edge maybeResultEdge : potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()])
+          {
+            List<Edge> potentialResultEdges = new LinkedList<>(baseRestultEdges);
+            potentialResultEdges.add(maybeResultEdge);
+
+            missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(potentialResultEdges);
+            if (testCaseContext.isCorrectResult())
+            {
+              break;
+            }
+          }
+
         }
       }
       else
