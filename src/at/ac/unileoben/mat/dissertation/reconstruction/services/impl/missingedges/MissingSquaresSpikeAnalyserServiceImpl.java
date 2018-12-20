@@ -6,7 +6,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -93,32 +95,6 @@ public class MissingSquaresSpikeAnalyserServiceImpl
     return vertexToRemoveForResult;
   }
 
-  public void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, Set<Edge>[] potentialEdgesToReconstruct, Edge missingEdge)
-  {
-    if (potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
-    {
-      return;
-    }
-
-    potentialEdgesNumberToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()]++;
-    potentialEdgesNumberToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()]++;
-    potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()] = true;
-    potenrialEdgesToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()][missingEdge.getOrigin().getVertexNo()] = true;
-
-    Edge oppositeMissingEdge = new Edge(missingEdge.getEndpoint(), missingEdge.getOrigin());
-    if (potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()] == null)
-    {
-      potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()] = new HashSet<>();
-    }
-    potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()].add(missingEdge);
-
-    if (potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()] == null)
-    {
-      potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()] = new HashSet<>();
-    }
-    potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()].add(oppositeMissingEdge);
-  }
-
   public void findResultForSpeciallyColoredEdges(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
   {
     List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares);
@@ -166,17 +142,19 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
       int[] potentialEdgesNumberToReconstructPerVertex = new int[graph.getVertices().size()];
       boolean[][] potenrialEdgesToReconstructPerVertex = new boolean[graph.getVertices().size()][graph.getVertices().size()];
-      Set<Edge>[] potentialEdgesToReconstruct = new Set[graph.getVertices().size()];
+      List<Edge>[] potentialEdgesToReconstructSure = new List[graph.getVertices().size()];
+      List<Edge>[] potentialEdgesToReconstructMaybe = new List[graph.getVertices().size()];
+      boolean[] distanceFiveToAnotherPotentialVertex = new boolean[graph.getVertices().size()];
 
 
       missingEdges.stream()
               .filter(missingEdge -> !potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
-              .forEach(missingEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstruct, missingEdge));
+              .forEach(missingEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, missingEdge));
 
-      for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquare : noSquareAtAllMissingSquaresWithoutNormallyColoredEdge)
+      for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquareWithoutNormallyColoredEdge : noSquareAtAllMissingSquaresWithoutNormallyColoredEdge)
       {
-        Edge baseEdge = noSquareAtAllMissingSquare.getBaseEdge();
-        Edge otherEdge = noSquareAtAllMissingSquare.getOtherEdge();
+        Edge baseEdge = noSquareAtAllMissingSquareWithoutNormallyColoredEdge.getBaseEdge();
+        Edge otherEdge = noSquareAtAllMissingSquareWithoutNormallyColoredEdge.getOtherEdge();
         for (Edge followingEdge : baseEdge.getEndpoint().getEdges())
         {
           if (followingEdge == baseEdge.getOpposite())
@@ -185,7 +163,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           }
 
           Edge missingEdge = new Edge(otherEdge.getEndpoint(), followingEdge.getEndpoint());
-          storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstruct, missingEdge);
+          storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructMaybe, missingEdge);
         }
         int followingEdgesNumber = baseEdge.getEndpoint().getEdges().size() - 1;
         potentialEdgesNumberToReconstructPerVertex[otherEdge.getEndpoint().getVertexNo()] -= Math.max(0, followingEdgesNumber - 1);
@@ -206,35 +184,42 @@ public class MissingSquaresSpikeAnalyserServiceImpl
                 .mapToObj(Integer::valueOf)
                 .collect(Collectors.toList());
 
-        int additionalPotentialEdgesNumberToReconstruct = 0;
-        if (arbitrarySingleEdgeWithSpecialColor.getOrigin().getEdges().size() > 2)
+        List<Integer> additionalPotentialEndpointNumbersToConnect = properDistanceFromSpikeVertexNumbers.stream()
+                .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(additionalPotentialEndpointNumbersToConnect))
         {
-          additionalPotentialEdgesNumberToReconstruct = (int) properDistanceFromSpikeVertexNumbers.stream()
-                  .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
-                  .count();
+          distanceFiveToAnotherPotentialVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()] = true;
+          additionalPotentialEndpointNumbersToConnect.stream()
+                  .peek(additionalPotentialEndpointNumberToConnect -> distanceFiveToAnotherPotentialVertex[additionalPotentialEndpointNumberToConnect] = true)
+                  .map(additionalPotentialEndpointNumberToConnect -> new Edge(arbitrarySingleEdgeEndpointWithSpecialColor, graph.getVertices().get(additionalPotentialEndpointNumberToConnect)))
+                  .filter(potentialAdditionalEdge -> !potenrialEdgesToReconstructPerVertex[potentialAdditionalEdge.getOrigin().getVertexNo()][potentialAdditionalEdge.getEndpoint().getVertexNo()])
+                  .forEach(potentialAdditionalEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, potentialAdditionalEdge));
+
+          if (CollectionUtils.isNotEmpty(potentialEdgesToReconstructMaybe[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()]))
+          {
+            potentialEdgesToReconstructMaybe[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()] = null;
+            potentialEdgesNumberToReconstructPerVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()]--;
+          }
         }
 
-        int maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()] + additionalPotentialEdgesNumberToReconstruct;
+        int maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()];
         List<Vertex> potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(arbitrarySingleEdgeEndpointWithSpecialColor));
 
         for (Integer properDistanceFromSpikeVertexNumber : properDistanceFromSpikeVertexNumbers)
         {
-          Vertex properDistanceFromSpikeVertex = graph.getVertices().get(properDistanceFromSpikeVertexNumber);
+          Vertex vertexOfProperDistanceFromSpike = graph.getVertices().get(properDistanceFromSpikeVertexNumber);
 
           int potentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[properDistanceFromSpikeVertexNumber];
-          if (distanceVectorFromArbitrarySingleEdgeWithSpecialColor[properDistanceFromSpikeVertexNumber] == 5)
-          {
-            potentialEdgesNumberToReconstruct++;
-          }
-
           if (maxPotentialEdgesNumberToReconstruct < potentialEdgesNumberToReconstruct)
           {
             maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstruct;
-            potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(properDistanceFromSpikeVertex));
+            potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(vertexOfProperDistanceFromSpike));
           }
           else if (maxPotentialEdgesNumberToReconstruct == potentialEdgesNumberToReconstruct)
           {
-            potentialVerticesToRemoveForResult.add(properDistanceFromSpikeVertex);
+            potentialVerticesToRemoveForResult.add(vertexOfProperDistanceFromSpike);
           }
         }
 
@@ -253,6 +238,11 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           vertexToRemoveForResult = potentialVerticesToRemoveForResult.get(0);
         }
         missingSquaresAnalyserCommons.checkSelectedVertexCorrectness(vertexToRemoveForResult);
+
+        if (testCaseContext.isCorrectResult())
+        {
+          this.getClass();
+        }
       }
       else
       {
@@ -266,5 +256,31 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       }
     }
 
+  }
+
+  private void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstruct, Edge missingEdge)
+  {
+    if (potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
+    {
+      return;
+    }
+
+    potentialEdgesNumberToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()]++;
+    potentialEdgesNumberToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()]++;
+    potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()] = true;
+    potenrialEdgesToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()][missingEdge.getOrigin().getVertexNo()] = true;
+
+    Edge oppositeMissingEdge = new Edge(missingEdge.getEndpoint(), missingEdge.getOrigin());
+    if (potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()] == null)
+    {
+      potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()] = new LinkedList<>();
+    }
+    potentialEdgesToReconstruct[missingEdge.getOrigin().getVertexNo()].add(missingEdge);
+
+    if (potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()] == null)
+    {
+      potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()] = new LinkedList<>();
+    }
+    potentialEdgesToReconstruct[missingEdge.getEndpoint().getVertexNo()].add(oppositeMissingEdge);
   }
 }
