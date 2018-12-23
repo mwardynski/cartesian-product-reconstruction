@@ -7,15 +7,22 @@ import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.Un
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Stream;
 
 @Component
 public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements PartOfCycleNoSquareAtAllMissingSquaresFindingService
 {
+  private static final int CYCLE_LENGTH = 8;
+
+  @Autowired
+  private Environment environment;
+
   @Autowired
   Graph graph;
 
@@ -46,7 +53,8 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     return correctNoSquareAtAllMissingSquares;
   }
 
-  private List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints, SquareReconstructionData squareReconstructionData, NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo)
+  @Override
+  public List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints, SquareReconstructionData squareReconstructionData, NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo)
   {
     Vertex endVertex = arbitraryGroupFirstEdge.getEndpoint();
     Vertex firstVertex = arbitraryGroupFirstEdge.getOrigin();
@@ -116,7 +124,14 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
     if (currentVertexNode == endVertexNode)
     {
-      if (groupedNoSquareAtAllEdges.size() == collectedGroups.size())
+      boolean missingEdgesProfile = Stream.of(environment.getActiveProfiles())
+              .filter(profile -> "missingEdges".equals(profile))
+              .findAny().isPresent();
+      if (missingEdgesProfile)
+      {
+        correctCycles.add(currentCycle);
+      }
+      else if (groupedNoSquareAtAllEdges.size() == collectedGroups.size())
       {
         if (groupedNoSquareAtAllEdges.size() > 1 ||
                 (groupedNoSquareAtAllEdges.get(0).size() >= 6 ||
@@ -167,7 +182,7 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = new LinkedList<>();
     for (List<NoSquareAtAllCycleNode> correctCycle : correctCycles)
     {
-      for (int i = 1; i < 7; i++)
+      for (int i = 1; i < CYCLE_LENGTH - 1; i++)
       {
         Edge firstEdge = graph.getAdjacencyMatrix()[correctCycle.get(i - 1).getVertex().getVertexNo()][correctCycle.get(i).getVertex().getVertexNo()];
         Edge secondEdge = graph.getAdjacencyMatrix()[correctCycle.get(i).getVertex().getVertexNo()][correctCycle.get(i + 1).getVertex().getVertexNo()];
@@ -176,12 +191,11 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
         if (vertexNeighborhoodSizeInCycles > 1 || uncoloredEdgesHandlerService.areNormalEdgesOfGivenColorProperty(firstEdge, secondEdge, true))
         {
-          this.getClass();
-          for (int j = i - 1; j < i + 8; j += 2)
+          for (int j = i - 1; j < i + CYCLE_LENGTH; j += 2)
           {
-            int missingSquareEdgesStartIndex = (j + 8 - 1) % 8;
-            int missingSquareEdgesMiddleIndex = j % 8;
-            int missingSquareEdgesEndIndex = (j + 1) % 8;
+            int missingSquareEdgesStartIndex = (j + CYCLE_LENGTH - 1) % CYCLE_LENGTH;
+            int missingSquareEdgesMiddleIndex = j % CYCLE_LENGTH;
+            int missingSquareEdgesEndIndex = (j + 1) % CYCLE_LENGTH;
 
             int missingSquareEdgesStartVertexNo = correctCycle.get(missingSquareEdgesStartIndex).getVertex().getVertexNo();
             int missingSquareEdgesMiddleVertexNo = correctCycle.get(missingSquareEdgesMiddleIndex).getVertex().getVertexNo();

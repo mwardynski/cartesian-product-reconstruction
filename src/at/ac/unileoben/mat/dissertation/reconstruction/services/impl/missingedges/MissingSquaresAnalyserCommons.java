@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class MissingSquaresAnalyserCommons
@@ -97,22 +98,26 @@ public class MissingSquaresAnalyserCommons
       return;
     }
 
-    List<Edge> missingEdges = new LinkedList<>();
+    List<MissingEdgeData> missingEdgeData = new LinkedList<>();
     List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
-    boolean[][] collectedMissingEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+    MissingEdgeData[][] collectedMissingEdgesArray = new MissingEdgeData[graph.getVertices().size()][graph.getVertices().size()];
 
     Edge missingEdgesWarden = new Edge(null, null);
     Edge[][] missingSquarePairsForSelectedColor = findMissingSquarePairsForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdgesWarden);
-    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
-    convertMissingSquaresToMissingEdges(missingEdges, missingSquareEdges, collectedMissingEdgesArray);
+    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdgeData, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
+    convertMissingSquaresToMissingEdges(missingEdgeData, missingSquareEdges, collectedMissingEdgesArray);
+
+    List<Edge> missingEdges = missingEdgeData.stream()
+            .map(MissingEdgeData::getEdge)
+            .collect(Collectors.toList());
 
     checkSelectedEdgesCorrectness(missingEdges);
   }
 
   public void collectMissingEdgesForSelectedColor(List<MissingSquaresUniqueEdgesData> selectedIrregularMissingSquaresByColor,
-                                                  List<Edge> missingEdges, List<MissingSquaresUniqueEdgesData> missingSquareEdges,
+                                                  List<MissingEdgeData> missingEdgeDataList, List<MissingSquaresUniqueEdgesData> missingSquareEdges,
                                                   Edge[][] missingSquarePairsForSelectedColor,
-                                                  boolean[][] collectedMissingEdgesArray, Edge missingEdgesWarden)
+                                                  MissingEdgeData[][] collectedMissingEdgesArray, Edge missingEdgesWarden)
   {
     for (MissingSquaresUniqueEdgesData missingSquare : selectedIrregularMissingSquaresByColor)
     {
@@ -126,14 +131,22 @@ public class MissingSquaresAnalyserCommons
         matchingEdge = missingSquarePairsForSelectedColor[otherEdge.getEndpoint().getVertexNo()][otherEdge.getOrigin().getVertexNo()];
         edgeEndpoint = baseEdge.getEndpoint();
       }
-      if (matchingEdge != null && matchingEdge != missingEdgesWarden
-              && !collectedMissingEdgesArray[edgeEndpoint.getVertexNo()][matchingEdge.getEndpoint().getVertexNo()])
+      if (matchingEdge != null && matchingEdge != missingEdgesWarden)
       {
-        Edge missingEdge = new Edge(edgeEndpoint, matchingEdge.getEndpoint());
-        missingEdges.add(missingEdge);
+        MissingEdgeData missingEdgeData = collectedMissingEdgesArray[edgeEndpoint.getVertexNo()][matchingEdge.getEndpoint().getVertexNo()];
+        if (missingEdgeData == null)
+        {
+          Edge missingEdge = new Edge(edgeEndpoint, matchingEdge.getEndpoint());
+          missingEdgeData = new MissingEdgeData(missingEdge);
+          missingEdgeDataList.add(missingEdgeData);
 
-        collectedMissingEdgesArray[edgeEndpoint.getVertexNo()][matchingEdge.getEndpoint().getVertexNo()] = true;
-        collectedMissingEdgesArray[matchingEdge.getEndpoint().getVertexNo()][edgeEndpoint.getVertexNo()] = true;
+          collectedMissingEdgesArray[edgeEndpoint.getVertexNo()][matchingEdge.getEndpoint().getVertexNo()] = missingEdgeData;
+          collectedMissingEdgesArray[matchingEdge.getEndpoint().getVertexNo()][edgeEndpoint.getVertexNo()] = missingEdgeData;
+        }
+        else if (missingEdgeData.getEdge().getOrigin() == edgeEndpoint)
+        {
+          missingEdgeData.setNumberOfDistinctMissingSquareTriples(missingEdgeData.getNumberOfDistinctMissingSquareTriples() + 1);
+        }
       }
       else if (matchingEdge == null)
       {
@@ -142,15 +155,15 @@ public class MissingSquaresAnalyserCommons
     }
   }
 
-  private void convertMissingSquaresToMissingEdges(List<Edge> missingEdges, List<MissingSquaresUniqueEdgesData> missingSquareEdges, boolean[][] collectedMissingEdgesArray)
+  private void convertMissingSquaresToMissingEdges(List<MissingEdgeData> missingEdges, List<MissingSquaresUniqueEdgesData> missingSquareEdges, MissingEdgeData[][] collectedMissingEdgesArray)
   {
     if (CollectionUtils.isNotEmpty(missingEdges) && CollectionUtils.isNotEmpty(missingSquareEdges))
     {
       Vertex vertexOfMissingEdges;
-      Edge firstMissingEdge = missingEdges.get(0);
+      Edge firstMissingEdge = missingEdges.get(0).getEdge();
       if (missingEdges.size() > 1)
       {
-        Edge secondMissingEdge = missingEdges.get(1);
+        Edge secondMissingEdge = missingEdges.get(1).getEdge();
         if (firstMissingEdge.getOrigin() == secondMissingEdge.getOrigin() || firstMissingEdge.getOrigin() == secondMissingEdge.getEndpoint())
         {
           vertexOfMissingEdges = firstMissingEdge.getOrigin();
@@ -183,12 +196,14 @@ public class MissingSquaresAnalyserCommons
     }
   }
 
-  private void saveEdgeToMissingEdges(Edge edge, Vertex vertexOfMissingEdges, List<Edge> missingEdges, boolean[][] collectedMissingEdgesArray)
+  private void saveEdgeToMissingEdges(Edge edge, Vertex vertexOfMissingEdges, List<MissingEdgeData> missingEdgeDataList, MissingEdgeData[][] collectedMissingEdgesArray)
   {
-    if (!collectedMissingEdgesArray[vertexOfMissingEdges.getVertexNo()][edge.getEndpoint().getVertexNo()])
+    if (collectedMissingEdgesArray[vertexOfMissingEdges.getVertexNo()][edge.getEndpoint().getVertexNo()] == null)
     {
-      missingEdges.add(new Edge(vertexOfMissingEdges, edge.getEndpoint()));
-      collectedMissingEdgesArray[vertexOfMissingEdges.getVertexNo()][edge.getEndpoint().getVertexNo()] = true;
+      Edge missingEdge = new Edge(vertexOfMissingEdges, edge.getEndpoint());
+      MissingEdgeData missingEdgeData = new MissingEdgeData(missingEdge);
+      missingEdgeDataList.add(missingEdgeData);
+      collectedMissingEdgesArray[vertexOfMissingEdges.getVertexNo()][edge.getEndpoint().getVertexNo()] = missingEdgeData;
     }
   }
 }

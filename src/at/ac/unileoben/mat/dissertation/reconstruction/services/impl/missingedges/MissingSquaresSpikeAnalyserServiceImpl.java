@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.missingedges;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
   @Autowired
   MissingSquaresAnalyserCommons missingSquaresAnalyserCommons;
+
+  @Autowired
+  PartOfCycleNoSquareAtAllMissingSquaresFindingService partOfCycleNoSquareAtAllMissingSquaresGeneralService;
 
   public List<Edge> findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
   {
@@ -95,7 +99,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
     return vertexToRemoveForResult;
   }
 
-  public void findResultForSpeciallyColoredEdges(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  public void findResultForSpeciallyColoredEdges(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
     List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares);
 
@@ -128,9 +132,9 @@ public class MissingSquaresSpikeAnalyserServiceImpl
         continue;
       }
 
-      List<Edge> missingEdges = new LinkedList<>();
+      List<MissingEdgeData> missingEdges = new LinkedList<>();
       List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
-      boolean[][] collectedMissingEdgesArray = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+      MissingEdgeData[][] collectedMissingEdgesArray = new MissingEdgeData[graph.getVertices().size()][graph.getVertices().size()];
 
       Edge missingEdgesWarden = new Edge(null, null);
 
@@ -170,8 +174,8 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
 
       missingEdges.stream()
-              .filter(missingEdge -> !potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
-              .forEach(missingEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, missingEdge));
+              .filter(missingEdgeData -> !potenrialEdgesToReconstructPerVertex[missingEdgeData.getEdge().getOrigin().getVertexNo()][missingEdgeData.getEdge().getEndpoint().getVertexNo()])
+              .forEach(missingEdgeData -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, missingEdgeData));
 
       for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquareWithoutNormallyColoredEdge : noSquareAtAllMissingSquaresWithoutNormallyColoredEdge)
       {
@@ -185,7 +189,8 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           }
 
           Edge missingEdge = new Edge(otherEdge.getEndpoint(), followingEdge.getEndpoint());
-          storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructMaybe, missingEdge);
+          MissingEdgeData missingEdgeData = new MissingEdgeData(missingEdge);
+          storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructMaybe, missingEdgeData);
         }
         int followingEdgesNumber = baseEdge.getEndpoint().getEdges().size() - 1;
         potentialEdgesNumberToReconstructPerVertex[otherEdge.getEndpoint().getVertexNo()] -= Math.max(0, followingEdgesNumber - 1);
@@ -199,74 +204,19 @@ public class MissingSquaresSpikeAnalyserServiceImpl
         Vertex arbitrarySingleEdgeEndpointWithSpecialColor = arbitrarySingleEdgeWithSpecialColor.getEndpoint();
 
 
-        List<Integer> properDistanceFromSpikeVertexNumbers = IntStream.range(0, graph.getVertices().size())
-                .filter(vertexNumber -> potentialEdgesNumberToReconstructPerVertex[vertexNumber] != 0)
-                .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 3
-                        || distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
-                .mapToObj(Integer::valueOf)
-                .collect(Collectors.toList());
+        List<Integer> properDistanceFromSpikeVertexNumbers = findVertexNumbersOfProperDistanceFromSpike(potentialEdgesNumberToReconstructPerVertex, distanceVectorFromArbitrarySingleEdgeWithSpecialColor);
+        List<Integer> additionalPotentialEndpointNumbersToConnect = findVertexNumbersOfDistanceFiveFromSelectedSpike(distanceVectorFromArbitrarySingleEdgeWithSpecialColor, properDistanceFromSpikeVertexNumbers);
 
-        List<Integer> additionalPotentialEndpointNumbersToConnect = properDistanceFromSpikeVertexNumbers.stream()
-                .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
-                .collect(Collectors.toList());
+        includeVerticesOfDistanceFiveIntoPotentialEdgesToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, distanceFiveToAnotherPotentialVertex, arbitrarySingleEdgeEndpointWithSpecialColor, additionalPotentialEndpointNumbersToConnect);
 
-        if (CollectionUtils.isNotEmpty(additionalPotentialEndpointNumbersToConnect))
-        {
-          distanceFiveToAnotherPotentialVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()] = true;
-          additionalPotentialEndpointNumbersToConnect.stream()
-                  .peek(additionalPotentialEndpointNumberToConnect -> distanceFiveToAnotherPotentialVertex[additionalPotentialEndpointNumberToConnect] = true)
-                  .map(additionalPotentialEndpointNumberToConnect -> new Edge(arbitrarySingleEdgeEndpointWithSpecialColor, graph.getVertices().get(additionalPotentialEndpointNumberToConnect)))
-                  .filter(potentialAdditionalEdge -> !potenrialEdgesToReconstructPerVertex[potentialAdditionalEdge.getOrigin().getVertexNo()][potentialAdditionalEdge.getEndpoint().getVertexNo()])
-                  .forEach(potentialAdditionalEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, potentialAdditionalEdge));
-        }
+        List<Vertex> potentialVerticesToRemoveForResult = filterPotentialCorrectVertices(potentialEdgesNumberToReconstructPerVertex, arbitrarySingleEdgeEndpointWithSpecialColor, properDistanceFromSpikeVertexNumbers);
 
-        int maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()];
-        List<Vertex> potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(arbitrarySingleEdgeEndpointWithSpecialColor));
-
-        for (Integer properDistanceFromSpikeVertexNumber : properDistanceFromSpikeVertexNumbers)
-        {
-          Vertex vertexOfProperDistanceFromSpike = graph.getVertices().get(properDistanceFromSpikeVertexNumber);
-
-          int potentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[properDistanceFromSpikeVertexNumber];
-          if (maxPotentialEdgesNumberToReconstruct < potentialEdgesNumberToReconstruct)
-          {
-            maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstruct;
-            potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(vertexOfProperDistanceFromSpike));
-          }
-          else if (maxPotentialEdgesNumberToReconstruct == potentialEdgesNumberToReconstruct)
-          {
-            potentialVerticesToRemoveForResult.add(vertexOfProperDistanceFromSpike);
-          }
-        }
+        potentialVerticesToRemoveForResult = filterOutMissingSquareEdgesVertices(missingSquareEdgesIncludedEndpoints, potentialVerticesToRemoveForResult);
+        potentialVerticesToRemoveForResult = favorizeVerticesWithAllPotentialMissingEdgesSure(potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialVerticesToRemoveForResult);
 
         if (potentialVerticesToRemoveForResult.size() > 1)
         {
-          potentialVerticesToRemoveForResult = potentialVerticesToRemoveForResult.stream()
-                  .filter(vertex -> !missingSquareEdgesIncludedEndpoints[vertex.getVertexNo()])
-                  .collect(Collectors.toList());
-        }
-
-        if (potentialVerticesToRemoveForResult.size() > 1)
-        {
-          List<Vertex> potentialNoMaybeEndpoints = potentialVerticesToRemoveForResult.stream()
-                  .filter(vertex -> CollectionUtils.isNotEmpty(potentialEdgesToReconstructSure[vertex.getVertexNo()]))
-                  .filter(vertex -> potentialEdgesNumberToReconstructPerVertex[vertex.getVertexNo()] == potentialEdgesToReconstructSure[vertex.getVertexNo()].size())
-                  .collect(Collectors.toList());
-          if (CollectionUtils.isNotEmpty(potentialNoMaybeEndpoints))
-          {
-            potentialVerticesToRemoveForResult = potentialNoMaybeEndpoints;
-          }
-        }
-
-        if (potentialVerticesToRemoveForResult.size() > 1)
-        {
-          List<Vertex> potentialSpikeEndpoints = potentialVerticesToRemoveForResult.stream()
-                  .filter(vertex -> vertex.getEdges().size() == 1)
-                  .collect(Collectors.toList());
-          if (CollectionUtils.isNotEmpty(potentialSpikeEndpoints))
-          {
-            vertexToRemoveForResult = potentialSpikeEndpoints.get(0);
-          }
+          vertexToRemoveForResult = selectFirstSpikeOutOfPotentialCorrectVertices(vertexToRemoveForResult, potentialVerticesToRemoveForResult);
         }
         else
         {
@@ -278,36 +228,13 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           continue;
         }
 
-        List<Edge> baseResultEdges = new LinkedList<>();
-        if (CollectionUtils.isNotEmpty(potentialEdgesToReconstructSure[vertexToRemoveForResult.getVertexNo()]))
-        {
-          baseResultEdges.addAll(potentialEdgesToReconstructSure[vertexToRemoveForResult.getVertexNo()]);
-        }
+        List<Edge> baseResultEdges = collectResultFromSureEdges(potentialEdgesToReconstructSure[vertexToRemoveForResult.getVertexNo()]);
 
         boolean[] potentialResultIncludedEndpoints = new boolean[graph.getVertices().size()];
         baseResultEdges.forEach(edge -> potentialResultIncludedEndpoints[edge.getEndpoint().getVertexNo()] = true);
 
-        for (Edge spike : noSquareAtAllEdgesWithDegreeOneAtEndpoint)
-        {
-          Vertex spikeEndpoint = spike.getEndpoint();
-          if (vertexToRemoveForResult != spikeEndpoint
-                  && !potentialResultIncludedEndpoints[spikeEndpoint.getVertexNo()])
-          {
-            Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, spikeEndpoint);
-            baseResultEdges.add(missingSquarePotentialResultEdge);
-            potentialResultIncludedEndpoints[spikeEndpoint.getVertexNo()] = true;
-          }
-        }
-
-        for (Vertex missingSquareEdgesEndpoint : missingSquareEdgesEndpoints)
-        {
-          if (!potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()])
-          {
-            Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, missingSquareEdgesEndpoint);
-            baseResultEdges.add(missingSquarePotentialResultEdge);
-            potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()] = true;
-          }
-        }
+        addSpikesToResult(noSquareAtAllEdgesWithDegreeOneAtEndpoint, vertexToRemoveForResult, baseResultEdges, potentialResultIncludedEndpoints);
+        addMissingSquareEdgesEndpointsToResult(vertexToRemoveForResult, missingSquareEdgesEndpoints, baseResultEdges, potentialResultIncludedEndpoints);
 
         boolean anyPotentialMaybyEdgeContainedInTheBaseResult =
                 containsAnyEndpoints(baseResultEdges, potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()]);
@@ -330,13 +257,91 @@ public class MissingSquaresSpikeAnalyserServiceImpl
               break;
             }
           }
-
         }
       }
       else
       {
-        System.out.println("no spikes");
-        testCaseContext.setCorrectResult(true);
+        Edge arbitraryNoSquareAtAllEdge = noSquareAtAllMissingSquares.get(0).getBaseEdge();
+
+        NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo = new NoSquareAtAllCycleNode[graph.getVertices().size()];
+        List<List<Edge>> groupedNoSquareAtAllEdges = new LinkedList<>();
+        Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints = new Integer[graph.getVertices().size()];
+
+        List<List<NoSquareAtAllCycleNode>> cycles = partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCycleUsingBfs(
+                arbitraryNoSquareAtAllEdge, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints,
+                squareReconstructionData, noSquareAtAllCycleNodesByVertexNo);
+
+        if (CollectionUtils.isNotEmpty(cycles))
+        {
+          List<NoSquareAtAllCycleNode> arbitraryCycle = cycles.get(0);
+
+          List<Integer> vertexNumbersInCycle = arbitraryCycle.stream()
+                  .map(node -> node.getVertex().getVertexNo())
+                  .collect(Collectors.toList());
+
+          List<Vertex> potentialCorrectVertices = filterPotentialCorrectVertices(potentialEdgesNumberToReconstructPerVertex, arbitraryNoSquareAtAllEdge.getEndpoint(), vertexNumbersInCycle);
+          potentialCorrectVertices = filterOutMissingSquareEdgesVertices(missingSquareEdgesIncludedEndpoints, potentialCorrectVertices);
+          potentialCorrectVertices = favorizeVerticesWithAllPotentialMissingEdgesSure(potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialCorrectVertices);
+
+          if (potentialCorrectVertices.size() > 1)
+          {
+            if (testCaseContext.getVerticesToRemoveForResult().size() == potentialCorrectVertices.size())
+            {
+              vertexToRemoveForResult = potentialCorrectVertices.get(0);
+            }
+            else
+            {
+              //FIXME multiple potential correct vertices - use some cycle features
+            }
+          }
+          else
+          {
+            vertexToRemoveForResult = potentialCorrectVertices.get(0);
+          }
+
+          if (vertexToRemoveForResult == null)
+          {
+            continue;
+          }
+
+          List<Edge> baseResultEdges = collectResultFromSureEdges(potentialEdgesToReconstructSure[vertexToRemoveForResult.getVertexNo()]);
+
+          boolean[] potentialResultIncludedEndpoints = new boolean[graph.getVertices().size()];
+          baseResultEdges.forEach(edge -> potentialResultIncludedEndpoints[edge.getEndpoint().getVertexNo()] = true);
+
+          addMissingSquareEdgesEndpointsToResult(vertexToRemoveForResult, missingSquareEdgesEndpoints, baseResultEdges, potentialResultIncludedEndpoints);
+
+          boolean anyPotentialMaybyEdgeContainedInTheBaseResult =
+                  containsAnyEndpoints(baseResultEdges, potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()]);
+          if (CollectionUtils.isEmpty(potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()])
+                  || anyPotentialMaybyEdgeContainedInTheBaseResult)
+          {
+            missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(baseResultEdges);
+          }
+          else
+          {
+            //FIXME can't loop careless like that
+            for (Edge maybeResultEdge : potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()])
+            {
+              List<Edge> potentialResultEdges = new LinkedList<>(baseResultEdges);
+              potentialResultEdges.add(maybeResultEdge);
+
+              missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(potentialResultEdges);
+              if (testCaseContext.isCorrectResult())
+              {
+                break;
+              }
+            }
+          }
+
+          this.getClass();
+
+        }
+        else
+        {
+          System.out.println("no spike or cycle");
+          testCaseContext.isCorrectResult();
+        }
       }
 
       if (testCaseContext.isCorrectResult())
@@ -347,15 +352,16 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
   }
 
-  private void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstruct, Edge missingEdge)
+  private void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstruct, MissingEdgeData missingEdgeData)
   {
+    Edge missingEdge = missingEdgeData.getEdge();
     if (potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()])
     {
       return;
     }
 
-    potentialEdgesNumberToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()]++;
-    potentialEdgesNumberToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()]++;
+    potentialEdgesNumberToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()] += missingEdgeData.getNumberOfDistinctMissingSquareTriples();
+    potentialEdgesNumberToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()] += missingEdgeData.getNumberOfDistinctMissingSquareTriples();
     potenrialEdgesToReconstructPerVertex[missingEdge.getOrigin().getVertexNo()][missingEdge.getEndpoint().getVertexNo()] = true;
     potenrialEdgesToReconstructPerVertex[missingEdge.getEndpoint().getVertexNo()][missingEdge.getOrigin().getVertexNo()] = true;
 
@@ -391,5 +397,142 @@ public class MissingSquaresSpikeAnalyserServiceImpl
             .findAny().isPresent();
 
     return anyElementPresent;
+  }
+
+  private List<Integer> findVertexNumbersOfDistanceFiveFromSelectedSpike(int[] distanceVectorFromArbitrarySingleEdgeWithSpecialColor, List<Integer> properDistanceFromSpikeVertexNumbers)
+  {
+    return properDistanceFromSpikeVertexNumbers.stream()
+            .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
+            .collect(Collectors.toList());
+  }
+
+  private void includeVerticesOfDistanceFiveIntoPotentialEdgesToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstructSure, boolean[] distanceFiveToAnotherPotentialVertex, Vertex arbitrarySingleEdgeEndpointWithSpecialColor, List<Integer> additionalPotentialEndpointNumbersToConnect)
+  {
+    if (CollectionUtils.isNotEmpty(additionalPotentialEndpointNumbersToConnect))
+    {
+      distanceFiveToAnotherPotentialVertex[arbitrarySingleEdgeEndpointWithSpecialColor.getVertexNo()] = true;
+      additionalPotentialEndpointNumbersToConnect.stream()
+              .peek(additionalPotentialEndpointNumberToConnect -> distanceFiveToAnotherPotentialVertex[additionalPotentialEndpointNumberToConnect] = true)
+              .map(additionalPotentialEndpointNumberToConnect -> new Edge(arbitrarySingleEdgeEndpointWithSpecialColor, graph.getVertices().get(additionalPotentialEndpointNumberToConnect)))
+              .filter(potentialAdditionalEdge -> !potenrialEdgesToReconstructPerVertex[potentialAdditionalEdge.getOrigin().getVertexNo()][potentialAdditionalEdge.getEndpoint().getVertexNo()])
+              .map(potentialAdditionalEdge -> new MissingEdgeData(potentialAdditionalEdge))
+              .forEach(potentialAdditionalEdge -> storePotentialEdgeToReconstruct(potentialEdgesNumberToReconstructPerVertex, potenrialEdgesToReconstructPerVertex, potentialEdgesToReconstructSure, potentialAdditionalEdge));
+    }
+  }
+
+  private List<Integer> findVertexNumbersOfProperDistanceFromSpike(int[] potentialEdgesNumberToReconstructPerVertex, int[] distanceVectorFromArbitrarySingleEdgeWithSpecialColor)
+  {
+    return IntStream.range(0, graph.getVertices().size())
+            .filter(vertexNumber -> potentialEdgesNumberToReconstructPerVertex[vertexNumber] != 0)
+            .filter(vertexNumber -> distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 3
+                    || distanceVectorFromArbitrarySingleEdgeWithSpecialColor[vertexNumber] == 5)
+            .mapToObj(Integer::valueOf)
+            .collect(Collectors.toList());
+  }
+
+  private List<Vertex> filterPotentialCorrectVertices(int[] potentialEdgesNumberToReconstructPerVertex, Vertex arbitraryVertex, List<Integer> preselectedVertexNumbers)
+  {
+    int maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[arbitraryVertex.getVertexNo()];
+    boolean[] potentialVerticesIncludedToRemoveForResult = new boolean[graph.getVertices().size()];
+    List<Vertex> potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(arbitraryVertex));
+    potentialVerticesIncludedToRemoveForResult[arbitraryVertex.getVertexNo()] = true;
+
+    for (Integer properDistanceFromSpikeVertexNumber : preselectedVertexNumbers)
+    {
+      Vertex vertexOfProperDistanceFromSpike = graph.getVertices().get(properDistanceFromSpikeVertexNumber);
+      if (potentialVerticesIncludedToRemoveForResult[vertexOfProperDistanceFromSpike.getVertexNo()])
+      {
+        continue;
+      }
+
+      int potentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[properDistanceFromSpikeVertexNumber];
+      if (maxPotentialEdgesNumberToReconstruct < potentialEdgesNumberToReconstruct)
+      {
+        maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstruct;
+        potentialVerticesToRemoveForResult = new LinkedList<>(Arrays.asList(vertexOfProperDistanceFromSpike));
+      }
+      else if (maxPotentialEdgesNumberToReconstruct == potentialEdgesNumberToReconstruct)
+      {
+        potentialVerticesToRemoveForResult.add(vertexOfProperDistanceFromSpike);
+      }
+    }
+    return potentialVerticesToRemoveForResult;
+  }
+
+  private List<Vertex> filterOutMissingSquareEdgesVertices(boolean[] missingSquareEdgesIncludedEndpoints, List<Vertex> potentialVerticesToRemoveForResult)
+  {
+    if (potentialVerticesToRemoveForResult.size() > 1)
+    {
+      potentialVerticesToRemoveForResult = potentialVerticesToRemoveForResult.stream()
+              .filter(vertex -> !missingSquareEdgesIncludedEndpoints[vertex.getVertexNo()])
+              .collect(Collectors.toList());
+    }
+    return potentialVerticesToRemoveForResult;
+  }
+
+  private List<Vertex> favorizeVerticesWithAllPotentialMissingEdgesSure(int[] potentialEdgesNumberToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstructSure, List<Vertex> potentialVerticesToRemoveForResult)
+  {
+    if (potentialVerticesToRemoveForResult.size() > 1)
+    {
+      List<Vertex> potentialNoMaybeEndpoints = potentialVerticesToRemoveForResult.stream()
+              .filter(vertex -> CollectionUtils.isNotEmpty(potentialEdgesToReconstructSure[vertex.getVertexNo()]))
+              .filter(vertex -> potentialEdgesNumberToReconstructPerVertex[vertex.getVertexNo()] == potentialEdgesToReconstructSure[vertex.getVertexNo()].size())
+              .collect(Collectors.toList());
+      if (CollectionUtils.isNotEmpty(potentialNoMaybeEndpoints))
+      {
+        potentialVerticesToRemoveForResult = potentialNoMaybeEndpoints;
+      }
+    }
+    return potentialVerticesToRemoveForResult;
+  }
+
+  private Vertex selectFirstSpikeOutOfPotentialCorrectVertices(Vertex vertexToRemoveForResult, List<Vertex> potentialVerticesToRemoveForResult)
+  {
+    List<Vertex> potentialSpikeEndpoints = potentialVerticesToRemoveForResult.stream()
+            .filter(vertex -> vertex.getEdges().size() == 1)
+            .collect(Collectors.toList());
+    if (CollectionUtils.isNotEmpty(potentialSpikeEndpoints))
+    {
+      vertexToRemoveForResult = potentialSpikeEndpoints.get(0);
+    }
+    return vertexToRemoveForResult;
+  }
+
+  private List<Edge> collectResultFromSureEdges(List<Edge> sureEdges)
+  {
+    List<Edge> baseResultEdges = new LinkedList<>();
+    if (CollectionUtils.isNotEmpty(sureEdges))
+    {
+      baseResultEdges.addAll(sureEdges);
+    }
+    return baseResultEdges;
+  }
+
+  private void addSpikesToResult(List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint, Vertex vertexToRemoveForResult, List<Edge> baseResultEdges, boolean[] potentialResultIncludedEndpoints)
+  {
+    for (Edge spike : noSquareAtAllEdgesWithDegreeOneAtEndpoint)
+    {
+      Vertex spikeEndpoint = spike.getEndpoint();
+      if (vertexToRemoveForResult != spikeEndpoint
+              && !potentialResultIncludedEndpoints[spikeEndpoint.getVertexNo()])
+      {
+        Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, spikeEndpoint);
+        baseResultEdges.add(missingSquarePotentialResultEdge);
+        potentialResultIncludedEndpoints[spikeEndpoint.getVertexNo()] = true;
+      }
+    }
+  }
+
+  private void addMissingSquareEdgesEndpointsToResult(Vertex vertexToRemoveForResult, List<Vertex> missingSquareEdgesEndpoints, List<Edge> baseResultEdges, boolean[] potentialResultIncludedEndpoints)
+  {
+    for (Vertex missingSquareEdgesEndpoint : missingSquareEdgesEndpoints)
+    {
+      if (!potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()])
+      {
+        Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, missingSquareEdgesEndpoint);
+        baseResultEdges.add(missingSquarePotentialResultEdge);
+        potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()] = true;
+      }
+    }
   }
 }
