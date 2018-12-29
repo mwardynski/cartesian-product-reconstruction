@@ -1,6 +1,7 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.missingedges;
 
 import at.ac.unileoben.mat.dissertation.common.GraphHelper;
+import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -27,7 +28,13 @@ public class MissingSquaresSpikeAnalyserServiceImpl
   GraphHelper graphHelper;
 
   @Autowired
+  ColoringService coloringService;
+
+  @Autowired
   MissingSquaresAnalyserCommons missingSquaresAnalyserCommons;
+
+  @Autowired
+  MissingSquaresCycleLengthEightAnalyserServiceImpl missingSquaresCycleLengthEightAnalyserService;
 
   @Autowired
   PartOfCycleNoSquareAtAllMissingSquaresFindingService partOfCycleNoSquareAtAllMissingSquaresGeneralService;
@@ -273,14 +280,43 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
         if (CollectionUtils.isNotEmpty(cycles))
         {
-          List<NoSquareAtAllCycleNode> arbitraryCycle = cycles.get(0);
+          List<List<Edge>> cycleOfLengthEightMissingEdgesPerCycle = missingSquaresCycleLengthEightAnalyserService.findMissingEdgesComparingCycles(cycles, squareReconstructionData);
 
-          List<Integer> vertexNumbersInCycle = arbitraryCycle.stream()
+          if (CollectionUtils.isNotEmpty(cycleOfLengthEightMissingEdgesPerCycle))
+          {
+            for (List<Edge> resultEdgesPerCycle : cycleOfLengthEightMissingEdgesPerCycle)
+            {
+              missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(resultEdgesPerCycle);
+              if (testCaseContext.isCorrectResult())
+              {
+                return;
+              }
+            }
+          }
+
+          boolean[] verticesIncludedInCycle = new boolean[graph.getVertices().size()];
+          List<Integer> vertexNumbersInCycles = cycles.stream()
+                  .flatMap(cycle -> cycle.stream())
                   .map(node -> node.getVertex().getVertexNo())
+                  .filter(vertexNumber ->
+                  {
+                    if (!verticesIncludedInCycle[vertexNumber])
+                    {
+                      verticesIncludedInCycle[vertexNumber] = true;
+                      return true;
+                    }
+                    return false;
+                  })
                   .collect(Collectors.toList());
+          List<Integer> preselectedVertexNumbers = vertexNumbersInCycles;
 
-          List<Vertex> potentialCorrectVertices = filterPotentialCorrectVertices(potentialEdgesNumberToReconstructPerVertex, arbitraryNoSquareAtAllEdge.getEndpoint(), vertexNumbersInCycle);
+          //FIXME mayby only for cycles of the length = 8
+          modifyPotentialEdgeNumberBasedOnCycle(cycles, vertexNumbersInCycles, potentialEdgesNumberToReconstructPerVertex, squareReconstructionData);
+          List<Vertex> potentialCorrectVertices = filterPotentialCorrectVertices(potentialEdgesNumberToReconstructPerVertex, arbitraryNoSquareAtAllEdge.getEndpoint(), preselectedVertexNumbers);
           potentialCorrectVertices = filterOutMissingSquareEdgesVertices(missingSquareEdgesIncludedEndpoints, potentialCorrectVertices);
+          potentialCorrectVertices = filterVerticesBetweenEdgesOfSameColorInCycle(cycles, potentialCorrectVertices);
+          potentialCorrectVertices = filterVerticesInCycleOfLengthEightWithSquare(cycles.get(0), potentialCorrectVertices, squareReconstructionData);
+          potentialCorrectVertices = favorizeVerticesWithManyDistinctMissingSquareTriples(missingEdges, potentialCorrectVertices);
           potentialCorrectVertices = favorizeVerticesWithAllPotentialMissingEdgesSure(potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialCorrectVertices);
 
           if (potentialCorrectVertices.size() > 1)
@@ -310,6 +346,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           baseResultEdges.forEach(edge -> potentialResultIncludedEndpoints[edge.getEndpoint().getVertexNo()] = true);
 
           addMissingSquareEdgesEndpointsToResult(vertexToRemoveForResult, missingSquareEdgesEndpoints, baseResultEdges, potentialResultIncludedEndpoints);
+//          addVerticesToConnectFromCycle(vertexToRemoveForResult, verticesToConnectFromCycle, baseResultEdges, potentialResultIncludedEndpoints);
 
           boolean anyPotentialMaybyEdgeContainedInTheBaseResult =
                   containsAnyEndpoints(baseResultEdges, potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()]);
@@ -320,6 +357,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           }
           else
           {
+            missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(baseResultEdges);
             //FIXME can't loop careless like that
             for (Edge maybeResultEdge : potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()])
             {
@@ -333,9 +371,6 @@ public class MissingSquaresSpikeAnalyserServiceImpl
               }
             }
           }
-
-          this.getClass();
-
         }
         else
         {
@@ -430,6 +465,31 @@ public class MissingSquaresSpikeAnalyserServiceImpl
             .collect(Collectors.toList());
   }
 
+  private void modifyPotentialEdgeNumberBasedOnCycle(List<List<NoSquareAtAllCycleNode>> cycles, List<Integer> vertexNumbersInCycles, int[] potentialEdgesNumberToReconstructPerVertex, SquareReconstructionData squareReconstructionData)
+  {
+    boolean[] verticesInCycleOfLengthEightWithSquare = new boolean[graph.getVertices().size()];
+    for (List<NoSquareAtAllCycleNode> cycle : cycles)
+    {
+      List<CycleEdgePair> cycleEdgePairs = collectCycleEdgePairs(cycle);
+
+      for (CycleEdgePair cycleEdgePair : cycleEdgePairs)
+      {
+        Edge firstEdge = cycleEdgePair.getFirstEdge();
+        Edge secondEdge = cycleEdgePair.getSecondEdge();
+
+        SingleSquareList singleSquareDataList = squareReconstructionData.getSquares()[firstEdge.getOrigin().getVertexNo()][firstEdge.getEndpoint().getVertexNo()][secondEdge.getEndpoint().getVertexNo()];
+        if (CollectionUtils.isNotEmpty(singleSquareDataList))
+        {
+          verticesInCycleOfLengthEightWithSquare[firstEdge.getOrigin().getVertexNo()] = true;
+        }
+      }
+    }
+
+    vertexNumbersInCycles.stream()
+            .filter(vertexNumber -> verticesInCycleOfLengthEightWithSquare[vertexNumber])
+            .forEach(vertexNumber -> potentialEdgesNumberToReconstructPerVertex[vertexNumber]++);
+  }
+
   private List<Vertex> filterPotentialCorrectVertices(int[] potentialEdgesNumberToReconstructPerVertex, Vertex arbitraryVertex, List<Integer> preselectedVertexNumbers)
   {
     int maxPotentialEdgesNumberToReconstruct = potentialEdgesNumberToReconstructPerVertex[arbitraryVertex.getVertexNo()];
@@ -470,6 +530,87 @@ public class MissingSquaresSpikeAnalyserServiceImpl
     return potentialVerticesToRemoveForResult;
   }
 
+  private List<Vertex> filterVerticesBetweenEdgesOfSameColorInCycle(List<List<NoSquareAtAllCycleNode>> cycles, List<Vertex> potentialCorrectVertices)
+  {
+    if (potentialCorrectVertices.size() > 1)
+    {
+      boolean[] verticesBetweenEdgesOfSameColorInCycle = new boolean[graph.getVertices().size()];
+
+      for (List<NoSquareAtAllCycleNode> cycle : cycles)
+      {
+        List<CycleEdgePair> cycleEdgePairs = collectCycleEdgePairs(cycle);
+        for (CycleEdgePair cycleEdgePair : cycleEdgePairs)
+        {
+          int firstEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), cycleEdgePair.getFirstEdge().getLabel().getColor());
+          int secondEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), cycleEdgePair.getSecondEdge().getLabel().getColor());
+
+          if (firstEdgeColor == secondEdgeColor && firstEdgeColor != 0)
+          {
+            verticesBetweenEdgesOfSameColorInCycle[cycleEdgePair.getFirstEdge().getOrigin().getVertexNo()] = true;
+          }
+        }
+      }
+
+      List<Vertex> potentialCorrectVerticesBetweenEdgesOfSameColorInCycle = potentialCorrectVertices.stream()
+              .filter(vertex -> verticesBetweenEdgesOfSameColorInCycle[vertex.getVertexNo()])
+              .collect(Collectors.toList());
+
+      if (CollectionUtils.isNotEmpty(potentialCorrectVerticesBetweenEdgesOfSameColorInCycle))
+      {
+        potentialCorrectVertices = potentialCorrectVerticesBetweenEdgesOfSameColorInCycle;
+      }
+    }
+    return potentialCorrectVertices;
+  }
+
+  private List<Vertex> filterVerticesInCycleOfLengthEightWithSquare(List<NoSquareAtAllCycleNode> cycle, List<Vertex> potentialCorrectVertices, SquareReconstructionData squareReconstructionData)
+  {
+    boolean[] verticesInCycleOfLengthEightWithSquare = new boolean[graph.getVertices().size()];
+
+    List<CycleEdgePair> cycleEdgePairs = collectCycleEdgePairs(cycle);
+
+    for (CycleEdgePair cycleEdgePair : cycleEdgePairs)
+    {
+      Edge firstEdge = cycleEdgePair.getFirstEdge();
+      Edge secondEdge = cycleEdgePair.getSecondEdge();
+
+      SingleSquareList singleSquareDataList = squareReconstructionData.getSquares()[firstEdge.getOrigin().getVertexNo()][firstEdge.getEndpoint().getVertexNo()][secondEdge.getEndpoint().getVertexNo()];
+      if (CollectionUtils.isNotEmpty(singleSquareDataList))
+      {
+        verticesInCycleOfLengthEightWithSquare[firstEdge.getOrigin().getVertexNo()] = true;
+      }
+    }
+
+    List<Vertex> potentialCorrectVerticesInCycleOfLengthEightWithSquare = potentialCorrectVertices.stream()
+            .filter(vertex -> verticesInCycleOfLengthEightWithSquare[vertex.getVertexNo()])
+            .collect(Collectors.toList());
+
+    if (CollectionUtils.isNotEmpty(potentialCorrectVerticesInCycleOfLengthEightWithSquare))
+    {
+      potentialCorrectVertices = potentialCorrectVerticesInCycleOfLengthEightWithSquare;
+    }
+    return potentialCorrectVertices;
+  }
+
+  private List<CycleEdgePair> collectCycleEdgePairs(List<NoSquareAtAllCycleNode> cycle)
+  {
+    int cycleLength = cycle.size();
+    List<CycleEdgePair> cycleEdgePairs = new LinkedList<>();
+
+    for (int i = 1; i <= cycleLength; i++)
+    {
+      Vertex frontVertex = cycle.get((i - 1) % cycleLength).getVertex();
+      Vertex middleVertex = cycle.get(i % cycleLength).getVertex();
+      Vertex backVertex = cycle.get((i + 1) % cycleLength).getVertex();
+
+      Edge firstEdge = graph.getAdjacencyMatrix()[middleVertex.getVertexNo()][frontVertex.getVertexNo()];
+      Edge secondEdge = graph.getAdjacencyMatrix()[middleVertex.getVertexNo()][backVertex.getVertexNo()];
+
+      cycleEdgePairs.add(new CycleEdgePair(firstEdge, secondEdge));
+    }
+    return cycleEdgePairs;
+  }
+
   private List<Vertex> favorizeVerticesWithAllPotentialMissingEdgesSure(int[] potentialEdgesNumberToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstructSure, List<Vertex> potentialVerticesToRemoveForResult)
   {
     if (potentialVerticesToRemoveForResult.size() > 1)
@@ -484,6 +625,31 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       }
     }
     return potentialVerticesToRemoveForResult;
+  }
+
+  private List<Vertex> favorizeVerticesWithManyDistinctMissingSquareTriples(List<MissingEdgeData> missingEdges, List<Vertex> potentialCorrectVertices)
+  {
+    if (potentialCorrectVertices.size() > 1)
+    {
+      boolean[] endpointsWithManyDistinctMissingSquareTriples = new boolean[graph.getVertices().size()];
+
+      missingEdges.stream()
+              .filter(missingEdgeData -> missingEdgeData.getNumberOfDistinctMissingSquareTriples() > 1)
+              .map(MissingEdgeData::getEdge)
+              .flatMap(missingEdge -> Arrays.asList(missingEdge.getOrigin(), missingEdge.getEndpoint()).stream())
+              .forEach(vertex -> endpointsWithManyDistinctMissingSquareTriples[vertex.getVertexNo()] = true);
+
+
+      List<Vertex> verticesWithManyDistinctMissingSquareTriples = potentialCorrectVertices.stream()
+              .filter(vertex -> endpointsWithManyDistinctMissingSquareTriples[vertex.getVertexNo()])
+              .collect(Collectors.toList());
+
+      if (CollectionUtils.isNotEmpty(verticesWithManyDistinctMissingSquareTriples))
+      {
+        potentialCorrectVertices = verticesWithManyDistinctMissingSquareTriples;
+      }
+    }
+    return potentialCorrectVertices;
   }
 
   private Vertex selectFirstSpikeOutOfPotentialCorrectVertices(Vertex vertexToRemoveForResult, List<Vertex> potentialVerticesToRemoveForResult)
@@ -527,7 +693,8 @@ public class MissingSquaresSpikeAnalyserServiceImpl
   {
     for (Vertex missingSquareEdgesEndpoint : missingSquareEdgesEndpoints)
     {
-      if (!potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()])
+      if (!potentialResultIncludedEndpoints[missingSquareEdgesEndpoint.getVertexNo()]
+              && graph.getAdjacencyMatrix()[vertexToRemoveForResult.getVertexNo()][missingSquareEdgesEndpoint.getVertexNo()] == null)
       {
         Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, missingSquareEdgesEndpoint);
         baseResultEdges.add(missingSquarePotentialResultEdge);
@@ -535,4 +702,19 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       }
     }
   }
+
+  private void addVerticesToConnectFromCycle(Vertex vertexToRemoveForResult, List<Vertex> verticesToConnectFromCycle, List<Edge> baseResultEdges, boolean[] potentialResultIncludedEndpoints)
+  {
+    for (Vertex vertexToConnectFromCycle : verticesToConnectFromCycle)
+    {
+      if (!potentialResultIncludedEndpoints[vertexToConnectFromCycle.getVertexNo()])
+      {
+        Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, vertexToConnectFromCycle);
+        baseResultEdges.add(missingSquarePotentialResultEdge);
+        potentialResultIncludedEndpoints[vertexToConnectFromCycle.getVertexNo()] = true;
+      }
+    }
+  }
+
+
 }
