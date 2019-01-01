@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -47,6 +48,7 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
     NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo = new NoSquareAtAllCycleNode[graph.getVertices().size()];
     Edge arbitraryGroupFirstEdge = groupedNoSquareAtAllEdges.get(0).get(0);
+
     List<List<NoSquareAtAllCycleNode>> correctCycles = findCycleUsingBfs(arbitraryGroupFirstEdge, groupedNoSquareAtAllEdges, noSquareAtAllGroupsData.getGroupNumbersForNoSquareAtAllEdgesEndpoints(), squareReconstructionData, noSquareAtAllCycleNodesByVertexNo);
 
     List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = splitCyclesIntoMissingSquares(correctCycles, noSquareAtAllCycleNodesByVertexNo);
@@ -56,10 +58,12 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
   @Override
   public List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints, SquareReconstructionData squareReconstructionData, NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo)
   {
+
     Vertex endVertex = arbitraryGroupFirstEdge.getEndpoint();
     Vertex firstVertex = arbitraryGroupFirstEdge.getOrigin();
     NoSquareAtAllCycleNode firstNoSquareAtAllCycleNode = new NoSquareAtAllCycleNode(firstVertex, 0);
     noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()] = firstNoSquareAtAllCycleNode;
+    NoSquareAtAllCycleNode additionalLastNoSquareAtAllCycleOfLengthEightNode = new NoSquareAtAllCycleNode(endVertex, 7);
 
     Queue<Vertex> nextVertices = new LinkedList<>();
     nextVertices.add(firstVertex);
@@ -92,8 +96,17 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
                   noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()] = new NoSquareAtAllCycleNode(nextVertex, currentVertexNode.getDistance() + 1);
                   nextVertices.add(nextVertex);
                 }
+                NoSquareAtAllCycleNode nextVertexNode;
+                if (nextVertex == endVertex
+                        && noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()].getDistance() < noSquareAtAllCycleNodesByVertexNo[currentVertex.getVertexNo()].getDistance())
+                {
+                  nextVertexNode = additionalLastNoSquareAtAllCycleOfLengthEightNode;
+                }
+                else
+                {
+                  nextVertexNode = noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()];
+                }
 
-                NoSquareAtAllCycleNode nextVertexNode = noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()];
                 if (nextVertexNode.getDistance() == currentVertexNode.getDistance() + 1)
                 {
                   nextVertexNode.getPreviousVerticesNodes().add(currentVertexNode);
@@ -108,7 +121,78 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
     processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()],
             correctCycles, currentCycle, collectedMappedColors, collectedGroups, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints);
+
+    if (isLongestCycleOfLengthSix(noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()]))
+    {
+      extendCycleNodesForCycleOfLengthEight(noSquareAtAllCycleNodesByVertexNo, correctCycles);
+
+      correctCycles = new LinkedList<>();
+      currentCycle = new LinkedList<>();
+      collectedMappedColors = new UniqueList(graph.getVertices().size());
+      collectedGroups = new UniqueList(groupedNoSquareAtAllEdges.size());
+
+      processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()],
+              correctCycles, currentCycle, collectedMappedColors, collectedGroups, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints);
+    }
+
+
     return correctCycles;
+  }
+
+  private boolean isLongestCycleOfLengthSix(NoSquareAtAllCycleNode noSquareAtAllCycleNode)
+  {
+    return noSquareAtAllCycleNode.getDistance() == 5;
+  }
+
+  private void extendCycleNodesForCycleOfLengthEight(NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo, List<List<NoSquareAtAllCycleNode>> cycles)
+  {
+    NoSquareAtAllCycleNode[] cycleNodesIncludedInCycles = new NoSquareAtAllCycleNode[graph.getVertices().size()];
+    cycles.stream()
+            .flatMap(cycle -> cycle.stream())
+            .forEach(cycleNode -> cycleNodesIncludedInCycles[cycleNode.getVertex().getVertexNo()] = cycleNode);
+
+    for (int vertexNumber = 0; vertexNumber < noSquareAtAllCycleNodesByVertexNo.length; vertexNumber++)
+    {
+      NoSquareAtAllCycleNode cycleNode = noSquareAtAllCycleNodesByVertexNo[vertexNumber];
+      if (cycleNode == null)
+      {
+        continue;
+      }
+      if (cycleNodesIncludedInCycles[cycleNode.getVertex().getVertexNo()] == null
+              && (cycleNode.getDistance() == 5 || cycleNode.getDistance() == 3))
+      {
+        List<NoSquareAtAllCycleNode> neighborCycleNodesInCycles = new LinkedList<>();
+        List<NoSquareAtAllCycleNode> neighborCycleNodesOutOfCycles = new LinkedList<>();
+
+        for (NoSquareAtAllCycleNode previousCycleNode : cycleNode.getPreviousVerticesNodes())
+        {
+          if (cycleNodesIncludedInCycles[previousCycleNode.getVertex().getVertexNo()] != null)
+          {
+            neighborCycleNodesInCycles.add(previousCycleNode);
+          }
+          else
+          {
+            neighborCycleNodesOutOfCycles.add(previousCycleNode);
+          }
+        }
+
+        if (CollectionUtils.isNotEmpty(neighborCycleNodesInCycles) && CollectionUtils.isNotEmpty(neighborCycleNodesOutOfCycles))
+        {
+          Iterator<NoSquareAtAllCycleNode> previousCycleNodesIterator = cycleNode.getPreviousVerticesNodes().iterator();
+          while (previousCycleNodesIterator.hasNext())
+          {
+            NoSquareAtAllCycleNode previousCycleNode = previousCycleNodesIterator.next();
+            if (cycleNodesIncludedInCycles[previousCycleNode.getVertex().getVertexNo()] != null)
+            {
+              previousCycleNodesIterator.remove();
+            }
+          }
+          neighborCycleNodesInCycles
+                  .forEach(cycleNodeInCycle -> cycleNodeInCycle.getPreviousVerticesNodes().add(cycleNode));
+        }
+      }
+
+    }
   }
 
   private boolean includeVerticesDifferentThanEndVertex(Vertex currentVertex, Vertex nextVertex, Vertex endVertex, NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo)

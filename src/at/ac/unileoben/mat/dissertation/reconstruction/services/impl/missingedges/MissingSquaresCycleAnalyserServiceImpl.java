@@ -5,15 +5,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Component
-public class MissingSquaresCycleLengthEightAnalyserServiceImpl
+public class MissingSquaresCycleAnalyserServiceImpl
 {
   @Autowired
   Graph graph;
@@ -26,21 +22,19 @@ public class MissingSquaresCycleLengthEightAnalyserServiceImpl
       return Collections.emptyList();
     }
 
+    List<Vertex>[][][] cycleDiffVertices = collectCycleDifferencesWithStartAndEndVertices(cycles, cycles);
+
     List<Vertex> resultVertices = new LinkedList<>();
-    boolean[][] verticesIncludedInCycles = new boolean[cycles.size()][graph.getVertices().size()];
-    collectIncludedVertexIndicesPerCycle(cycles, verticesIncludedInCycles);
-
-    List<Vertex>[][] cycleDiffVertices = new List[cycles.size()][cycles.size()];
-    collectCycleDifferencesWithStartAndEndVertices(cycles, verticesIncludedInCycles, cycleDiffVertices);
-
     List<Integer> startVertexNumbers = new LinkedList<>();
 
     for (int i = 0; i < cycles.size() - 1 && CollectionUtils.isEmpty(resultVertices); i++)
     {
       for (int j = i + 1; j < cycles.size() && CollectionUtils.isEmpty(resultVertices); j++)
       {
-        List<Vertex> diffVertices = cycleDiffVertices[i][j];
-        List<Vertex> corrDiffVertices = cycleDiffVertices[j][i];
+        List<Vertex> diffVertices = cycleDiffVertices[0][i][j];
+        List<Vertex> corrDiffVertices = cycleDiffVertices[1][j][i];
+
+        int resultVerticesSizeBefore = resultVertices.size();
 
         if (diffVertices.size() - 2 == 1)
         {
@@ -53,21 +47,49 @@ public class MissingSquaresCycleLengthEightAnalyserServiceImpl
         else if (diffVertices.size() - 2 == 3)
         {
           collectResultVerticesBasedOnMiddleSquare(squareReconstructionData, resultVertices, startVertexNumbers, diffVertices, corrDiffVertices);
+          if (resultVerticesSizeBefore == resultVertices.size())
+          {
+            List<NoSquareAtAllCycleNode> firstCycle = cycles.get(i);
+            List<NoSquareAtAllCycleNode> secondCycle = cycles.get(j);
+
+            List<List<NoSquareAtAllCycleNode>> cyclesToCheck = Arrays.asList(firstCycle, secondCycle);
+
+            for (List<NoSquareAtAllCycleNode> cycleToCheck : cyclesToCheck)
+            {
+              for (int k = 1; k < cycleToCheck.size() - 1; k++)
+              {
+                int frontVertexNumber = cycleToCheck.get(k - 1).getVertex().getVertexNo();
+                Vertex middleVertex = cycleToCheck.get(k).getVertex();
+                int middleVertexNumber = middleVertex.getVertexNo();
+                int backVertexNumber = cycleToCheck.get(k + 1).getVertex().getVertexNo();
+
+                SingleSquareList squareList = squareReconstructionData.getSquares()[middleVertexNumber][frontVertexNumber][backVertexNumber];
+                if (CollectionUtils.isNotEmpty(squareList) && squareList.size() == 1)
+                {
+                  Vertex oppositeMiddleVertex = squareList.getFirst().getSquareOtherEdge().getEndpoint();
+
+                  if (middleVertex.getEdges().size() == 2)
+                  {
+                    resultVertices.add(middleVertex);
+                    startVertexNumbers.add(diffVertices.get(0).getVertexNo());
+                  }
+                  if (oppositeMiddleVertex.getEdges().size() == 2)
+                  {
+                    resultVertices.add(oppositeMiddleVertex);
+                    startVertexNumbers.add(diffVertices.get(0).getVertexNo());
+                  }
+                }
+
+              }
+            }
+
+          }
         }
       }
     }
-    List<List<Vertex>> verticesToConnect = new LinkedList<>();
-    collectVerticesToConnect(verticesToConnect, cycles, resultVertices, startVertexNumbers);
 
-    List<List<Edge>> resultMissingEdges = new LinkedList<>();
-    for (int resultVertexIndex = 0; resultVertexIndex < resultVertices.size(); resultVertexIndex++)
-    {
-      Vertex resultVertex = resultVertices.get(resultVertexIndex);
-      List<Edge> missingEdgesPerCycle = verticesToConnect.get(resultVertexIndex).stream()
-              .map(vertexToConnect -> new Edge(resultVertex, vertexToConnect))
-              .collect(Collectors.toList());
-      resultMissingEdges.add(missingEdgesPerCycle);
-    }
+    List<List<Vertex>> verticesToConnect = collectVerticesToConnect(cycles, resultVertices, startVertexNumbers);
+    List<List<Edge>> resultMissingEdges = collectMissingEdges(resultVertices, verticesToConnect);
 
 
     return resultMissingEdges;
@@ -80,49 +102,73 @@ public class MissingSquaresCycleLengthEightAnalyserServiceImpl
             .collect(Collectors.toList());
   }
 
-  private void collectCycleDifferencesWithStartAndEndVertices(List<List<NoSquareAtAllCycleNode>> cycles, boolean[][] verticesIncludedInCycles, List<Vertex>[][] cycleDiffVertices)
+  public List<Vertex>[][][] collectCycleDifferencesWithStartAndEndVertices(List<List<NoSquareAtAllCycleNode>> firstCyclesGroup,
+                                                                           List<List<NoSquareAtAllCycleNode>> secondCyclesGroup)
   {
-    for (int i = 0; i < cycles.size(); i++)
+    List<Vertex>[][][] cycleDiffVertices = new List[2][][];
+    cycleDiffVertices[0] = new List[firstCyclesGroup.size()][secondCyclesGroup.size()];
+    cycleDiffVertices[1] = new List[secondCyclesGroup.size()][firstCyclesGroup.size()];
+
+    for (int i = 0; i < firstCyclesGroup.size(); i++)
     {
-      for (int j = 0; j < cycles.size(); j++)
+      for (int j = 0; j < secondCyclesGroup.size(); j++)
       {
-        cycleDiffVertices[i][j] = new ArrayList<>();
-        if (j == i)
+        if (firstCyclesGroup.get(0).size() == secondCyclesGroup.get(0).size()
+                && j == i)
         {
           continue;
         }
 
-        boolean lastCycleVertexAdded = false;
-        for (int k = 0; k < cycles.get(i).size(); k++)
+
+        List<NoSquareAtAllCycleNode> firstCycle = firstCyclesGroup.get(i);
+        List<NoSquareAtAllCycleNode> secondCycle = secondCyclesGroup.get(j);
+
+        int firstCommonVertexIndex = 0;
+        for (int k = 1; k < firstCyclesGroup.get(i).size(); k++)
         {
-          Vertex cycleVertex = cycles.get(i).get(k).getVertex();
-          if (!verticesIncludedInCycles[j][cycleVertex.getVertexNo()])
+          if (firstCycle.get(k) == secondCycle.get(k))
           {
-            lastCycleVertexAdded = true;
-            if (CollectionUtils.isEmpty(cycleDiffVertices[i][j]))
-            {
-              Vertex prevNoSquareAtAllCycleVertex = cycles.get(i).get(k - 1).getVertex();
-              cycleDiffVertices[i][j].add(prevNoSquareAtAllCycleVertex);
-            }
-            cycleDiffVertices[i][j].add(cycleVertex);
+            firstCommonVertexIndex = k;
           }
-          else if (lastCycleVertexAdded)
+          else
           {
-            lastCycleVertexAdded = false;
-            cycleDiffVertices[i][j].add(cycleVertex);
+            break;
           }
         }
+
+        int lastCommonVertexIndexFirstCycle = firstCycle.size() - 1;
+        int lastCommonVertexIndexSecondCycle = secondCycle.size() - 1;
+        for (int k = 2; k < firstCyclesGroup.get(i).size(); k++)
+        {
+          if (firstCycle.get(firstCycle.size() - k) == secondCycle.get(secondCycle.size() - k))
+          {
+            lastCommonVertexIndexFirstCycle = firstCycle.size() - k;
+            lastCommonVertexIndexSecondCycle = secondCycle.size() - k;
+          }
+          else
+          {
+            break;
+          }
+        }
+
+        List<Vertex> firstCycleDiffVertices = new ArrayList<>();
+        for (int k = firstCommonVertexIndex; k <= lastCommonVertexIndexFirstCycle; k++)
+        {
+          firstCycleDiffVertices.add(firstCycle.get(k).getVertex());
+        }
+
+        List<Vertex> secondCycleDiffVertices = new ArrayList<>();
+        for (int k = firstCommonVertexIndex; k <= lastCommonVertexIndexSecondCycle; k++)
+        {
+          secondCycleDiffVertices.add(secondCycle.get(k).getVertex());
+        }
+
+        cycleDiffVertices[0][i][j] = firstCycleDiffVertices;
+        cycleDiffVertices[1][j][i] = secondCycleDiffVertices;
       }
     }
-  }
 
-  private void collectIncludedVertexIndicesPerCycle(List<List<NoSquareAtAllCycleNode>> cycles, boolean[][] verticesIncludedInCycles)
-  {
-    IntStream.range(0, cycles.size())
-            .forEach(cycleIndex -> cycles.get(cycleIndex).stream()
-                    .map(noSquareAtAllCycleNode -> noSquareAtAllCycleNode.getVertex().getVertexNo())
-                    .forEach(vertexNumber -> verticesIncludedInCycles[cycleIndex][vertexNumber] = true)
-            );
+    return cycleDiffVertices;
   }
 
   private void collectResultVerticesBasedOnSimpleSquare(List<Vertex> resultVertices, List<Integer> startVertexIndices, List<Vertex> diffVertices, List<Vertex> corrDiffVertices)
@@ -193,8 +239,9 @@ public class MissingSquaresCycleLengthEightAnalyserServiceImpl
     }
   }
 
-  private void collectVerticesToConnect(List<List<Vertex>> verticesToConnect, List<List<NoSquareAtAllCycleNode>> cycles, List<Vertex> resultVertices, List<Integer> startVertexNumbers)
+  public List<List<Vertex>> collectVerticesToConnect(List<List<NoSquareAtAllCycleNode>> cycles, List<Vertex> resultVertices, List<Integer> startVertexNumbers)
   {
+    List<List<Vertex>> verticesToConnect = new LinkedList<>();
     boolean[] startVertexIndicesIncluded = new boolean[graph.getVertices().size()];
     startVertexNumbers.forEach(startVertexIndex -> startVertexIndicesIncluded[startVertexIndex] = true);
     for (int startVertexIndex = 0; startVertexIndex < startVertexNumbers.size(); startVertexIndex++)
@@ -226,5 +273,21 @@ public class MissingSquaresCycleLengthEightAnalyserServiceImpl
       }
       verticesToConnect.add(verticesToConnectPerVertex);
     }
+
+    return verticesToConnect;
+  }
+
+  public List<List<Edge>> collectMissingEdges(List<Vertex> resultVertices, List<List<Vertex>> verticesToConnect)
+  {
+    List<List<Edge>> resultMissingEdges = new LinkedList<>();
+    for (int resultVertexIndex = 0; resultVertexIndex < resultVertices.size(); resultVertexIndex++)
+    {
+      Vertex resultVertex = resultVertices.get(resultVertexIndex);
+      List<Edge> missingEdgesPerCycle = verticesToConnect.get(resultVertexIndex).stream()
+              .map(vertexToConnect -> new Edge(resultVertex, vertexToConnect))
+              .collect(Collectors.toList());
+      resultMissingEdges.add(missingEdgesPerCycle);
+    }
+    return resultMissingEdges;
   }
 }
