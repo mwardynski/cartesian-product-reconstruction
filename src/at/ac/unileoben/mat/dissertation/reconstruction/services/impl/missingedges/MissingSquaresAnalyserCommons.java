@@ -126,10 +126,15 @@ public class MissingSquaresAnalyserCommons
 
       Edge matchingEdge = missingSquarePairsForSelectedColor[baseEdge.getEndpoint().getVertexNo()][baseEdge.getOrigin().getVertexNo()];
       Vertex edgeEndpoint = otherEdge.getEndpoint();
-      if (matchingEdge == null || matchingEdge == missingEdgesWarden)
+
+      Edge otherMatchingEdge = missingSquarePairsForSelectedColor[otherEdge.getEndpoint().getVertexNo()][otherEdge.getOrigin().getVertexNo()];
+      Vertex otherEdgeEndpoint = baseEdge.getEndpoint();
+
+      if (matchingEdge == null || matchingEdge == missingEdgesWarden
+              || (otherMatchingEdge != null && matchingEdge.getLabel().getColor() == 0 && otherMatchingEdge.getLabel().getColor() != 0))
       {
-        matchingEdge = missingSquarePairsForSelectedColor[otherEdge.getEndpoint().getVertexNo()][otherEdge.getOrigin().getVertexNo()];
-        edgeEndpoint = baseEdge.getEndpoint();
+        matchingEdge = otherMatchingEdge;
+        edgeEndpoint = otherEdgeEndpoint;
       }
       if (matchingEdge != null && matchingEdge != missingEdgesWarden)
       {

@@ -44,6 +44,7 @@ public class CartesianProductWithoutEdgeReconstructionTest
   public void checkAllReconstructionCases()
   {
     reconstructionData.setOperationOnGraph(OperationOnGraph.EDGE_RECONSTRUCTION);
+    boolean allCorrect = true;
     for (FactorizationCase factorizationCase : examplesList)
     {
       List<Vertex> originalVertices = graphHelper.parseGraph(factorizationCase.getFileName());
@@ -84,6 +85,11 @@ public class CartesianProductWithoutEdgeReconstructionTest
 
           intervalReconstruction.reconstruct(vertices);
 
+
+          if (!testCaseContext.isCorrectResult())
+          {
+            allCorrect = false;
+          }
 //          assertThat(factorizationCase.getFileName(), amountOfFactors, is(1));
           /*int edgeToRemoveOriginBfsLayer = graph.getVertices().get(edgeToRemove.getOrigin().getVertexNo()).getBfsLayer();
           int edgeToRemoveEndpointBfsLayer = graph.getVertices().get(edgeToRemove.getEndpoint().getVertexNo()).getBfsLayer();
@@ -98,7 +104,10 @@ public class CartesianProductWithoutEdgeReconstructionTest
         }
       }
     }
-    System.out.println("ALL CORRECT");
+    if (allCorrect)
+    {
+      System.out.println("ALL CORRECT");
+    }
   }
 
   private void removeEdges(List<Edge> edgesToRemove, List<Vertex> vertices)

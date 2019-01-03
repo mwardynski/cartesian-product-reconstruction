@@ -306,10 +306,10 @@ public class MissingSquaresSpikeAnalyserServiceImpl
             for (int cycleLengthSixIndex = 0; cycleLengthSixIndex < cycleDiffVertices[1].length; cycleLengthSixIndex++)
             {
               int[] cycleCrossingNumberPerVertex = new int[graph.getVertices().size()];
-              for (List<Vertex> cycleVertices : cycleDiffVertices[1][cycleLengthSixIndex])
+              for (List<Vertex> selectedCycleDiffVertices : cycleDiffVertices[1][cycleLengthSixIndex])
               {
-                cycleCrossingNumberPerVertex[cycleVertices.get(0).getVertexNo()]++;
-                cycleCrossingNumberPerVertex[cycleVertices.get(cycleVertices.size() - 1).getVertexNo()]++;
+                cycleCrossingNumberPerVertex[selectedCycleDiffVertices.get(0).getVertexNo()]++;
+                cycleCrossingNumberPerVertex[selectedCycleDiffVertices.get(selectedCycleDiffVertices.size() - 1).getVertexNo()]++;
               }
 
               long cycleCrossingAmount = cyclesOfLengthSix.get(cycleLengthSixIndex).stream()
@@ -343,10 +343,6 @@ public class MissingSquaresSpikeAnalyserServiceImpl
                   startVertexNumbers.add(oddEvenIndexCounter[0].get(0).getVertexNo());
                 }
               }
-//              else if (cycleCrossingAmount == 2)
-//              {
-//
-//              }
               else
               {
                 for (int cycleLengthEightIndex = 0; cycleLengthEightIndex < cycleDiffVertices[1][cycleLengthSixIndex].length; cycleLengthEightIndex++)
@@ -367,15 +363,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
                     else
                     {
                       List<NoSquareAtAllCycleNode> cycle = cyclesOfLengthSix.get(cycleLengthSixIndex);
-                      int firstCrossingIndex = -1;
-                      for (int i = 0; i < cycle.size(); i++)
-                      {
-                        if (cycle.get(i).getVertex() == cycleDiffVertices[1][cycleLengthSixIndex][cycleLengthEightIndex].get(0))
-                        {
-                          firstCrossingIndex = i;
-                          break;
-                        }
-                      }
+                      int firstCrossingIndex = findVertexIndexInCycle(cycle, cycleDiffVertices[1][cycleLengthSixIndex][cycleLengthEightIndex].get(0));
                       int firstPotentialResultVertexIndex = (firstCrossingIndex - 1 + 6) % 6;
                       int secondCrossingIndex = firstCrossingIndex + 2;
                       int secondPotentialResultVertexIndex = (secondCrossingIndex + 1) % 6;
@@ -403,22 +391,29 @@ public class MissingSquaresSpikeAnalyserServiceImpl
                       startVertexNumbers.add((frontVertex.getVertexNo()));
                     }
                   }
+                  else if (cycleDiffVertices[1][cycleLengthSixIndex][cycleLengthEightIndex].size() == 4
+                          && cycleDiffVertices[0][cycleLengthEightIndex][cycleLengthSixIndex].size() == 6)
+                  {
+                    List<Vertex> arbitraryDiffVertices = cycleDiffVertices[1][cycleLengthSixIndex][0];
+                    Vertex firstArbitraryVertex = arbitraryDiffVertices.get(0);
+                    Vertex secondArbitraryVertex = arbitraryDiffVertices.get(arbitraryDiffVertices.size() - 1);
+
+                    resultVertices.add(firstArbitraryVertex);
+                    startVertexNumbers.add(secondArbitraryVertex.getVertexNo());
+
+                    resultVertices.add(secondArbitraryVertex);
+                    startVertexNumbers.add(firstArbitraryVertex.getVertexNo());
+                  }
                 }
               }
 
-
               List<List<Vertex>> verticesToConnect = missingSquaresCycleAnalyserService.collectVerticesToConnect(cycles, resultVertices, startVertexNumbers);
               List<List<Edge>> missingEdgesForCyclesLengthSixAndEight = missingSquaresCycleAnalyserService.collectMissingEdges(resultVertices, verticesToConnect);
-              if (CollectionUtils.isNotEmpty(missingEdgesForCyclesLengthSixAndEight))
+
+              boolean correctResultFound = checkMissingEdgesCorrectness(missingEdgesForCyclesLengthSixAndEight, missingEdges, missingSquareEdges, cycles);
+              if (correctResultFound)
               {
-                for (List<Edge> resultEdgesPerCycle : missingEdgesForCyclesLengthSixAndEight)
-                {
-                  missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(resultEdgesPerCycle);
-                  if (testCaseContext.isCorrectResult())
-                  {
-                    return;
-                  }
-                }
+                return;
               }
             }
           }
@@ -426,16 +421,42 @@ public class MissingSquaresSpikeAnalyserServiceImpl
           {
             List<List<Edge>> cycleOfLengthEightMissingEdgesPerCycle = missingSquaresCycleAnalyserService.findMissingEdgesComparingCycles(cycles, squareReconstructionData);
 
-            if (CollectionUtils.isNotEmpty(cycleOfLengthEightMissingEdgesPerCycle))
+            boolean correctResultFound = checkMissingEdgesCorrectness(cycleOfLengthEightMissingEdgesPerCycle, missingEdges, missingSquareEdges, cycles);
+            if (correctResultFound)
             {
-              for (List<Edge> resultEdgesPerCycle : cycleOfLengthEightMissingEdgesPerCycle)
-              {
-                missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(resultEdgesPerCycle);
-                if (testCaseContext.isCorrectResult())
-                {
-                  return;
-                }
-              }
+              return;
+            }
+          }
+          else if (CollectionUtils.isNotEmpty(cyclesOfLengthSix) && cyclesOfLengthSix.size() >= 2)
+          {
+            List<Vertex> resultVertices = new LinkedList<>();
+            List<Integer> startVertexNumbers = new LinkedList<>();
+
+            List<Vertex>[][][] cycleDiffVertices = missingSquaresCycleAnalyserService.collectCycleDifferencesWithStartAndEndVertices(cyclesOfLengthSix, cyclesOfLengthSix);
+
+            List<Vertex> twoArbitraryCyclesDiffVertices = cycleDiffVertices[0][0][1];
+            if (twoArbitraryCyclesDiffVertices.size() == 5)
+            {
+              int firstCrossingIndex = findVertexIndexInCycle(cyclesOfLengthSix.get(0), twoArbitraryCyclesDiffVertices.get(0));
+              int resultVertexIndex = (firstCrossingIndex - 1 + 6) % 6;
+              resultVertices.add(cyclesOfLengthSix.get(0).get(resultVertexIndex).getVertex());
+              startVertexNumbers.add(twoArbitraryCyclesDiffVertices.get(0).getVertexNo());
+            }
+            else if (twoArbitraryCyclesDiffVertices.size() == 4)
+            {
+              resultVertices.add(twoArbitraryCyclesDiffVertices.get(0));
+              startVertexNumbers.add(twoArbitraryCyclesDiffVertices.get(3).getVertexNo());
+
+              resultVertices.add(twoArbitraryCyclesDiffVertices.get(3));
+              startVertexNumbers.add(twoArbitraryCyclesDiffVertices.get(0).getVertexNo());
+            }
+
+            List<List<Vertex>> verticesToConnect = missingSquaresCycleAnalyserService.collectVerticesToConnect(cycles, resultVertices, startVertexNumbers);
+            List<List<Edge>> missingEdgesForCyclesLengthSixAndEight = missingSquaresCycleAnalyserService.collectMissingEdges(resultVertices, verticesToConnect);
+            boolean correctResultFound = checkMissingEdgesCorrectness(missingEdgesForCyclesLengthSixAndEight, missingEdges, missingSquareEdges, cycles);
+            if (correctResultFound)
+            {
+              return;
             }
           }
           else
@@ -532,6 +553,20 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       }
     }
 
+  }
+
+  private int findVertexIndexInCycle(List<NoSquareAtAllCycleNode> cycle, Vertex vertex)
+  {
+    int firstCrossingIndex = -1;
+    for (int i = 0; i < cycle.size(); i++)
+    {
+      if (cycle.get(i).getVertex() == vertex)
+      {
+        firstCrossingIndex = i;
+        break;
+      }
+    }
+    return firstCrossingIndex;
   }
 
   private void storePotentialEdgeToReconstruct(int[] potentialEdgesNumberToReconstructPerVertex, boolean[][] potenrialEdgesToReconstructPerVertex, List<Edge>[] potentialEdgesToReconstruct, MissingEdgeData missingEdgeData)
@@ -850,18 +885,92 @@ public class MissingSquaresSpikeAnalyserServiceImpl
     }
   }
 
-  private void addVerticesToConnectFromCycle(Vertex vertexToRemoveForResult, List<Vertex> verticesToConnectFromCycle, List<Edge> baseResultEdges, boolean[] potentialResultIncludedEndpoints)
+  private boolean checkMissingEdgesCorrectness(List<List<Edge>> missingEdges, List<MissingEdgeData> missingEdgesBasedOnMissingSquareEdgesTripple, List<MissingSquaresUniqueEdgesData> missingSquareEdges, List<List<NoSquareAtAllCycleNode>> cycles)
   {
-    for (Vertex vertexToConnectFromCycle : verticesToConnectFromCycle)
+    if (CollectionUtils.isNotEmpty(missingEdges))
     {
-      if (!potentialResultIncludedEndpoints[vertexToConnectFromCycle.getVertexNo()])
+      for (List<Edge> resultEdgesPerCycle : missingEdges)
       {
-        Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, vertexToConnectFromCycle);
-        baseResultEdges.add(missingSquarePotentialResultEdge);
-        potentialResultIncludedEndpoints[vertexToConnectFromCycle.getVertexNo()] = true;
+        Vertex vertexToReconstructFrom = resultEdgesPerCycle.get(0).getOrigin();
+        boolean[] verticesConsideredForReconstruction = new boolean[graph.getVertices().size()];
+        verticesConsideredForReconstruction[vertexToReconstructFrom.getVertexNo()] = true;
+
+        cycles.stream()
+                .filter(cycle -> cycle.size() == 6 || cycle.size() == 8)
+                .flatMap(cycle -> cycle.stream())
+                .map(node -> node.getVertex().getVertexNo())
+                .forEach(vertexNumber ->
+                {
+                  if (!verticesConsideredForReconstruction[vertexNumber])
+                  {
+                    verticesConsideredForReconstruction[vertexNumber] = true;
+                  }
+                });
+
+//        for (MissingSquaresUniqueEdgesData missingSquaresUniqueEdgesData : missingSquaresForSelectedColor)
+//        {
+//          if (missingSquaresUniqueEdgesData.getBaseEdge().getLabel().getColor() == 0
+//                  || missingSquaresUniqueEdgesData.getOtherEdge().getLabel().getColor() == 0)
+//          {
+//            continue;
+//          }
+//
+//          Vertex missingSquareEndpoint = missingSquaresUniqueEdgesData.getBaseEdge().getEndpoint();
+//          for (int i = 0; i < 2; i++)
+//          {
+//            if (!verticesConsideredForReconstruction[missingSquareEndpoint.getVertexNo()])
+//            {
+//              resultEdgesPerCycle.add(new Edge(vertexToReconstructFrom, missingSquareEndpoint));
+//              verticesConsideredForReconstruction[missingSquareEndpoint.getVertexNo()] = true;
+//            }
+//
+//            missingSquareEndpoint = missingSquaresUniqueEdgesData.getOtherEdge().getEndpoint();
+//          }
+//        }
+
+        for (MissingEdgeData missingEdgeData : missingEdgesBasedOnMissingSquareEdgesTripple)
+        {
+          if (missingEdgeData.getEdge().getOrigin() == vertexToReconstructFrom
+                  && !verticesConsideredForReconstruction[missingEdgeData.getEdge().getEndpoint().getVertexNo()])
+          {
+            resultEdgesPerCycle.add(new Edge(vertexToReconstructFrom, missingEdgeData.getEdge().getEndpoint()));
+            verticesConsideredForReconstruction[missingEdgeData.getEdge().getEndpoint().getVertexNo()] = true;
+          }
+          if (missingEdgeData.getEdge().getEndpoint() == vertexToReconstructFrom
+                  && !verticesConsideredForReconstruction[missingEdgeData.getEdge().getOrigin().getVertexNo()])
+          {
+            resultEdgesPerCycle.add(new Edge(vertexToReconstructFrom, missingEdgeData.getEdge().getOrigin()));
+            verticesConsideredForReconstruction[missingEdgeData.getEdge().getOrigin().getVertexNo()] = true;
+          }
+        }
+
+        for (MissingSquaresUniqueEdgesData missingSquareEdge : missingSquareEdges)
+        {
+          Edge baseEdge = missingSquareEdge.getBaseEdge();
+          Edge otherEdge = missingSquareEdge.getOtherEdge();
+
+          if (baseEdge.getLabel().getColor() != 0 && otherEdge.getLabel().getColor() != 0)
+          {
+            if (!verticesConsideredForReconstruction[baseEdge.getEndpoint().getVertexNo()])
+            {
+              resultEdgesPerCycle.add(new Edge(vertexToReconstructFrom, baseEdge.getEndpoint()));
+              verticesConsideredForReconstruction[baseEdge.getEndpoint().getVertexNo()] = true;
+            }
+            if (!verticesConsideredForReconstruction[otherEdge.getEndpoint().getVertexNo()])
+            {
+              resultEdgesPerCycle.add(new Edge(vertexToReconstructFrom, otherEdge.getEndpoint()));
+              verticesConsideredForReconstruction[otherEdge.getEndpoint().getVertexNo()] = true;
+            }
+          }
+        }
+
+        missingSquaresAnalyserCommons.checkSelectedEdgesCorrectness(resultEdgesPerCycle);
+        if (testCaseContext.isCorrectResult())
+        {
+          return true;
+        }
       }
     }
+    return false;
   }
-
-
 }
