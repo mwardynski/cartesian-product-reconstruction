@@ -122,7 +122,8 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()],
             correctCycles, currentCycle, collectedMappedColors, collectedGroups, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints);
 
-    if (isLongestCycleOfLengthSix(noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()]))
+    if (CollectionUtils.isNotEmpty(correctCycles)
+            && isLongestCycleOfLengthSix(noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()]))
     {
       extendCycleNodesForCycleOfLengthEight(noSquareAtAllCycleNodesByVertexNo, correctCycles);
 
@@ -203,6 +204,11 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
   private void processCycle(NoSquareAtAllCycleNode endVertexNode, NoSquareAtAllCycleNode currentVertexNode, List<List<NoSquareAtAllCycleNode>> correctCycles, List<NoSquareAtAllCycleNode> currentCycle,
                             UniqueList collectedMappedColors, UniqueList collectedGroups, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints)
   {
+    if (currentVertexNode == null)
+    {
+      return;
+    }
+
     currentCycle.add(currentVertexNode);
     collectedGroups.add(groupNumbersForNoSquareAtAllEdgesEndpoints[currentVertexNode.getVertex().getVertexNo()]);
 
