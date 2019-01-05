@@ -325,12 +325,6 @@ public class MissingSquaresCycleAnalyserServiceImpl
 
   public void findMissingEdgesComparingCycles(List<List<NoSquareAtAllCycleNode>> cycles, List<Vertex> resultVertices, List<Integer> startVertexIndices, SquareReconstructionData squareReconstructionData)
   {
-//    List<List<NoSquareAtAllCycleNode>> cycles = selectCyclesOfLengthEight(inputCycles);
-//    if (CollectionUtils.isEmpty(cycles))
-//    {
-//      return;
-//    }
-
     List<Vertex>[][][] cycleDiffVertices = collectCycleDifferencesWithStartAndEndVertices(cycles, cycles);
 
     for (int i = 0; i < cycles.size() - 1 && CollectionUtils.isEmpty(resultVertices); i++)

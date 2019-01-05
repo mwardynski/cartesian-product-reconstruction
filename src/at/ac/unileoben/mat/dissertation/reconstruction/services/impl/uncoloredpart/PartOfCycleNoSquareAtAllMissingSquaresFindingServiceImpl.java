@@ -96,17 +96,8 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
                   noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()] = new NoSquareAtAllCycleNode(nextVertex, currentVertexNode.getDistance() + 1);
                   nextVertices.add(nextVertex);
                 }
-                NoSquareAtAllCycleNode nextVertexNode;
-                if (nextVertex == endVertex
-                        && noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()].getDistance() < noSquareAtAllCycleNodesByVertexNo[currentVertex.getVertexNo()].getDistance())
-                {
-                  nextVertexNode = additionalLastNoSquareAtAllCycleOfLengthEightNode;
-                }
-                else
-                {
-                  nextVertexNode = noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()];
-                }
 
+                NoSquareAtAllCycleNode nextVertexNode = noSquareAtAllCycleNodesByVertexNo[nextVertex.getVertexNo()];
                 if (nextVertexNode.getDistance() == currentVertexNode.getDistance() + 1)
                 {
                   nextVertexNode.getPreviousVerticesNodes().add(currentVertexNode);
@@ -160,7 +151,7 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
         continue;
       }
       if (cycleNodesIncludedInCycles[cycleNode.getVertex().getVertexNo()] == null
-              && (cycleNode.getDistance() == 5 || cycleNode.getDistance() == 3))
+              && (cycleNode.getDistance() == 6 || cycleNode.getDistance() == 5 || cycleNode.getDistance() == 3))
       {
         List<NoSquareAtAllCycleNode> neighborCycleNodesInCycles = new LinkedList<>();
         List<NoSquareAtAllCycleNode> neighborCycleNodesOutOfCycles = new LinkedList<>();
