@@ -37,16 +37,31 @@ public class MissingSquaresSpikeAnalyserServiceImpl
   @Autowired
   MissingSquaresSpikeCycleCommons missingSquaresSpikeCycleCommons;
 
-  public List<Edge> findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  @Autowired
+  MissingSquaresCycleAllVerticesAnalyserServiceImpl missingSquaresCycleAllVerticesAnalyserService;
+
+  public void findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares,
+                                                            List<Edge> noSquareAtAllEdgesWithDegreeOne,
+                                                            List<Edge> noSquareAtAllEdgesWithDegreeMoreThanOne)
   {
-    boolean[][] included = new boolean[graph.getVertices().size()][graph.getVertices().size()];
-    List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = noSquareAtAllMissingSquares.stream()
-            .map(missingSquare -> missingSquare.getBaseEdge())
-            .filter(edge -> edge.getEndpoint().getEdges().size() == 1)
-            .filter(edge -> !included[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()])
-            .peek(edge -> included[edge.getOrigin().getVertexNo()][edge.getEndpoint().getVertexNo()] = true)
-            .collect(Collectors.toList());
-    return noSquareAtAllEdgesWithDegreeOneAtEndpoint;
+    boolean[][] degreeOneIncluded = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+    boolean[][] degreeMoreThanOneIncluded = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+
+    for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquare : noSquareAtAllMissingSquares)
+    {
+      Edge baseEdge = noSquareAtAllMissingSquare.getBaseEdge();
+      int baseEdgeEnpointDegree = baseEdge.getEndpoint().getEdges().size();
+      if (baseEdgeEnpointDegree == 1 && !degreeOneIncluded[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()])
+      {
+        noSquareAtAllEdgesWithDegreeOne.add(baseEdge);
+        degreeOneIncluded[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()] = true;
+      }
+      else if (baseEdgeEnpointDegree > 1 && !degreeMoreThanOneIncluded[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()])
+      {
+        noSquareAtAllEdgesWithDegreeMoreThanOne.add(baseEdge);
+        degreeMoreThanOneIncluded[baseEdge.getOrigin().getVertexNo()][baseEdge.getEndpoint().getVertexNo()] = true;
+      }
+    }
   }
 
   public Vertex handleSpikesSpecialCases(List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint)
@@ -109,7 +124,11 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
   public void findResultForSpeciallyColoredEdges(List<MissingSquaresUniqueEdgesData>[] irregularMissingSquaresByColor, List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
-    List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares);
+    List<Edge> noSquareAtAllEdgesWithDegreeOneAtEndpoint = new LinkedList<>();
+    List<Edge> noSquareAtAllEdgesWithDegreeMoreThanOneAtEndpoint = new LinkedList<>();
+    findNoSquareAtAllEdgesWithDegreeOneAtEndpoint(noSquareAtAllMissingSquares,
+            noSquareAtAllEdgesWithDegreeOneAtEndpoint,
+            noSquareAtAllEdgesWithDegreeMoreThanOneAtEndpoint);
 
     Vertex vertexToRemoveForResult = handleSpikesSpecialCases(noSquareAtAllEdgesWithDegreeOneAtEndpoint);
     missingSquaresAnalyserCommons.checkSelectedVertexCorrectness(vertexToRemoveForResult);
@@ -118,6 +137,40 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       return;
     }
 
+    List<List<NoSquareAtAllCycleNode>> foundCycles = null;
+
+    if (noSquareAtAllEdgesWithDegreeOneAtEndpoint.size() == 1)
+    {
+      Edge arbitrarySingleEdgeWithSpecialColor = noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(0);
+      Edge spikeNeighborSelectedEdge = arbitrarySingleEdgeWithSpecialColor.getOrigin().getEdges().get(0);
+      missingSquaresCycleAllVerticesAnalyserService.findMissingEdges(spikeNeighborSelectedEdge, squareReconstructionData, 0);
+
+      if (!testCaseContext.isCorrectResult())
+      {
+        int spikeNeighborSelectedEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), spikeNeighborSelectedEdge.getLabel().getColor());
+        for (Edge spikeNeighborEdge : arbitrarySingleEdgeWithSpecialColor.getOrigin().getEdges())
+        {
+          int spikeNeighborEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), spikeNeighborEdge.getLabel().getColor());
+          if (spikeNeighborSelectedEdgeColor != spikeNeighborEdgeColor)
+          {
+            foundCycles = missingSquaresCycleAllVerticesAnalyserService.findMissingEdges(spikeNeighborEdge, squareReconstructionData, 0);
+            break;
+          }
+        }
+      }
+    }
+    else if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeMoreThanOneAtEndpoint))
+    {
+      Edge arbitraryEdgeWithSpecialColor = noSquareAtAllEdgesWithDegreeMoreThanOneAtEndpoint.get(0);
+      foundCycles = missingSquaresCycleAllVerticesAnalyserService.findMissingEdges(arbitraryEdgeWithSpecialColor, squareReconstructionData, 2);
+    }
+
+    if (testCaseContext.isCorrectResult())
+    {
+      return;
+    }
+
+    Edge arbitraryNoSquareAtAllEdge = noSquareAtAllMissingSquares.get(0).getBaseEdge();
     List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquaresWithNormallyColoredEdge = new LinkedList<>();
     List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquaresWithoutNormallyColoredEdge = new LinkedList<>();
 
@@ -140,15 +193,14 @@ public class MissingSquaresSpikeAnalyserServiceImpl
         continue;
       }
 
+      List<MissingSquaresUniqueEdgesData> missingSquaresToProcess = new LinkedList<>(irregularMissingSquaresByColor[selectedColor]);
+      missingSquaresToProcess.addAll(noSquareAtAllMissingSquaresWithNormallyColoredEdge);
+      Edge missingEdgesWarden = new Edge(null, null);
+      Edge[][] missingSquarePairsForSelectedColor = missingSquaresAnalyserCommons.findMissingSquarePairsForSelectedColor(missingSquaresToProcess, missingEdgesWarden);
+
       List<MissingEdgeData> missingEdges = new LinkedList<>();
       List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
       MissingEdgeData[][] collectedMissingEdgesArray = new MissingEdgeData[graph.getVertices().size()][graph.getVertices().size()];
-
-      Edge missingEdgesWarden = new Edge(null, null);
-
-      List<MissingSquaresUniqueEdgesData> missingSquaresToProcess = new LinkedList<>(irregularMissingSquaresByColor[selectedColor]);
-      missingSquaresToProcess.addAll(noSquareAtAllMissingSquaresWithNormallyColoredEdge);
-      Edge[][] missingSquarePairsForSelectedColor = missingSquaresAnalyserCommons.findMissingSquarePairsForSelectedColor(missingSquaresToProcess, missingEdgesWarden);
       missingSquaresAnalyserCommons.collectMissingEdgesForSelectedColor(missingSquaresToProcess, missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
 
       boolean[] missingSquareEdgesIncludedEndpoints = new boolean[graph.getVertices().size()];
@@ -204,39 +256,26 @@ public class MissingSquaresSpikeAnalyserServiceImpl
         potentialEdgesNumberToReconstructPerVertex[otherEdge.getEndpoint().getVertexNo()] -= Math.max(0, followingEdgesNumber - 1);
       }
 
+      int[] potentialEdgesNumberToReconstructPerVertexCopy = potentialEdgesNumberToReconstructPerVertex.clone();
+      missingSquaresCycleAnalyserService.findMissingEdgesUsingCyclesAndMissingSquareTriples(arbitraryNoSquareAtAllEdge,
+              potentialEdgesNumberToReconstructPerVertexCopy,
+              potentialEdgesToReconstructSure,
+              potentialEdgesToReconstructMaybe,
+              vertexToRemoveForResult,
+              missingSquareEdgesIncludedEndpoints,
+              missingSquareEdgesEndpoints,
+              squareReconstructionData,
+              foundCycles);
+      if (testCaseContext.isCorrectResult())
+      {
+        return;
+      }
+
+
       if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeOneAtEndpoint))
       {
         Edge arbitrarySingleEdgeWithSpecialColor = noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(0);
-        if (noSquareAtAllEdgesWithDegreeOneAtEndpoint.size() == 1)
-        {
-          Edge spikeNeighborSelectedEdge = arbitrarySingleEdgeWithSpecialColor.getOrigin().getEdges().get(0);
-          boolean cycleFound = missingSquaresCycleAnalyserService.findCycleAndMissingEdgesBasedOnIt(spikeNeighborSelectedEdge, missingEdges, missingSquareEdges,
-                  potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialEdgesToReconstructMaybe,
-                  vertexToRemoveForResult, missingSquareEdgesIncludedEndpoints, missingSquareEdgesEndpoints, squareReconstructionData,
-                  arbitrarySingleEdgeWithSpecialColor);
-
-          if (!cycleFound)
-          {
-            int spikeNeighborSelectedEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), spikeNeighborSelectedEdge.getLabel().getColor());
-            for (Edge spikeNeighborEdge : arbitrarySingleEdgeWithSpecialColor.getOrigin().getEdges())
-            {
-              int spikeNeighborEdgeColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), spikeNeighborEdge.getLabel().getColor());
-              if (spikeNeighborSelectedEdgeColor != spikeNeighborEdgeColor)
-              {
-                missingSquaresCycleAnalyserService.findCycleAndMissingEdgesBasedOnIt(spikeNeighborEdge, missingEdges, missingSquareEdges,
-                        potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialEdgesToReconstructMaybe,
-                        vertexToRemoveForResult, missingSquareEdgesIncludedEndpoints, missingSquareEdgesEndpoints, squareReconstructionData,
-                        arbitrarySingleEdgeWithSpecialColor);
-                break;
-              }
-            }
-          }
-
-          if (testCaseContext.isCorrectResult())
-          {
-            return;
-          }
-        }
+        
         int[] distanceVectorFromArbitrarySingleEdgeWithSpecialColor = graphHelper.calculateDistanceVector(arbitrarySingleEdgeWithSpecialColor.getEndpoint());
         Vertex arbitrarySingleEdgeEndpointWithSpecialColor = arbitrarySingleEdgeWithSpecialColor.getEndpoint();
 
@@ -298,17 +337,8 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       }
       else
       {
-        //FIXME select better starting edge
-        Edge arbitraryNoSquareAtAllEdge = noSquareAtAllMissingSquares.get(0).getBaseEdge();
-        boolean foundCycles = missingSquaresCycleAnalyserService.findCycleAndMissingEdgesBasedOnIt(arbitraryNoSquareAtAllEdge, missingEdges, missingSquareEdges,
-                potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialEdgesToReconstructMaybe,
-                vertexToRemoveForResult, missingSquareEdgesIncludedEndpoints, missingSquareEdgesEndpoints, squareReconstructionData, null);
-
-        if (!foundCycles)
-        {
-          System.out.println("no spike or cycle");
-          testCaseContext.isCorrectResult();
-        }
+        System.out.println("no spike or cycle");
+        testCaseContext.isCorrectResult();
       }
 
       if (testCaseContext.isCorrectResult())
