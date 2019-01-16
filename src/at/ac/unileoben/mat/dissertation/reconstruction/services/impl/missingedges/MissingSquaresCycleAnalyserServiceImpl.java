@@ -252,7 +252,7 @@ public class MissingSquaresCycleAnalyserServiceImpl
     potentialCorrectVertices = missingSquaresSpikeCycleCommons.filterOutMissingSquareEdgesVertices(missingSquareEdgesIncludedEndpoints, potentialCorrectVertices);
     potentialCorrectVertices = filterVerticesBetweenEdgesOfSameColorInCycle(cycles, potentialCorrectVertices);
 //    potentialCorrectVertices = filterVerticesInCycleOfLengthEightWithSquare(cycles.get(0), potentialCorrectVertices, squareReconstructionData);
-//        potentialCorrectVertices = favorizeVerticesWithManyDistinctMissingSquareTriples(missingEdges, potentialCorrectVertices);
+//    potentialCorrectVertices = favorizeVerticesWithManyDistinctMissingSquareTriples(missingEdges, potentialCorrectVertices);
     potentialCorrectVertices = missingSquaresSpikeCycleCommons.favorizeVerticesWithAllPotentialMissingEdgesSure(potentialEdgesNumberToReconstructPerVertex, potentialEdgesToReconstructSure, potentialCorrectVertices);
 
     if (potentialCorrectVertices.size() > 1)
@@ -262,7 +262,7 @@ public class MissingSquaresCycleAnalyserServiceImpl
         vertexToRemoveForResult = potentialCorrectVertices.get(0);
       }
     }
-    else
+    else if (potentialCorrectVertices.size() == 1)
     {
       vertexToRemoveForResult = potentialCorrectVertices.get(0);
     }

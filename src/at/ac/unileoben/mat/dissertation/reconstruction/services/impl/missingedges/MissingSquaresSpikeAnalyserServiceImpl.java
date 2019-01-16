@@ -200,8 +200,10 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
       List<MissingEdgeData> missingEdges = new LinkedList<>();
       List<MissingSquaresUniqueEdgesData> missingSquareEdges = new LinkedList<>();
+      List<MissingSquaresUniqueEdgesData> additionalMissingSquareEdges = new LinkedList<>();
       MissingEdgeData[][] collectedMissingEdgesArray = new MissingEdgeData[graph.getVertices().size()][graph.getVertices().size()];
-      missingSquaresAnalyserCommons.collectMissingEdgesForSelectedColor(missingSquaresToProcess, missingEdges, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
+      missingSquaresAnalyserCommons.collectMissingEdgesForSelectedColor(missingSquaresToProcess, missingEdges, missingSquareEdges, additionalMissingSquareEdges,
+              missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
 
       boolean[] missingSquareEdgesIncludedEndpoints = new boolean[graph.getVertices().size()];
       List<Vertex> missingSquareEdgesEndpoints = new LinkedList<>();
@@ -275,7 +277,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       if (CollectionUtils.isNotEmpty(noSquareAtAllEdgesWithDegreeOneAtEndpoint))
       {
         Edge arbitrarySingleEdgeWithSpecialColor = noSquareAtAllEdgesWithDegreeOneAtEndpoint.get(0);
-        
+
         int[] distanceVectorFromArbitrarySingleEdgeWithSpecialColor = graphHelper.calculateDistanceVector(arbitrarySingleEdgeWithSpecialColor.getEndpoint());
         Vertex arbitrarySingleEdgeEndpointWithSpecialColor = arbitrarySingleEdgeWithSpecialColor.getEndpoint();
 
@@ -311,6 +313,8 @@ public class MissingSquaresSpikeAnalyserServiceImpl
 
         addSpikesToResult(noSquareAtAllEdgesWithDegreeOneAtEndpoint, vertexToRemoveForResult, baseResultEdges, potentialResultIncludedEndpoints);
         missingSquaresSpikeCycleCommons.addMissingSquareEdgesEndpointsToResult(vertexToRemoveForResult, missingSquareEdgesEndpoints, baseResultEdges, potentialResultIncludedEndpoints);
+        missingSquaresSpikeCycleCommons.addCorrectAdditionalMissingSquareEdgesEndpointsToResult(vertexToRemoveForResult, additionalMissingSquareEdges, baseResultEdges, potentialResultIncludedEndpoints);
+
 
         boolean anyPotentialMaybyEdgeContainedInTheBaseResult =
                 missingSquaresSpikeCycleCommons.containsAnyEndpoints(baseResultEdges, potentialEdgesToReconstructMaybe[vertexToRemoveForResult.getVertexNo()]);
@@ -338,7 +342,7 @@ public class MissingSquaresSpikeAnalyserServiceImpl
       else
       {
         System.out.println("no spike or cycle");
-        testCaseContext.isCorrectResult();
+        testCaseContext.setCorrectResult(true);
       }
 
       if (testCaseContext.isCorrectResult())

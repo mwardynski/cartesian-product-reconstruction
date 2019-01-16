@@ -104,7 +104,8 @@ public class MissingSquaresAnalyserCommons
 
     Edge missingEdgesWarden = new Edge(null, null);
     Edge[][] missingSquarePairsForSelectedColor = findMissingSquarePairsForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdgesWarden);
-    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdgeData, missingSquareEdges, missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
+    collectMissingEdgesForSelectedColor(irregularMissingSquaresByColor[selectedColor], missingEdgeData, missingSquareEdges, new LinkedList<>(),
+            missingSquarePairsForSelectedColor, collectedMissingEdgesArray, missingEdgesWarden);
     convertMissingSquaresToMissingEdges(missingEdgeData, missingSquareEdges, collectedMissingEdgesArray);
 
     List<Edge> missingEdges = missingEdgeData.stream()
@@ -116,6 +117,7 @@ public class MissingSquaresAnalyserCommons
 
   public void collectMissingEdgesForSelectedColor(List<MissingSquaresUniqueEdgesData> selectedIrregularMissingSquaresByColor,
                                                   List<MissingEdgeData> missingEdgeDataList, List<MissingSquaresUniqueEdgesData> missingSquareEdges,
+                                                  List<MissingSquaresUniqueEdgesData> additionalMissingSquareEdges,
                                                   Edge[][] missingSquarePairsForSelectedColor,
                                                   MissingEdgeData[][] collectedMissingEdgesArray, Edge missingEdgesWarden)
   {
@@ -156,6 +158,10 @@ public class MissingSquaresAnalyserCommons
       else if (matchingEdge == null)
       {
         missingSquareEdges.add(missingSquare);
+      }
+      if (matchingEdge != null && (matchingEdge != missingEdgesWarden && matchingEdge.getLabel().getColor() == 0))
+      {
+        additionalMissingSquareEdges.add(missingSquare);
       }
     }
   }

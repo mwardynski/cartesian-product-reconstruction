@@ -2,6 +2,7 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.missingedg
 
 import at.ac.unileoben.mat.dissertation.structure.Edge;
 import at.ac.unileoben.mat.dissertation.structure.Graph;
+import at.ac.unileoben.mat.dissertation.structure.MissingSquaresUniqueEdgesData;
 import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +83,34 @@ public class MissingSquaresSpikeCycleCommons
       baseResultEdges.addAll(sureEdges);
     }
     return baseResultEdges;
+  }
+
+  public void addCorrectAdditionalMissingSquareEdgesEndpointsToResult(Vertex vertexToRemoveForResult, List<MissingSquaresUniqueEdgesData> additionalMissingSquareEdges, List<Edge> baseResultEdges, boolean[] potentialResultIncludedEndpoints)
+  {
+    List<Vertex> additionalMissingSquareEdgesEndpoints = new LinkedList<>();
+    for (MissingSquaresUniqueEdgesData additionalMissingSquareEdge : additionalMissingSquareEdges)
+    {
+      Vertex baseEdgeEndpoint = additionalMissingSquareEdge.getBaseEdge().getEndpoint();
+      Vertex otherEdgeEndpoint = additionalMissingSquareEdge.getOtherEdge().getEndpoint();
+      if (baseEdgeEndpoint != vertexToRemoveForResult && otherEdgeEndpoint != vertexToRemoveForResult
+              && additionalMissingSquareEdge.getBaseEdge().getLabel().getColor() != 0 && additionalMissingSquareEdge.getOtherEdge().getLabel().getColor() != 0)
+      {
+        if (!potentialResultIncludedEndpoints[baseEdgeEndpoint.getVertexNo()]
+                && graph.getAdjacencyMatrix()[vertexToRemoveForResult.getVertexNo()][baseEdgeEndpoint.getVertexNo()] == null)
+        {
+          Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, baseEdgeEndpoint);
+          baseResultEdges.add(missingSquarePotentialResultEdge);
+          potentialResultIncludedEndpoints[baseEdgeEndpoint.getVertexNo()] = true;
+        }
+        if (!potentialResultIncludedEndpoints[otherEdgeEndpoint.getVertexNo()]
+                && graph.getAdjacencyMatrix()[vertexToRemoveForResult.getVertexNo()][otherEdgeEndpoint.getVertexNo()] == null)
+        {
+          Edge missingSquarePotentialResultEdge = new Edge(vertexToRemoveForResult, otherEdgeEndpoint);
+          baseResultEdges.add(missingSquarePotentialResultEdge);
+          potentialResultIncludedEndpoints[otherEdgeEndpoint.getVertexNo()] = true;
+        }
+      }
+    }
   }
 
   public void addMissingSquareEdgesEndpointsToResult(Vertex vertexToRemoveForResult, List<Vertex> missingSquareEdgesEndpoints, List<Edge> baseResultEdges, boolean[] potentialResultIncludedEndpoints)
