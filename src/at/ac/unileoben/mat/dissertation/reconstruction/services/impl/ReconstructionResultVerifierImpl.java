@@ -7,10 +7,7 @@ import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,7 +40,17 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
 
     if (resultMissingSquaresData.isCycleOfIrregularNoSquareAtAllMissingSquares())
     {
-      correctResult = checkCorrectnessUsingFactorization(noSquareAtAllMissingSquaresVertexNumbers);
+      boolean correctFactorization = checkCorrectnessUsingFactorization(noSquareAtAllMissingSquaresVertexNumbers);
+      boolean correctNeighors = checkCorrectnessUsingNeighborsNumbers(noSquareAtAllMissingSquaresVertexNumbers);
+
+      if (correctFactorization && correctNeighors)
+      {
+        correctResult = true;
+      }
+      else if (correctFactorization != correctNeighors)
+      {
+        throw new IllegalStateException("correctFactorization != correctNeighors");
+      }
     }
     else
     {
@@ -55,11 +62,16 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
         UniqueList actualNeighborsVertexNumbers = new UniqueList(noSquareAtAllMissingSquaresVertexNumbers);
         actualNeighborsVertexNumbers.addAll(resultMissingSquaresByColorVertexNumbers);
 
-        boolean includedColorCorrectResult = checkCorrectnessUsingFactorization(actualNeighborsVertexNumbers);
-        if (includedColorCorrectResult)
+        boolean includedColorCorrectFactorization = checkCorrectnessUsingFactorization(actualNeighborsVertexNumbers);
+        boolean includedColorCorrectNeighbors = checkCorrectnessUsingNeighborsNumbers(actualNeighborsVertexNumbers);
+        if (includedColorCorrectFactorization && includedColorCorrectNeighbors)
         {
-          correctResult = includedColorCorrectResult;
+          correctResult = includedColorCorrectFactorization;
           resultFittingColors.add(includedColor);
+        }
+        else if (includedColorCorrectFactorization != includedColorCorrectNeighbors)
+        {
+          throw new IllegalStateException("correctFactorization != correctNeighors");
         }
       }
 
@@ -116,5 +128,15 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
 
 
     return correctResult;
+  }
+
+  private boolean checkCorrectnessUsingNeighborsNumbers(UniqueList foundNeighborsVertexNumbersUniqueList)
+  {
+    Set<Integer> actualNeighborsVertexNumbers = foundNeighborsVertexNumbersUniqueList.getEntries().stream()
+            .map(vNo -> graph.getReverseReindexArray()[vNo])
+            .collect(Collectors.toSet());
+    Set<Integer> expectedNeighborsVertexNumbers = testCaseContext.getRemovedVertexNeighbors();
+
+    return expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers);
   }
 }
