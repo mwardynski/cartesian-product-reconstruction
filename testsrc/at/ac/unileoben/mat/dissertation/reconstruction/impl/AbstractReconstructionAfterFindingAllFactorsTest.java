@@ -10,6 +10,7 @@ import at.ac.unileoben.mat.dissertation.structure.Vertex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StopWatch;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,7 @@ public class AbstractReconstructionAfterFindingAllFactorsTest
         {
           StopWatch stopWatch = new StopWatch();
           stopWatch.start();
+          testCaseContext.setRemovedVertexNeighbors(new HashSet<>());
           List<Vertex> incompleteVertices = graphHelper.parseGraph(factorizationCase.getFileName());
           graphFactorizationPreparer.removeVertex(incompleteVertices, vertexNumberToRemove);
           testCaseContext.setCorrectResult(false);
