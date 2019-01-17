@@ -17,17 +17,27 @@ public class UniqueList
 
   public UniqueList(UniqueList origin)
   {
-    this.included = origin.included;
-    this.entries = origin.entries;
+    this.included = origin.included.clone();
+    this.entries = new ArrayList<>(origin.entries);
   }
 
   public void add(Integer number)
   {
-    if (number != null && !included[number])
+    if (number != null && !this.contains(number))
     {
       entries.add(number);
       included[number] = true;
     }
+  }
+
+  public void addAll(UniqueList otherList)
+  {
+    otherList.getEntries().forEach(element -> this.add(element));
+  }
+
+  public boolean contains(Integer number)
+  {
+    return included[number];
   }
 
   public List<Integer> getEntries()

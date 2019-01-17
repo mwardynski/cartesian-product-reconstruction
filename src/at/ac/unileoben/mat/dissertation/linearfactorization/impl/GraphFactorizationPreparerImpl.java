@@ -62,7 +62,6 @@ public class GraphFactorizationPreparerImpl implements GraphFactorizationPrepare
           if (e.getEndpoint().getVertexNo() == vertexIndex)
           {
             edgeIterator.remove();
-            testCaseContext.getRemovedVertexNeighbors().add(v.getVertexNo() < vertexIndex ? v.getVertexNo() : v.getVertexNo() - 1);
           }
         }
       }
