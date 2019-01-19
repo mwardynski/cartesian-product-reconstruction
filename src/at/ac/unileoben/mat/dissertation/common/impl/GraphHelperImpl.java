@@ -546,7 +546,8 @@ public class GraphHelperImpl implements GraphHelper
     graph.setVertices(vertices);
     graph.setLayers(vertexService.createLayersList(vertices));
     graph.setReverseReindexArray(createReverseReindexArray(reindexArray));
-    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES
+            || reconstructionData.getOperationOnGraph() == OperationOnGraph.MANY_EDGES_RECONSTRUCTION)
     {
       graph.setGraphColoring(new GraphColoring(1));
     }

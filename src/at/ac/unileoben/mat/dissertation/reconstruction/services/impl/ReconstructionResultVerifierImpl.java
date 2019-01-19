@@ -69,13 +69,15 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
           correctResult = includedColorCorrectFactorization;
           resultFittingColors.add(includedColor);
         }
-        else if (includedColorCorrectFactorization != includedColorCorrectNeighbors)
+        else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES
+                && includedColorCorrectFactorization != includedColorCorrectNeighbors)
         {
           throw new IllegalStateException("correctFactorization != correctNeighors");
         }
       }
 
-      if (!resultFittingColors.containsAll(resultIncludedColors))
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES
+              && !resultFittingColors.containsAll(resultIncludedColors))
       {
         System.out.println("WARN - Subfactors weren't completely merged");
       }
@@ -108,6 +110,7 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
 
     Graph originalGraph = new Graph(graph);
 
+    OperationOnGraph initialOperationOnGraph = reconstructionData.getOperationOnGraph();
     try
     {
       reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
@@ -122,7 +125,7 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
     {
     } finally
     {
-      reconstructionData.setOperationOnGraph(OperationOnGraph.FINDING_SQUARES);
+      reconstructionData.setOperationOnGraph(initialOperationOnGraph);
       graphHelper.overrideGlobalGraph(originalGraph);
     }
 
@@ -137,6 +140,16 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
             .collect(Collectors.toSet());
     Set<Integer> expectedNeighborsVertexNumbers = testCaseContext.getRemovedVertexNeighbors();
 
-    return expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers);
+    boolean correctResult = false;
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
+    {
+      correctResult = expectedNeighborsVertexNumbers.equals(actualNeighborsVertexNumbers);
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.MANY_EDGES_RECONSTRUCTION)
+    {
+      correctResult = actualNeighborsVertexNumbers.containsAll(expectedNeighborsVertexNumbers);
+    }
+
+    return correctResult;
   }
 }

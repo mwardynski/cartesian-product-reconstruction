@@ -70,7 +70,10 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
   @Override
   public Graph reconstruct(List<Vertex> vertices, Vertex root)
   {
-    reconstructionData.setOperationOnGraph(OperationOnGraph.FINDING_SQUARES);
+    if (reconstructionData.getOperationOnGraph() == null)
+    {
+      reconstructionData.setOperationOnGraph(OperationOnGraph.FINDING_SQUARES);
+    }
 
     linearFactorization.prepare(vertices, root, false);
     Edge[][] adjacencyMatrix = graphHelper.createAdjacencyMatrix();
