@@ -11,6 +11,7 @@ public class TestCaseContext
   private Set<Integer> removedVertexNeighbors;
   List<Vertex> verticesToRemoveForResult;
   List<Vertex> removedVerticesWithCorrectResult;
+  Edge removedEdge;
   private boolean correctResult;
 
   public Set<Integer> getRemovedVertexNeighbors()
@@ -41,6 +42,16 @@ public class TestCaseContext
   public void setRemovedVerticesWithCorrectResult(List<Vertex> removedVerticesWithCorrectResult)
   {
     this.removedVerticesWithCorrectResult = removedVerticesWithCorrectResult;
+  }
+
+  public Edge getRemovedEdge()
+  {
+    return removedEdge;
+  }
+
+  public void setRemovedEdge(Edge removedEdge)
+  {
+    this.removedEdge = removedEdge;
   }
 
   public boolean isCorrectResult()
