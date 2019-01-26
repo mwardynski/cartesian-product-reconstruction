@@ -39,7 +39,7 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
   @Test
   public void checkAllReconstructionCases()
   {
-    reconstructionData.setOperationOnGraph(OperationOnGraph.MANY_EDGES_RECONSTRUCTION);
+    reconstructionData.setOperationOnGraph(OperationOnGraph.SINGLE_EDGE_RECONSTRUCTION);
     boolean allCorrect = true;
     for (FactorizationCase factorizationCase : examplesList)
     {
@@ -53,13 +53,15 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
             continue;
           }
 
+//          edgeToRemove = new Edge(originalVertices.get(3), originalVertices.get(11));
+
           testCaseContext.setRemovedEdge(edgeToRemove);
           testCaseContext.setCorrectResult(false);
 
           List<Vertex> vertices = graphHelper.parseGraph(factorizationCase.getFileName());
           removeEdges(Collections.singletonList(edgeToRemove), vertices);
 
-          System.out.println(String.format("%s-v:%d,e:%d=%d", factorizationCase.getFileName(),
+          System.out.println(String.format("%s-v:%d,e:%d-%d", factorizationCase.getFileName(),
                   edgeToRemoveOrigin.getVertexNo(), edgeToRemove.getOrigin().getVertexNo(), edgeToRemove.getEndpoint().getVertexNo()));
 
           intervalReconstruction.reconstruct(vertices);

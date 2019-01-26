@@ -7,9 +7,9 @@ import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.Un
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,20 +22,35 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   ColoringService coloringService;
 
   @Autowired
   UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
 
   @Autowired
+  @Qualifier("reconstructionResultVerifierImpl")
   ReconstructionResultVerifier reconstructionResultVerifier;
+
+  @Autowired
+  @Qualifier("reconstructionSingleEdgeResultVerifierImpl")
+  ReconstructionResultVerifier reconstructionSingleEdgeResultVerifier;
 
 
   @Override
   public void analyseMissingSquares(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
     ResultMissingSquaresData resultMissingSquaresData = orderProbablyCorrectMissingSquaresByColor(squareReconstructionData, squareMatchingEdges);
-    reconstructionResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
+    {
+      reconstructionResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.SINGLE_EDGE_RECONSTRUCTION)
+    {
+      reconstructionSingleEdgeResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
+    }
   }
 
 
@@ -86,11 +101,13 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     }
 
     boolean cycleOfIrregularNoSquareAtAllMissingSquares = false;
-    List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = Collections.emptyList();
+    List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = new LinkedList<>();
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
       cycleOfIrregularNoSquareAtAllMissingSquares = isCycleToBeSearchedFor(noSquareAtAllMissingSquares);
-      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, cycleOfIrregularNoSquareAtAllMissingSquares);
+      //TODO handle special edges correctly, for now add them all
+      irregularNoSquareAtAllMissingSquares.addAll(noSquareAtAllMissingSquares);
+//      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, cycleOfIrregularNoSquareAtAllMissingSquares);
     }
 
     List<Integer> includedColorsEdges;
