@@ -2,7 +2,6 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.uncoloredp
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresGroupingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -25,28 +24,23 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
   @Autowired
   UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
 
-  @Autowired
-  PartOfCycleNoSquareAtAllMissingSquaresGroupingService partOfCycleNoSquareAtAllMissingSquaresGroupingService;
-
   public List<MissingSquaresUniqueEdgesData> findCorrectPartOfCycleNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
-    NoSquareAtAllGroupsData noSquareAtAllGroupsData = partOfCycleNoSquareAtAllMissingSquaresGroupingService.splitPartOfCycleNoSquareAtAllMissingSquaresIntoGroups(noSquareAtAllMissingSquares);
-    return findCycleForNoSquareAtAllGroups(noSquareAtAllGroupsData, squareReconstructionData);
+    MissingSquaresUniqueEdgesData arbitraryMissingSquaresUniqueEdges = noSquareAtAllMissingSquares.get(0);
+    Edge arbitraryMissingSquareEdge = arbitraryMissingSquaresUniqueEdges.getBaseEdge().getLabel().getColor() == 0 ? arbitraryMissingSquaresUniqueEdges.getBaseEdge() : arbitraryMissingSquaresUniqueEdges.getOtherEdge();
+    return findCycleForNoSquareAtAllGroups(arbitraryMissingSquareEdge, squareReconstructionData);
   }
 
-  private List<MissingSquaresUniqueEdgesData> findCycleForNoSquareAtAllGroups(NoSquareAtAllGroupsData noSquareAtAllGroupsData, SquareReconstructionData squareReconstructionData)
+  private List<MissingSquaresUniqueEdgesData> findCycleForNoSquareAtAllGroups(Edge arbitraryMissingSquareEdge, SquareReconstructionData squareReconstructionData)
   {
-    List<List<Edge>> groupedNoSquareAtAllEdges = noSquareAtAllGroupsData.getGroupedNoSquareAtAllEdges();
-
     NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo = new NoSquareAtAllCycleNode[graph.getVertices().size()];
-    Edge arbitraryGroupFirstEdge = groupedNoSquareAtAllEdges.get(0).get(0);
-    List<List<NoSquareAtAllCycleNode>> correctCycles = findCycleUsingBfs(arbitraryGroupFirstEdge, groupedNoSquareAtAllEdges, noSquareAtAllGroupsData.getGroupNumbersForNoSquareAtAllEdgesEndpoints(), squareReconstructionData, noSquareAtAllCycleNodesByVertexNo);
+    List<List<NoSquareAtAllCycleNode>> correctCycles = findCycleUsingBfs(arbitraryMissingSquareEdge, squareReconstructionData, noSquareAtAllCycleNodesByVertexNo);
 
     List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = splitCyclesIntoMissingSquares(correctCycles, noSquareAtAllCycleNodesByVertexNo);
     return correctNoSquareAtAllMissingSquares;
   }
 
-  private List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints, SquareReconstructionData squareReconstructionData, NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo)
+  private List<List<NoSquareAtAllCycleNode>> findCycleUsingBfs(Edge arbitraryGroupFirstEdge, SquareReconstructionData squareReconstructionData, NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo)
   {
     Vertex endVertex = arbitraryGroupFirstEdge.getEndpoint();
     Vertex firstVertex = arbitraryGroupFirstEdge.getOrigin();
@@ -95,11 +89,9 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
     List<List<NoSquareAtAllCycleNode>> correctCycles = new LinkedList<>();
     List<NoSquareAtAllCycleNode> currentCycle = new LinkedList<>();
-    UniqueList collectedMappedColors = new UniqueList(graph.getVertices().size());
-    UniqueList collectedGroups = new UniqueList(groupedNoSquareAtAllEdges.size());
 
     processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()],
-            correctCycles, currentCycle, collectedMappedColors, collectedGroups, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints);
+            correctCycles, currentCycle);
     return correctCycles;
   }
 
@@ -108,23 +100,13 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     return !(nextVertex == endVertex && noSquareAtAllCycleNodesByVertexNo[currentVertex.getVertexNo()].getDistance() == 0);
   }
 
-  private void processCycle(NoSquareAtAllCycleNode endVertexNode, NoSquareAtAllCycleNode currentVertexNode, List<List<NoSquareAtAllCycleNode>> correctCycles, List<NoSquareAtAllCycleNode> currentCycle,
-                            UniqueList collectedMappedColors, UniqueList collectedGroups, List<List<Edge>> groupedNoSquareAtAllEdges, Integer[] groupNumbersForNoSquareAtAllEdgesEndpoints)
+  private void processCycle(NoSquareAtAllCycleNode endVertexNode, NoSquareAtAllCycleNode currentVertexNode, List<List<NoSquareAtAllCycleNode>> correctCycles, List<NoSquareAtAllCycleNode> currentCycle)
   {
     currentCycle.add(currentVertexNode);
-    collectedGroups.add(groupNumbersForNoSquareAtAllEdgesEndpoints[currentVertexNode.getVertex().getVertexNo()]);
 
     if (currentVertexNode == endVertexNode)
     {
-      if (groupedNoSquareAtAllEdges.size() == collectedGroups.size())
-      {
-        if (groupedNoSquareAtAllEdges.size() > 1 ||
-                (groupedNoSquareAtAllEdges.get(0).size() >= 6 ||
-                        (groupedNoSquareAtAllEdges.get(0).size() < 6 & collectedMappedColors.size() > 1)))
-        {
-          correctCycles.add(currentCycle);
-        }
-      }
+      correctCycles.add(currentCycle);
     }
     else
     {
@@ -133,31 +115,17 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
         NoSquareAtAllCycleNode previousVertexNode = currentVertexNode.getPreviousVerticesNodes().get(i);
 
         List<NoSquareAtAllCycleNode> iterationCurrentCycle;
-        UniqueList iterationCollectedMappedColors;
-        UniqueList iterationCollectedGroups;
 
         if (i < currentVertexNode.getPreviousVerticesNodes().size() - 1)
         {
           iterationCurrentCycle = new LinkedList<>(currentCycle);
-          iterationCollectedMappedColors = new UniqueList(collectedMappedColors);
-          iterationCollectedGroups = new UniqueList(collectedGroups);
         }
         else
         {
           iterationCurrentCycle = currentCycle;
-          iterationCollectedMappedColors = collectedMappedColors;
-          iterationCollectedGroups = collectedGroups;
         }
 
-
-        Edge edge = graph.getAdjacencyMatrix()[currentVertexNode.getVertex().getVertexNo()][previousVertexNode.getVertex().getVertexNo()];
-        if (edge.getLabel().getName() != -2)
-        {
-          int edgeMappedColor = coloringService.getCurrentColorMapping(graph.getGraphColoring(), edge.getLabel().getColor());
-          iterationCollectedMappedColors.add(edgeMappedColor);
-        }
-
-        processCycle(endVertexNode, previousVertexNode, correctCycles, iterationCurrentCycle, iterationCollectedMappedColors, iterationCollectedGroups, groupedNoSquareAtAllEdges, groupNumbersForNoSquareAtAllEdgesEndpoints);
+        processCycle(endVertexNode, previousVertexNode, correctCycles, iterationCurrentCycle);
       }
     }
   }
