@@ -38,7 +38,7 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
     List<Integer> resultIncludedColors = resultMissingSquaresData.getResultIncludedColors();
     List<Integer> resultFittingColors = new LinkedList<>();
 
-    if (resultMissingSquaresData.isCycleOfIrregularNoSquareAtAllMissingSquares())
+    if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE)
     {
       boolean correctFactorization = checkCorrectnessUsingFactorization(noSquareAtAllMissingSquaresVertexNumbers);
       boolean correctNeighors = checkCorrectnessUsingNeighborsNumbers(noSquareAtAllMissingSquaresVertexNumbers);
@@ -49,7 +49,7 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
       }
       else if (correctFactorization != correctNeighors)
       {
-        throw new IllegalStateException("correctFactorization != correctNeighors");
+        throw new IllegalStateException("correctFactorization != correctNeighbors");
       }
     }
     else

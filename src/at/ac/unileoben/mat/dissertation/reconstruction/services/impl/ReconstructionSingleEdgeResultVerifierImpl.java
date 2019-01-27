@@ -23,7 +23,7 @@ public class ReconstructionSingleEdgeResultVerifierImpl implements Reconstructio
   {
     if (CollectionUtils.isNotEmpty(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares()))
     {
-      System.out.println("specially colored edges spotted");
+      System.out.println("specially colored edges spotted: " + resultMissingSquaresData.getMissingEdgesFormation());
       testCaseContext.setCorrectResult(true);
     }
     else

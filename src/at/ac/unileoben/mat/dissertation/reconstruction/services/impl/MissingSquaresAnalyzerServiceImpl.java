@@ -100,18 +100,18 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       }
     }
 
-    boolean cycleOfIrregularNoSquareAtAllMissingSquares = false;
+    MissingEdgesFormation missingEdgesFormation = MissingEdgesFormation.NONE;
     List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = new LinkedList<>();
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
-      cycleOfIrregularNoSquareAtAllMissingSquares = isCycleToBeSearchedFor(noSquareAtAllMissingSquares);
+      missingEdgesFormation = defineFormationToSearchFor(noSquareAtAllMissingSquares);
       //TODO handle special edges correctly, for now add them all
       irregularNoSquareAtAllMissingSquares.addAll(noSquareAtAllMissingSquares);
 //      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, cycleOfIrregularNoSquareAtAllMissingSquares);
     }
 
     List<Integer> includedColorsEdges;
-    if (!cycleOfIrregularNoSquareAtAllMissingSquares && noSquareAtAllEdgesPairIncludedColors.size() > 0)
+    if (missingEdgesFormation != MissingEdgesFormation.CYCLE && noSquareAtAllEdgesPairIncludedColors.size() > 0)
     {
       includedColorsEdges = noSquareAtAllEdgesPairIncludedColors.getEntries();
     }
@@ -121,22 +121,62 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     }
 
     ResultMissingSquaresData resultMissingSquaresData = new ResultMissingSquaresData(irregularNoSquareAtAllMissingSquares,
-            irregularMissingSquaresByColor, includedColorsEdges, cycleOfIrregularNoSquareAtAllMissingSquares);
+            irregularMissingSquaresByColor, includedColorsEdges, missingEdgesFormation);
     return resultMissingSquaresData;
   }
 
-  private boolean isCycleToBeSearchedFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  private MissingEdgesFormation defineFormationToSearchFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
   {
-    boolean cycleToBeSearchedFor = false;
+    boolean spikeIncluded = false;
+    boolean[][] collectedEdgesIncluded = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+    List<Edge> collectedEdges = new LinkedList<>();
 
-    MissingSquaresUniqueEdgesData arbitraryMissingSquare = noSquareAtAllMissingSquares.get(0);
-    int baseEdgeEndpointEdgesQuantity = arbitraryMissingSquare.getBaseEdge().getEndpoint().getEdges().size();
-    int otherEdgeEndpointEdgesQuantity = arbitraryMissingSquare.getOtherEdge().getEndpoint().getEdges().size();
-
-    if (baseEdgeEndpointEdgesQuantity > 1 && otherEdgeEndpointEdgesQuantity > 1)
+    for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquare : noSquareAtAllMissingSquares)
     {
-      cycleToBeSearchedFor = true;
+      Edge baseEdge = noSquareAtAllMissingSquare.getBaseEdge();
+      Edge otherEdge = noSquareAtAllMissingSquare.getOtherEdge();
+
+      List<Edge> currentNoSquareAtAllMissingEdges = new LinkedList<>();
+      if (baseEdge.getLabel().getColor() == 0)
+      {
+        currentNoSquareAtAllMissingEdges.add(baseEdge);
+      }
+      if (otherEdge.getLabel().getColor() == 0)
+      {
+        currentNoSquareAtAllMissingEdges.add(otherEdge);
+      }
+
+      for (Edge currentNoSquareAtAllMissingEdge : currentNoSquareAtAllMissingEdges)
+      {
+        if (!collectedEdgesIncluded[currentNoSquareAtAllMissingEdge.getEndpoint().getVertexNo()][currentNoSquareAtAllMissingEdge.getOrigin().getVertexNo()])
+        {
+          collectedEdgesIncluded[currentNoSquareAtAllMissingEdge.getEndpoint().getVertexNo()][currentNoSquareAtAllMissingEdge.getOrigin().getVertexNo()] = true;
+          collectedEdgesIncluded[currentNoSquareAtAllMissingEdge.getOrigin().getVertexNo()][currentNoSquareAtAllMissingEdge.getEndpoint().getVertexNo()] = true;
+          collectedEdges.add(currentNoSquareAtAllMissingEdge);
+
+          if (currentNoSquareAtAllMissingEdge.getEndpoint().getEdges().size() == 1)
+          {
+            spikeIncluded = true;
+            break;
+          }
+        }
+      }
     }
-    return cycleToBeSearchedFor;
+
+    MissingEdgesFormation missingEdgesFormation;
+
+    if (spikeIncluded)
+    {
+      missingEdgesFormation = MissingEdgesFormation.SPIKE;
+    }
+    else if (collectedEdges.size() == 1)
+    {
+      missingEdgesFormation = MissingEdgesFormation.SINGLE;
+    }
+    else
+    {
+      missingEdgesFormation = MissingEdgesFormation.CYCLE;
+    }
+    return missingEdgesFormation;
   }
 }
