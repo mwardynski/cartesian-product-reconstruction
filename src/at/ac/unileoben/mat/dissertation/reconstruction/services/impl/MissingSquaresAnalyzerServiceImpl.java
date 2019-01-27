@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -101,17 +102,15 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     }
 
     MissingEdgesFormation missingEdgesFormation = MissingEdgesFormation.NONE;
-    List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = new LinkedList<>();
+    List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = Collections.emptyList();
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
       missingEdgesFormation = defineFormationToSearchFor(noSquareAtAllMissingSquares);
-      //TODO handle special edges correctly, for now add them all
-      irregularNoSquareAtAllMissingSquares.addAll(noSquareAtAllMissingSquares);
-//      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, cycleOfIrregularNoSquareAtAllMissingSquares);
+      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, missingEdgesFormation);
     }
 
     List<Integer> includedColorsEdges;
-    if (missingEdgesFormation != MissingEdgesFormation.CYCLE && noSquareAtAllEdgesPairIncludedColors.size() > 0)
+    if (missingEdgesFormation == MissingEdgesFormation.SPIKE || missingEdgesFormation == MissingEdgesFormation.SINGLE)
     {
       includedColorsEdges = noSquareAtAllEdgesPairIncludedColors.getEntries();
     }

@@ -4,13 +4,11 @@ import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringSer
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.SingleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
-import at.ac.unileoben.mat.dissertation.structure.Edge;
-import at.ac.unileoben.mat.dissertation.structure.Graph;
-import at.ac.unileoben.mat.dissertation.structure.MissingSquaresUniqueEdgesData;
-import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
+import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -18,6 +16,9 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
 {
   @Autowired
   Graph graph;
+
+  @Autowired
+  ReconstructionData reconstructionData;
 
   @Autowired
   ColoringService coloringService;
@@ -31,15 +32,19 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
 
   @Override
   public List<MissingSquaresUniqueEdgesData> filterCorrectNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares,
-                                                                                      SquareReconstructionData squareReconstructionData, boolean cycleOfIrregularNoSquareAtAllMissingSquares)
+                                                                                      SquareReconstructionData squareReconstructionData, MissingEdgesFormation missingEdgesFormation)
   {
-    if (cycleOfIrregularNoSquareAtAllMissingSquares)
+    if (missingEdgesFormation == MissingEdgesFormation.CYCLE)
     {
       return partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
     }
-    else
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
     {
       return singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+    }
+    else
+    {
+      return Collections.emptyList();
     }
   }
 

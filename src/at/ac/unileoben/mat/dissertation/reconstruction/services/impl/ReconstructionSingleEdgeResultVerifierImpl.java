@@ -2,7 +2,6 @@ package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
 import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionResultVerifier;
 import at.ac.unileoben.mat.dissertation.structure.*;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,10 +20,17 @@ public class ReconstructionSingleEdgeResultVerifierImpl implements Reconstructio
   @Override
   public void compareFoundMissingVertexWithCorrectResult(ResultMissingSquaresData resultMissingSquaresData)
   {
-    if (CollectionUtils.isNotEmpty(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares()))
+    if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE
+//            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE
+            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SINGLE)
     {
       System.out.println("specially colored edges spotted: " + resultMissingSquaresData.getMissingEdgesFormation());
       testCaseContext.setCorrectResult(true);
+    }
+    else if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE)
+    {
+      Edge missingEdge = extractMissingEdge(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
+      checkFoundMissingEdgeCorrectness(missingEdge);
     }
     else
     {
@@ -32,13 +38,11 @@ public class ReconstructionSingleEdgeResultVerifierImpl implements Reconstructio
       {
         List<MissingSquaresUniqueEdgesData> resultMissingSquares = resultMissingSquaresData.getResultMissingSquaresByColor()[selectedColor];
 
-        Edge[][] resultMissingSquarePairs = findMissingSquarePairsForSelectedColor(resultMissingSquares);
-        if (resultMissingSquarePairs == null)
+        Edge missingEdge = extractMissingEdge(resultMissingSquares);
+        if (missingEdge == null)
         {
           continue;
         }
-
-        Edge missingEdge = findMissingEdge(resultMissingSquares, resultMissingSquarePairs);
 
         checkFoundMissingEdgeCorrectness(missingEdge);
         if (testCaseContext.isCorrectResult())
@@ -47,6 +51,17 @@ public class ReconstructionSingleEdgeResultVerifierImpl implements Reconstructio
         }
       }
     }
+  }
+
+  private Edge extractMissingEdge(List<MissingSquaresUniqueEdgesData> resultMissingSquares)
+  {
+    Edge missingEdge = null;
+    Edge[][] resultMissingSquarePairs = findMissingSquarePairsForSelectedColor(resultMissingSquares);
+    if (resultMissingSquarePairs != null)
+    {
+      missingEdge = findMissingEdge(resultMissingSquares, resultMissingSquarePairs);
+    }
+    return missingEdge;
   }
 
   public Edge[][] findMissingSquarePairsForSelectedColor(List<MissingSquaresUniqueEdgesData> selectedIrregularMissingSquaresByColor)
