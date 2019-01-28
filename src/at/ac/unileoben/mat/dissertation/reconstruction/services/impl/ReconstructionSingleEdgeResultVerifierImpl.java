@@ -20,14 +20,13 @@ public class ReconstructionSingleEdgeResultVerifierImpl implements Reconstructio
   @Override
   public void compareFoundMissingVertexWithCorrectResult(ResultMissingSquaresData resultMissingSquaresData)
   {
-    if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE
-//            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE
-            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SINGLE)
+    if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SINGLE)
     {
       System.out.println("specially colored edges spotted: " + resultMissingSquaresData.getMissingEdgesFormation());
       testCaseContext.setCorrectResult(true);
     }
-    else if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE)
+    else if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE
+            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE)
     {
       Edge missingEdge = extractMissingEdge(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
       checkFoundMissingEdgeCorrectness(missingEdge);

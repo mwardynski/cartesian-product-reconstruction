@@ -53,7 +53,7 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
             continue;
           }
 
-//          edgeToRemove = new Edge(originalVertices.get(3), originalVertices.get(11));
+//          edgeToRemove = new Edge(originalVertices.get(3), originalVertices.get(4));
 
           testCaseContext.setRemovedEdge(edgeToRemove);
           testCaseContext.setCorrectResult(false);
@@ -70,6 +70,7 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
           if (testCaseContext.isCorrectResult())
           {
             System.out.println("OK!");
+//            return;
           }
           else
           {

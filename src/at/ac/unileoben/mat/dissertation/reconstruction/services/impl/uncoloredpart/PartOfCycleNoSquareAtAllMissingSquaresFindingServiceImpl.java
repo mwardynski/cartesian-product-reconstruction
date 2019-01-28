@@ -1,6 +1,5 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.uncoloredpart;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
@@ -21,9 +20,6 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
 
   @Autowired
   ReconstructionData reconstructionData;
-
-  @Autowired
-  ColoringService coloringService;
 
   @Autowired
   UncoloredEdgesHandlerService uncoloredEdgesHandlerService;

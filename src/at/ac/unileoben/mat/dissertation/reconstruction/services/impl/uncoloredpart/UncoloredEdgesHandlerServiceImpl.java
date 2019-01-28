@@ -6,6 +6,7 @@ import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.Si
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -27,7 +28,12 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
   PartOfCycleNoSquareAtAllMissingSquaresFindingService partOfCycleNoSquareAtAllMissingSquaresGeneralService;
 
   @Autowired
+  @Qualifier("singleNoSquareAtAllMissingSquaresFindingServiceImpl")
   SingleNoSquareAtAllMissingSquaresFindingService singleNoSquareAtAllMissingSquaresFindingService;
+
+  @Autowired
+  @Qualifier("singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingServiceImpl")
+  SingleNoSquareAtAllMissingSquaresFindingService singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingService;
 
 
   @Override
@@ -44,7 +50,14 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
     }
     else
     {
-      return Collections.emptyList();
+      if (missingEdgesFormation == MissingEdgesFormation.SPIKE)
+      {
+        return singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+      }
+      else
+      {
+        return Collections.emptyList();
+      }
     }
   }
 
