@@ -1,37 +1,22 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl;
 
-import at.ac.unileoben.mat.dissertation.common.GraphHelper;
-import at.ac.unileoben.mat.dissertation.linearfactorization.LinearFactorization;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.ReconstructionResultVerifier;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class ReconstructionResultVerifierImpl implements ReconstructionResultVerifier
+public class ReconstructionResultVerifierImpl extends AbstractReconstructionResultVerifier
 {
-
-  @Autowired
-  Graph graph;
-
   @Autowired
   TestCaseContext testCaseContext;
 
-  @Autowired
-  ReconstructionData reconstructionData;
-
-  @Autowired
-  GraphHelper graphHelper;
-
-  @Autowired
-  LinearFactorization linearFactorization;
-
   public void compareFoundMissingVertexWithCorrectResult(ResultMissingSquaresData resultMissingSquaresData)
   {
-    UniqueList noSquareAtAllMissingSquaresVertexNumbers = mapResultMissingSquaresToVertexNumbers(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
     List<MissingSquaresUniqueEdgesData>[] resultMissingSquaresByColor = resultMissingSquaresData.getResultMissingSquaresByColor();
 
     boolean correctResult = false;
@@ -40,8 +25,8 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
 
     if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE)
     {
-      boolean correctFactorization = checkCorrectnessUsingFactorization(noSquareAtAllMissingSquaresVertexNumbers);
-      boolean correctNeighors = checkCorrectnessUsingNeighborsNumbers(noSquareAtAllMissingSquaresVertexNumbers);
+      boolean correctFactorization = checkCorrectnessUsingFactorization(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
+      boolean correctNeighors = checkCorrectnessUsingNeighborsNumbers(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
 
       if (correctFactorization && correctNeighors)
       {
@@ -59,11 +44,12 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
         List<MissingSquaresUniqueEdgesData> resultMissingSquares = resultMissingSquaresByColor[includedColor];
         UniqueList resultMissingSquaresByColorVertexNumbers = mapResultMissingSquaresToVertexNumbers(resultMissingSquares);
 
+        UniqueList noSquareAtAllMissingSquaresVertexNumbers = mapResultMissingSquaresToVertexNumbers(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
         UniqueList actualNeighborsVertexNumbers = new UniqueList(noSquareAtAllMissingSquaresVertexNumbers);
         actualNeighborsVertexNumbers.addAll(resultMissingSquaresByColorVertexNumbers);
 
-        boolean includedColorCorrectFactorization = checkCorrectnessUsingFactorization(actualNeighborsVertexNumbers);
-        boolean includedColorCorrectNeighbors = checkCorrectnessUsingNeighborsNumbers(actualNeighborsVertexNumbers);
+        boolean includedColorCorrectFactorization = checkCorrectnessUsingFactorization(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
+        boolean includedColorCorrectNeighbors = checkCorrectnessUsingNeighborsNumbers(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
         if (includedColorCorrectFactorization && includedColorCorrectNeighbors)
         {
           correctResult = includedColorCorrectFactorization;
@@ -86,55 +72,10 @@ public class ReconstructionResultVerifierImpl implements ReconstructionResultVer
     testCaseContext.setCorrectResult(correctResult);
   }
 
-  private UniqueList mapResultMissingSquaresToVertexNumbers(List<MissingSquaresUniqueEdgesData> missingSquares)
+  private boolean checkCorrectnessUsingNeighborsNumbers(List<MissingSquaresUniqueEdgesData> missingSquares)
   {
+    UniqueList foundNeighborsVertexNumbersUniqueList = mapResultMissingSquaresToVertexNumbers(missingSquares);
 
-    UniqueList vertexNumbers = new UniqueList(graph.getVertices().size());
-    missingSquares.stream()
-            .map(missingSquare -> Arrays.asList(missingSquare.getBaseEdge().getEndpoint(), missingSquare.getOtherEdge().getEndpoint()))
-            .flatMap(verticesPairs -> verticesPairs.stream())
-            .map(v -> v.getVertexNo())
-            .forEach(vertexNumber -> vertexNumbers.add(vertexNumber));
-    return vertexNumbers;
-  }
-
-  private boolean checkCorrectnessUsingFactorization(UniqueList actualNeighborsVertexNumbers)
-  {
-    boolean correctResult = false;
-
-    List<Vertex> copiedVertices = graphHelper.copySubgraph(graph.getVertices(), Optional.empty());
-    List<Vertex> newVertexNeighborsAmongCopiedVertices = copiedVertices.stream()
-            .filter(copiedVertex -> actualNeighborsVertexNumbers.contains(copiedVertex.getVertexNo()))
-            .collect(Collectors.toList());
-    graphHelper.addVertex(copiedVertices, newVertexNeighborsAmongCopiedVertices);
-
-    Graph originalGraph = new Graph(graph);
-
-    OperationOnGraph initialOperationOnGraph = reconstructionData.getOperationOnGraph();
-    try
-    {
-      reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
-      linearFactorization.factorize(copiedVertices, copiedVertices.get(0));
-
-      if (graph.getGraphColoring().getActualColors().size() != 1)
-      {
-        correctResult = true;
-      }
-    }
-    catch (Exception e)
-    {
-    } finally
-    {
-      reconstructionData.setOperationOnGraph(initialOperationOnGraph);
-      graphHelper.overrideGlobalGraph(originalGraph);
-    }
-
-
-    return correctResult;
-  }
-
-  private boolean checkCorrectnessUsingNeighborsNumbers(UniqueList foundNeighborsVertexNumbersUniqueList)
-  {
     Set<Integer> actualNeighborsVertexNumbers = foundNeighborsVertexNumbersUniqueList.getEntries().stream()
             .map(vNo -> graph.getReverseReindexArray()[vNo])
             .collect(Collectors.toSet());

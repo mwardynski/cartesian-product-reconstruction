@@ -265,8 +265,30 @@ public class GraphHelperImpl implements GraphHelper
     Edge e2 = new Edge(factorPreviousVertex, factorCurrentVertex);
     e1.setOpposite(e2);
     e2.setOpposite(e1);
-    factorCurrentVertex.getEdges().add(e1);
-    factorPreviousVertex.getEdges().add(e2);
+    addSingleNeighborEdge(e1);
+    addSingleNeighborEdge(e2);
+  }
+
+  private void addSingleNeighborEdge(Edge newEdge)
+  {
+    List<Edge> originEdges = newEdge.getOrigin().getEdges();
+    int insertionIndex = 0;
+    for (Edge edge : originEdges)
+    {
+      if (edge.getEndpoint().getVertexNo() < newEdge.getEndpoint().getVertexNo())
+      {
+        insertionIndex++;
+      }
+      else if (edge.getEndpoint().getVertexNo() > newEdge.getEndpoint().getVertexNo())
+      {
+        break;
+      }
+      else
+      {
+        throw new IllegalStateException("trying to insert duplicated edge");
+      }
+    }
+    originEdges.add(insertionIndex, newEdge);
   }
 
   private void orderBFS(List<Vertex> roots, List<Vertex> vertices, Optional<Integer> currentColorOptional, Set<EdgeType> excludedEdgeTypes, BiFunction<Vertex, Vertex, Boolean> whiteVertexFunction, BiConsumer<Vertex, Vertex> greyVertexConsumer)
