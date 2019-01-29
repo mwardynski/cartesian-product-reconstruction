@@ -141,7 +141,7 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = new LinkedList<>();
     for (List<NoSquareAtAllCycleNode> correctCycle : correctCycles)
     {
-      int cycleLength = correctCycle.get(0).getDistance() + 1;
+      int cycleLength = correctCycle.size();
 
       int singleEdgeReconstructionDoubleSpecialEdgesCorrectMissingSquaresIndex = -1;
       for (int i = 1; i < cycleLength - 1; i++)
@@ -155,8 +155,8 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
         {
           if (reconstructionData.getOperationOnGraph() == OperationOnGraph.SINGLE_EDGE_RECONSTRUCTION)
           {
-            MissingSquaresUniqueEdgesData firstCorrectNoSquareAtAllMissingSquare = extractCorrectNoSquareAtAllMissingSquare(i - 1, cycleLength, correctCycle);
-            MissingSquaresUniqueEdgesData secondCorrectNoSquareAtAllMissingSquare = extractCorrectNoSquareAtAllMissingSquare(i, cycleLength, correctCycle);
+            MissingSquaresUniqueEdgesData firstCorrectNoSquareAtAllMissingSquare = extractCorrectNoSquareAtAllMissingSquare(i - 2, cycleLength, correctCycle);
+            MissingSquaresUniqueEdgesData secondCorrectNoSquareAtAllMissingSquare = extractCorrectNoSquareAtAllMissingSquare(i - 1, cycleLength, correctCycle);
             correctNoSquareAtAllMissingSquares.addAll(Arrays.asList(firstCorrectNoSquareAtAllMissingSquare, secondCorrectNoSquareAtAllMissingSquare));
           }
           else
@@ -208,8 +208,8 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
   private MissingSquaresUniqueEdgesData extractCorrectNoSquareAtAllMissingSquare(int cycleVertexIndex, int cycleLength, List<NoSquareAtAllCycleNode> correctCycle)
   {
     int missingSquareEdgesStartIndex = (cycleVertexIndex + cycleLength - 1) % cycleLength;
-    int missingSquareEdgesMiddleIndex = cycleVertexIndex % cycleLength;
-    int missingSquareEdgesEndIndex = (cycleVertexIndex + 1) % cycleLength;
+    int missingSquareEdgesMiddleIndex = (cycleVertexIndex + cycleLength) % cycleLength;
+    int missingSquareEdgesEndIndex = (cycleVertexIndex + cycleLength + 1) % cycleLength;
 
     int missingSquareEdgesStartVertexNo = correctCycle.get(missingSquareEdgesStartIndex).getVertex().getVertexNo();
     int missingSquareEdgesMiddleVertexNo = correctCycle.get(missingSquareEdgesMiddleIndex).getVertex().getVertexNo();
