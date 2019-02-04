@@ -14,6 +14,8 @@ public class SquareReconstructionData
   MissingSquaresData missingSquaresData;
   SingleSquareList[][][] squares;
   List<Vertex> currentVertexNeighborsToQueue;
+  Edge singleBridgeEdge;
+  MissingEdgesFormation missingEdgesFormation;
 
   SquareMatchingEdgeData[][] squareMatchingEdgesByEdge;
 
@@ -25,6 +27,7 @@ public class SquareReconstructionData
     includedPostponedVertices = new boolean[graphSize];
     missingSquaresData = new MissingSquaresData(graphSize);
     squares = new SingleSquareList[graphSize][graphSize][graphSize];
+    missingEdgesFormation = MissingEdgesFormation.NONE;
   }
 
   public Vertex getCurrentVertex()
@@ -85,5 +88,25 @@ public class SquareReconstructionData
   public void setCurrentVertexNeighborsToQueue(List<Vertex> currentVertexNeighborsToQueue)
   {
     this.currentVertexNeighborsToQueue = currentVertexNeighborsToQueue;
+  }
+
+  public Edge getSingleBridgeEdge()
+  {
+    return singleBridgeEdge;
+  }
+
+  public void setSingleBridgeEdge(Edge singleBridgeEdge)
+  {
+    this.singleBridgeEdge = singleBridgeEdge;
+  }
+
+  public MissingEdgesFormation getMissingEdgesFormation()
+  {
+    return missingEdgesFormation;
+  }
+
+  public void setMissingEdgesFormation(MissingEdgesFormation missingEdgesFormation)
+  {
+    this.missingEdgesFormation = missingEdgesFormation;
   }
 }

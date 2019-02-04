@@ -84,9 +84,12 @@ public class SingleSquareReconstructionServiceImpl implements SingleSquareRecons
   private void addCurrentVertexToPostponedVertices(SquareReconstructionData squareReconstructionData)
   {
     Vertex currentVertex = squareReconstructionData.getCurrentVertex();
-    squareReconstructionData.getIncludedVertices()[currentVertex.getVertexNo()] = false;
-    squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()] = true;
-    squareReconstructionData.getPostponedVertices().add(currentVertex);
+    if (!squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()])
+    {
+      squareReconstructionData.getIncludedVertices()[currentVertex.getVertexNo()] = false;
+      squareReconstructionData.getIncludedPostponedVertices()[currentVertex.getVertexNo()] = true;
+      squareReconstructionData.getPostponedVertices().add(currentVertex);
+    }
   }
 
   private void handleNextPostponedVertex(SquareReconstructionData squareReconstructionData)

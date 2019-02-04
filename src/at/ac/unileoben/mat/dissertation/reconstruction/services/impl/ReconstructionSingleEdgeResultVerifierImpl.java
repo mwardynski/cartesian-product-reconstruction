@@ -16,13 +16,9 @@ public class ReconstructionSingleEdgeResultVerifierImpl extends AbstractReconstr
   @Override
   public void compareFoundMissingVertexWithCorrectResult(ResultMissingSquaresData resultMissingSquaresData)
   {
-    if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SINGLE)
-    {
-      System.out.println("specially colored edges spotted: " + resultMissingSquaresData.getMissingEdgesFormation());
-      testCaseContext.setCorrectResult(true);
-    }
-    else if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE
-            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE)
+    if (resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.CYCLE
+            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE
+            || resultMissingSquaresData.getMissingEdgesFormation() == MissingEdgesFormation.BRIDGE)
     {
       boolean correctResult = checkCorrectnessUsingFactorization(resultMissingSquaresData.getResultNoSquareAtAllMissingSquares());
       testCaseContext.setCorrectResult(correctResult);

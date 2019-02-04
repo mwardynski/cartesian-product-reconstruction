@@ -1,15 +1,16 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.uncoloredpart;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
+import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.BridgeNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.PartOfCycleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.SingleNoSquareAtAllMissingSquaresFindingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -35,30 +36,39 @@ public class UncoloredEdgesHandlerServiceImpl implements UncoloredEdgesHandlerSe
   @Qualifier("singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingServiceImpl")
   SingleNoSquareAtAllMissingSquaresFindingService singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingService;
 
+  @Autowired
+  BridgeNoSquareAtAllMissingSquaresFindingService bridgeNoSquareAtAllMissingSquaresFindingService;
+
 
   @Override
   public List<MissingSquaresUniqueEdgesData> filterCorrectNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares,
-                                                                                      SquareReconstructionData squareReconstructionData, MissingEdgesFormation missingEdgesFormation)
+                                                                                      SquareReconstructionData squareReconstructionData)
   {
-    if (missingEdgesFormation == MissingEdgesFormation.CYCLE)
+    List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares;
+
+    if (squareReconstructionData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE)
     {
-      return partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
-    }
-    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
-    {
-      return singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
-    }
-    else
-    {
-      if (missingEdgesFormation == MissingEdgesFormation.SPIKE)
+      if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
       {
-        return singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+        correctNoSquareAtAllMissingSquares = singleNoSquareAtAllMissingSquaresFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
       }
       else
       {
-        return Collections.emptyList();
+        correctNoSquareAtAllMissingSquares = singleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingService.findCorrectSingleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
       }
     }
+    else
+    {
+      correctNoSquareAtAllMissingSquares = partOfCycleNoSquareAtAllMissingSquaresGeneralService.findCorrectPartOfCycleNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+    }
+
+    if (CollectionUtils.isEmpty(correctNoSquareAtAllMissingSquares) && squareReconstructionData.getSingleBridgeEdge() != null)
+    {
+      squareReconstructionData.setMissingEdgesFormation(MissingEdgesFormation.BRIDGE);
+      correctNoSquareAtAllMissingSquares = bridgeNoSquareAtAllMissingSquaresFindingService.findCorrectBridgeNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
+    }
+
+    return correctNoSquareAtAllMissingSquares;
   }
 
 

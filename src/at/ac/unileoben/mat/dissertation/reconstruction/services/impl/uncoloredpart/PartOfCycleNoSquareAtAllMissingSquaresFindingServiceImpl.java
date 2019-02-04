@@ -7,10 +7,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 @Component
 public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements PartOfCycleNoSquareAtAllMissingSquaresFindingService
@@ -36,7 +33,11 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     NoSquareAtAllCycleNode[] noSquareAtAllCycleNodesByVertexNo = new NoSquareAtAllCycleNode[graph.getVertices().size()];
     List<List<NoSquareAtAllCycleNode>> correctCycles = findCycleUsingBfs(arbitraryMissingSquareEdge, squareReconstructionData, noSquareAtAllCycleNodesByVertexNo);
 
-    List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = splitCyclesIntoMissingSquares(correctCycles, noSquareAtAllCycleNodesByVertexNo);
+    List<MissingSquaresUniqueEdgesData> correctNoSquareAtAllMissingSquares = Collections.emptyList();
+    if (CollectionUtils.isNotEmpty(correctCycles))
+    {
+      correctNoSquareAtAllMissingSquares = splitCyclesIntoMissingSquares(correctCycles, noSquareAtAllCycleNodesByVertexNo);
+    }
     return correctNoSquareAtAllMissingSquares;
   }
 
@@ -96,8 +97,11 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
     List<List<NoSquareAtAllCycleNode>> correctCycles = new LinkedList<>();
     List<NoSquareAtAllCycleNode> currentCycle = new LinkedList<>();
 
-    processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()],
-            correctCycles, currentCycle);
+    NoSquareAtAllCycleNode currentVertex = noSquareAtAllCycleNodesByVertexNo[endVertex.getVertexNo()];
+    if (currentVertex != null)
+    {
+      processCycle(noSquareAtAllCycleNodesByVertexNo[firstVertex.getVertexNo()], currentVertex, correctCycles, currentCycle);
+    }
     return correctCycles;
   }
 

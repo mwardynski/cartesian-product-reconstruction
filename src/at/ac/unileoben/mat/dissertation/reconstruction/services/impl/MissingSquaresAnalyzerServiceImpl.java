@@ -101,16 +101,15 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       }
     }
 
-    MissingEdgesFormation missingEdgesFormation = MissingEdgesFormation.NONE;
     List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = Collections.emptyList();
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
-      missingEdgesFormation = defineFormationToSearchFor(noSquareAtAllMissingSquares);
-      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, missingEdgesFormation);
+      defineFormationToSearchFor(noSquareAtAllMissingSquares, squareReconstructionData);
+      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
     }
 
     List<Integer> includedColorsEdges;
-    if (missingEdgesFormation == MissingEdgesFormation.SPIKE || missingEdgesFormation == MissingEdgesFormation.SINGLE)
+    if (squareReconstructionData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE)
     {
       includedColorsEdges = noSquareAtAllEdgesPairIncludedColors.getEntries();
     }
@@ -120,11 +119,11 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     }
 
     ResultMissingSquaresData resultMissingSquaresData = new ResultMissingSquaresData(irregularNoSquareAtAllMissingSquares,
-            irregularMissingSquaresByColor, includedColorsEdges, missingEdgesFormation);
+            irregularMissingSquaresByColor, includedColorsEdges, squareReconstructionData.getMissingEdgesFormation());
     return resultMissingSquaresData;
   }
 
-  private MissingEdgesFormation defineFormationToSearchFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  private void defineFormationToSearchFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
     boolean spikeIncluded = false;
     boolean[][] collectedEdgesIncluded = new boolean[graph.getVertices().size()][graph.getVertices().size()];
@@ -162,20 +161,17 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       }
     }
 
-    MissingEdgesFormation missingEdgesFormation;
-
     if (spikeIncluded)
     {
-      missingEdgesFormation = MissingEdgesFormation.SPIKE;
-    }
-    else if (collectedEdges.size() == 1)
-    {
-      missingEdgesFormation = MissingEdgesFormation.SINGLE;
+      squareReconstructionData.setMissingEdgesFormation(MissingEdgesFormation.SPIKE);
     }
     else
     {
-      missingEdgesFormation = MissingEdgesFormation.CYCLE;
+      if (collectedEdges.size() == 1)
+      {
+        squareReconstructionData.setSingleBridgeEdge(collectedEdges.get(0));
+      }
+      squareReconstructionData.setMissingEdgesFormation(MissingEdgesFormation.CYCLE);
     }
-    return missingEdgesFormation;
   }
 }

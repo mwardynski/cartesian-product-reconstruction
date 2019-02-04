@@ -1,8 +1,10 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.uncoloredpart;
 
-import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.SingleNoSquareAtAllMissingSquaresFindingService;
-import at.ac.unileoben.mat.dissertation.structure.*;
+import at.ac.unileoben.mat.dissertation.structure.Edge;
+import at.ac.unileoben.mat.dissertation.structure.MissingSquaresEntryData;
+import at.ac.unileoben.mat.dissertation.structure.MissingSquaresUniqueEdgesData;
+import at.ac.unileoben.mat.dissertation.structure.SquareReconstructionData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,11 +16,9 @@ import java.util.List;
 @Component
 public class SingleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFindingServiceImpl implements SingleNoSquareAtAllMissingSquaresFindingService
 {
-  @Autowired
-  Graph graph;
 
   @Autowired
-  ColoringService coloringService;
+  NoSquareAtAllMissingSquaresFindingCommons noSquareAtAllMissingSquaresFindingCommons;
 
   @Override
   public List<MissingSquaresUniqueEdgesData> findCorrectSingleNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
@@ -41,13 +41,13 @@ public class SingleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFinding
     }
     else
     {
-      List<Edge> followingEdges = collectFollowingEdges(missingSquaresEntryData);
+      List<Edge> followingEdges = noSquareAtAllMissingSquaresFindingCommons.collectFollowingEdges(missingSquaresEntryData);
 
       MissingSquaresUniqueEdgesData correspondingToSpikeMissingSquareEdgesPair = new MissingSquaresUniqueEdgesData(otherOppositeEdge, followingEdges.get(0));
       correctSingleNoSquareAtAllMissingSquares.addAll(Arrays.asList(missingSquareEdgesPairWithSpikeHavingPotentialFollowing, correspondingToSpikeMissingSquareEdgesPair));
       if (followingEdges.size() > 1)
       {
-        System.out.println("many solution possibilities");
+        System.out.println("many solution possibilities - SPIKE");
       }
     }
 
@@ -65,27 +65,5 @@ public class SingleNoSquareAtAllMissingSquaresForSingleEdgeReconstructionFinding
               return missingSquaresEntryData != null && CollectionUtils.isNotEmpty(missingSquaresEntryData.getExistingColors());
             })
             .findAny().get();
-  }
-
-  private List<Edge> collectFollowingEdges(MissingSquaresEntryData missingSquaresEntryData)
-  {
-    List<Edge> followingEdges = new LinkedList<>();
-    int[] edgesByColorCounter = new int[graph.getVertices().size()];
-    for (Integer color : missingSquaresEntryData.getExistingColors())
-    {
-      int currentColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), color);
-      edgesByColorCounter[currentColorMapping] += missingSquaresEntryData.getOtherEdgesByColors()[color].size();
-    }
-
-    for (Integer color : missingSquaresEntryData.getExistingColors())
-    {
-      int currentColorMapping = coloringService.getCurrentColorMapping(graph.getGraphColoring(), color);
-      List<Edge> possibleFollowingEdges = missingSquaresEntryData.getOtherEdgesByColors()[color];
-      if (edgesByColorCounter[currentColorMapping] == 1 && possibleFollowingEdges.get(0).getEndpoint().getEdges().size() + 1 == possibleFollowingEdges.get(0).getOrigin().getEdges().size())
-      {
-        followingEdges.add(possibleFollowingEdges.get(0));
-      }
-    }
-    return followingEdges;
   }
 }
