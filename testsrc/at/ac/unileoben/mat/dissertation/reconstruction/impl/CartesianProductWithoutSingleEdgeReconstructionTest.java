@@ -88,6 +88,7 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
   static
   {
     //K2
+    examplesList.add(new FactorizationCase("C6xK2.txt", 2));
     examplesList.add(new FactorizationCase("hxK2.txt", 2));
     examplesList.add(new FactorizationCase("cubexK2.txt", 4));
     examplesList.add(new FactorizationCase("cube-ExK2.txt", 2));
