@@ -19,6 +19,9 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   ColoringService coloringService;
 
   @Autowired
@@ -80,28 +83,75 @@ public class SquareMatchingEdgesMergingServiceImpl implements SquareMatchingEdge
     }
   }
 
-  private void collectEdgesToMergeForGivenColors(Edge baseEdge, List<Edge> firstGroupOfSquareMatchingEdges, List<Edge> secondGroupOfSquareMatchingEdges, List<Edge> edgesOfColorsToBeMerged, SquareReconstructionData squareReconstructionData)
+  private void collectEdgesToMergeForGivenColors(Edge middleEdge, List<Edge> firstGroupOfSquareMatchingEdges, List<Edge> secondGroupOfSquareMatchingEdges, List<Edge> edgesOfColorsToBeMerged, SquareReconstructionData squareReconstructionData)
   {
     for (Edge firstGroupSquareMatchingEdge : firstGroupOfSquareMatchingEdges)
     {
       for (Edge secondGroupSquareMatchingEdge : secondGroupOfSquareMatchingEdges)
       {
-        Edge squareBaseEdge = graph.getAdjacencyMatrix()[baseEdge.getOrigin().getVertexNo()][firstGroupSquareMatchingEdge.getOrigin().getVertexNo()];
-        Edge squareOtherEdge = graph.getAdjacencyMatrix()[baseEdge.getOrigin().getVertexNo()][secondGroupSquareMatchingEdge.getOrigin().getVertexNo()];
+        Edge baseEdge = graph.getAdjacencyMatrix()[middleEdge.getOrigin().getVertexNo()][firstGroupSquareMatchingEdge.getOrigin().getVertexNo()];
+        Edge baseEdgeExtendingEdge = graph.getAdjacencyMatrix()[middleEdge.getOrigin().getVertexNo()][secondGroupSquareMatchingEdge.getOrigin().getVertexNo()];
 
-        SingleSquareList originSideSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareBaseEdge, squareOtherEdge, squareReconstructionData);
+        Edge squareEdge = graph.getAdjacencyMatrix()[middleEdge.getEndpoint().getVertexNo()][firstGroupSquareMatchingEdge.getEndpoint().getVertexNo()];
+        Edge squareEdgeExtendingEdge = graph.getAdjacencyMatrix()[middleEdge.getEndpoint().getVertexNo()][secondGroupSquareMatchingEdge.getEndpoint().getVertexNo()];
 
-        squareBaseEdge = graph.getAdjacencyMatrix()[baseEdge.getEndpoint().getVertexNo()][firstGroupSquareMatchingEdge.getEndpoint().getVertexNo()];
-        squareOtherEdge = graph.getAdjacencyMatrix()[baseEdge.getEndpoint().getVertexNo()][secondGroupSquareMatchingEdge.getEndpoint().getVertexNo()];
-
-        SingleSquareList endpointSideSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareBaseEdge, squareOtherEdge, squareReconstructionData);
-
-        if (CollectionUtils.isEmpty(originSideSquares) && CollectionUtils.isEmpty(endpointSideSquares))
+        if (isColorToBeExtended(baseEdge, baseEdgeExtendingEdge, squareEdge, squareEdgeExtendingEdge, squareReconstructionData))
         {
-          edgesOfColorsToBeMerged.add(squareBaseEdge);
-          edgesOfColorsToBeMerged.add(squareOtherEdge);
+          edgesOfColorsToBeMerged.add(baseEdge);
+          edgesOfColorsToBeMerged.add(baseEdgeExtendingEdge);
         }
       }
     }
+  }
+
+  @Override
+  public boolean isColorToBeExtended(Edge baseEdge, Edge baseEdgeExtendingEdge, Edge squareEdge, Edge squareEdgeExtendingEdge, SquareReconstructionData squareReconstructionData)
+  {
+    SingleSquareList baseEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(baseEdgeExtendingEdge, baseEdge, squareReconstructionData);
+    SingleSquareList squareEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareEdgeExtendingEdge, squareEdge, squareReconstructionData);
+
+    boolean extendColor = false;
+    if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
+    {
+      extendColor = true;
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.SINGLE_EDGE_RECONSTRUCTION
+            && (CollectionUtils.isEmpty(baseEdgeSquares) || CollectionUtils.isEmpty(squareEdgeSquares)))
+    {
+      if (CollectionUtils.isEmpty(baseEdgeSquares))
+      {
+        extendColor = isColorToBeExtendedForSingleEdgeReconstructionSpecialCase(baseEdge, baseEdgeExtendingEdge, squareEdge, squareEdgeExtendingEdge, squareEdgeSquares, squareReconstructionData);
+      }
+      else
+      {
+        extendColor = isColorToBeExtendedForSingleEdgeReconstructionSpecialCase(squareEdge, squareEdgeExtendingEdge, baseEdge, baseEdgeExtendingEdge, baseEdgeSquares, squareReconstructionData);
+      }
+    }
+    return extendColor;
+  }
+
+  private boolean isColorToBeExtendedForSingleEdgeReconstructionSpecialCase(Edge notHavingSquareEdge, Edge notHavingSquareExtendingEdge,
+                                                                            Edge havingSquareEdge, Edge havingSquareExtendingEdge,
+                                                                            SingleSquareList foundSquares, SquareReconstructionData squareReconstructionData)
+  {
+    boolean extendColor = false;
+    if (foundSquares.size() != 1)
+    {
+      return extendColor;
+    }
+    Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
+    SingleSquareData foundSquare = foundSquares.get(0);
+
+    Edge otherColorEdge = adjacencyMatrix[havingSquareEdge.getEndpoint().getVertexNo()][notHavingSquareEdge.getEndpoint().getVertexNo()];
+    Edge otherColorExtendingEdge = adjacencyMatrix[havingSquareExtendingEdge.getEndpoint().getVertexNo()][notHavingSquareExtendingEdge.getEndpoint().getVertexNo()];
+
+    SingleSquareList otherColorEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(otherColorEdge, foundSquare.getSquareBaseEdge(), squareReconstructionData);
+    SingleSquareList otherColorExtendingEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(otherColorExtendingEdge, foundSquare.getSquareOtherEdge(), squareReconstructionData);
+
+    if (CollectionUtils.isEmpty(otherColorEdgeSquares) && CollectionUtils.isEmpty(otherColorExtendingEdgeSquares))
+    {
+      extendColor = true;
+    }
+    return extendColor;
   }
 }

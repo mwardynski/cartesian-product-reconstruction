@@ -1,9 +1,9 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.squarehandling;
 
+import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareMatchingEdgesMergingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.UncoloredEdgesHandlerService;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -15,6 +15,9 @@ public class GraphSquaresHandlingStrategyImpl extends AbstractSquareHandlingStra
 
   @Autowired
   UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
+
+  @Autowired
+  SquareMatchingEdgesMergingService squareMatchingEdgesMergingService;
 
   @Override
   public void colorEdge(Edge baseEdge, Edge squareEdge, Edge otherColorEdge, SquareReconstructionData squareReconstructionData)
@@ -61,6 +64,60 @@ public class GraphSquaresHandlingStrategyImpl extends AbstractSquareHandlingStra
     }
 
     storeSquareMatchingEdges(baseEdge, squareEdge, otherColorEdge, squareReconstructionData);
+  }
+
+  protected int findExtensionColor(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
+  {
+    int extensionColor = -1;
+
+    SquareMatchingEdgeData[][] squareMatchingEdgesByEdge = squareReconstructionData.getSquareMatchingEdgesByEdge();
+    SquareMatchingEdgeData squareMatchingEdgesData = squareMatchingEdgesByEdge[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
+
+    if (squareMatchingEdgesData == null)
+    {
+      return extensionColor;
+    }
+    Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
+    Edge otherColorSquareEdge = adjacencyMatrix[baseEdge.getEndpoint().getVertexNo()][squareEdge.getEndpoint().getVertexNo()];
+
+    for (Integer existingColor : squareMatchingEdgesData.getExistingColors())
+    {
+      List<Edge> squareMatchingEdges = squareMatchingEdgesData.getEdgesByColors()[existingColor];
+
+      for (Edge squareMatchingEdge : squareMatchingEdges)
+      {
+        if (squareMatchingEdge == otherColorSquareEdge)
+        {
+          continue;
+        }
+        Edge baseEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getOrigin().getVertexNo()][squareMatchingEdge.getOrigin().getVertexNo()];
+        Edge squareEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getEndpoint().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
+
+        extensionColor = findExtensionColor(baseEdge, baseEdgeExtendingEdge, squareEdge, squareEdgeExtendingEdge, squareReconstructionData);
+
+        if (extensionColor != -1)
+        {
+          break;
+        }
+      }
+
+      if (extensionColor != -1)
+      {
+        break;
+      }
+    }
+    return extensionColor;
+  }
+
+  private int findExtensionColor(Edge baseEdge, Edge baseEdgeExtendingEdge, Edge squareEdge, Edge squareEdgeExtendingEdge, SquareReconstructionData squareReconstructionData)
+  {
+
+    int resultExtensionColor = -1;
+    if (squareMatchingEdgesMergingService.isColorToBeExtended(baseEdge, baseEdgeExtendingEdge, squareEdge, squareEdgeExtendingEdge, squareReconstructionData))
+    {
+      resultExtensionColor = baseEdgeExtendingEdge.getLabel().getColor();
+    }
+    return resultExtensionColor;
   }
 
   @Override
