@@ -1,5 +1,7 @@
 out/*
 .idea/workspace.xml
 .idea/misc.xml
+.idea/sonarlint
+.idea/codeStyles
 build/*
 .gradle/*
