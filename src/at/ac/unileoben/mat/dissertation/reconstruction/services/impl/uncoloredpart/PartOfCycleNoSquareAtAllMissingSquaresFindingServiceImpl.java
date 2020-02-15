@@ -180,13 +180,9 @@ public class PartOfCycleNoSquareAtAllMissingSquaresFindingServiceImpl implements
           Edge beforeFirstEdge = graph.getAdjacencyMatrix()[correctCycle.get(beforeFirstEdgeEndpointIndex).getVertex().getVertexNo()][correctCycle.get(i - 1).getVertex().getVertexNo()];
           Edge afterSecondEdge = graph.getAdjacencyMatrix()[correctCycle.get(i + 1).getVertex().getVertexNo()][correctCycle.get((i + 2 + cycleLength) % cycleLength).getVertex().getVertexNo()];
 
-          if (beforeFirstEdge.getLabel().getColor() != 0)
+          if (beforeFirstEdge.getLabel().getColor() != 0 || afterSecondEdge.getLabel().getColor() != 0)
           {
             singleEdgeReconstructionDoubleSpecialEdgesCorrectMissingSquaresIndex = beforeFirstEdgeEndpointIndex;
-          }
-          else if (afterSecondEdge.getLabel().getColor() != 0)
-          {
-            singleEdgeReconstructionDoubleSpecialEdgesCorrectMissingSquaresIndex = i + 1;
           }
         }
       }
