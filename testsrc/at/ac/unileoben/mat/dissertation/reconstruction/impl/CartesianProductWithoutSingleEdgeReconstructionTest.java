@@ -74,6 +74,7 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
           }
           else
           {
+//            System.out.println("no result!!");
             throw new IllegalStateException("no result!!");
           }
         }
@@ -87,6 +88,12 @@ public class CartesianProductWithoutSingleEdgeReconstructionTest extends Abstrac
 
   static
   {
+    //Moebius
+    examplesList.add(new FactorizationCase("moebius/moebius2xK2.txt", 2));
+    examplesList.add(new FactorizationCase("moebius/moebius2xP3.txt", 2));
+    examplesList.add(new FactorizationCase("moebius/moebius2xmoebius2.txt", 2));
+    examplesList.add(new FactorizationCase("moebius/moebius3xK2.txt", 2));
+    examplesList.add(new FactorizationCase("moebius/moebius3xP3.txt", 2));
     //K2
     examplesList.add(new FactorizationCase("C6xK2.txt", 2));
     examplesList.add(new FactorizationCase("hxK2.txt", 2));

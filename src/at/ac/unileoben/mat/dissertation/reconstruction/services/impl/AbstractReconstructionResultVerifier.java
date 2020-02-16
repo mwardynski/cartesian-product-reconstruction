@@ -62,29 +62,7 @@ public abstract class AbstractReconstructionResultVerifier implements Reconstruc
       graphHelper.createEdgeBetweenVertices(copiedVertices.get(missingEdge.getOrigin().getVertexNo()), copiedVertices.get(missingEdge.getEndpoint().getVertexNo()));
     }
 
-    Graph originalGraph = new Graph(graph);
-
-    OperationOnGraph initialOperationOnGraph = reconstructionData.getOperationOnGraph();
-    try
-    {
-      reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
-      linearFactorization.factorize(copiedVertices, copiedVertices.get(0));
-
-      if (graph.getGraphColoring().getActualColors().size() != 1)
-      {
-        correctResult = true;
-      }
-    }
-    catch (Exception e)
-    {
-    } finally
-    {
-      reconstructionData.setOperationOnGraph(initialOperationOnGraph);
-      graphHelper.overrideGlobalGraph(originalGraph);
-    }
-
-
-    return correctResult;
+    return factorizeGraphCopyToCheckCorrectness(correctResult, copiedVertices);
   }
 
   private Edge extractMissingEdge(List<MissingSquaresUniqueEdgesData> resultMissingSquares)
@@ -164,4 +142,28 @@ public abstract class AbstractReconstructionResultVerifier implements Reconstruc
     return missingEdge;
   }
 
+
+  private boolean factorizeGraphCopyToCheckCorrectness(boolean correctResult, List<Vertex> copiedVertices)
+  {
+    Graph originalGraph = new Graph(graph);
+    OperationOnGraph initialOperationOnGraph = reconstructionData.getOperationOnGraph();
+    try
+    {
+      reconstructionData.setOperationOnGraph(OperationOnGraph.FACTORIZE);
+      linearFactorization.factorize(copiedVertices, copiedVertices.get(0));
+
+      if (graph.getGraphColoring().getActualColors().size() != 1)
+      {
+        correctResult = true;
+      }
+    }
+    catch (Exception e)
+    {
+    } finally
+    {
+      reconstructionData.setOperationOnGraph(initialOperationOnGraph);
+      graphHelper.overrideGlobalGraph(originalGraph);
+    }
+    return correctResult;
+  }
 }

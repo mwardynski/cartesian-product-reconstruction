@@ -21,6 +21,7 @@ public enum MergeTagEnum
   CONSISTENCY_ADDITIONAL_VERTEX("Consistency Check: Additional vertex"),
   RECONSTRUCTION_REJECTED_EDGES("Consistency Check - Reconstruction: Rejected edges"),
   DOUBLE_SQUARE_UNIFY_COLORING("Double Square or Unify Coloring"),
+  WRONG_EDGE_RECONSTRUCTED("Wrong edge reconstructed"),
   MULTIPLE_COLORING_EXTENSIONS("Multiple Coloring Extensions"),
   SQUARE_WITH_DIAGONAL("Square With Diagonal"),
   MULTIPLE_NO_ALONG_TO_OTHER_EDGES("Multiple No Along To Other Edges");
