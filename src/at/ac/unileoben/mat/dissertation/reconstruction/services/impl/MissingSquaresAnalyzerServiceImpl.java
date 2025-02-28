@@ -7,6 +7,7 @@ import at.ac.unileoben.mat.dissertation.reconstruction.services.uncoloredpart.Un
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -22,20 +23,35 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
   Graph graph;
 
   @Autowired
+  ReconstructionData reconstructionData;
+
+  @Autowired
   ColoringService coloringService;
 
   @Autowired
   UncoloredEdgesHandlerService uncoloredEdgesHandlerService;
 
   @Autowired
+  @Qualifier("reconstructionResultVerifierImpl")
   ReconstructionResultVerifier reconstructionResultVerifier;
+
+  @Autowired
+  @Qualifier("reconstructionSingleEdgeResultVerifierImpl")
+  ReconstructionResultVerifier reconstructionSingleEdgeResultVerifier;
 
 
   @Override
   public void analyseMissingSquares(SquareReconstructionData squareReconstructionData, SquareMatchingEdgeData[][] squareMatchingEdges)
   {
     ResultMissingSquaresData resultMissingSquaresData = orderProbablyCorrectMissingSquaresByColor(squareReconstructionData, squareMatchingEdges);
-    reconstructionResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
+    if (reconstructionData.getOperationOnGraph() == OperationOnGraph.FINDING_SQUARES)
+    {
+      reconstructionResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
+    }
+    else if (reconstructionData.getOperationOnGraph() == OperationOnGraph.SINGLE_EDGE_RECONSTRUCTION)
+    {
+      reconstructionSingleEdgeResultVerifier.compareFoundMissingVertexWithCorrectResult(resultMissingSquaresData);
+    }
   }
 
 
@@ -85,16 +101,15 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
       }
     }
 
-    boolean cycleOfIrregularNoSquareAtAllMissingSquares = false;
     List<MissingSquaresUniqueEdgesData> irregularNoSquareAtAllMissingSquares = Collections.emptyList();
     if (CollectionUtils.isNotEmpty(noSquareAtAllMissingSquares))
     {
-      cycleOfIrregularNoSquareAtAllMissingSquares = isCycleToBeSearchedFor(noSquareAtAllMissingSquares);
-      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData, cycleOfIrregularNoSquareAtAllMissingSquares);
+      defineFormationToSearchFor(noSquareAtAllMissingSquares, squareReconstructionData);
+      irregularNoSquareAtAllMissingSquares = uncoloredEdgesHandlerService.filterCorrectNoSquareAtAllMissingSquares(noSquareAtAllMissingSquares, squareReconstructionData);
     }
 
     List<Integer> includedColorsEdges;
-    if (!cycleOfIrregularNoSquareAtAllMissingSquares && noSquareAtAllEdgesPairIncludedColors.size() > 0)
+    if (squareReconstructionData.getMissingEdgesFormation() == MissingEdgesFormation.SPIKE)
     {
       includedColorsEdges = noSquareAtAllEdgesPairIncludedColors.getEntries();
     }
@@ -104,22 +119,59 @@ public class MissingSquaresAnalyzerServiceImpl implements MissingSquaresAnalyzer
     }
 
     ResultMissingSquaresData resultMissingSquaresData = new ResultMissingSquaresData(irregularNoSquareAtAllMissingSquares,
-            irregularMissingSquaresByColor, includedColorsEdges, cycleOfIrregularNoSquareAtAllMissingSquares);
+            irregularMissingSquaresByColor, includedColorsEdges, squareReconstructionData.getMissingEdgesFormation());
     return resultMissingSquaresData;
   }
 
-  private boolean isCycleToBeSearchedFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares)
+  private void defineFormationToSearchFor(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData)
   {
-    boolean cycleToBeSearchedFor = false;
+    boolean spikeIncluded = false;
+    boolean[][] collectedEdgesIncluded = new boolean[graph.getVertices().size()][graph.getVertices().size()];
+    List<Edge> collectedEdges = new LinkedList<>();
 
-    MissingSquaresUniqueEdgesData arbitraryMissingSquare = noSquareAtAllMissingSquares.get(0);
-    int baseEdgeEndpointEdgesQuantity = arbitraryMissingSquare.getBaseEdge().getEndpoint().getEdges().size();
-    int otherEdgeEndpointEdgesQuantity = arbitraryMissingSquare.getOtherEdge().getEndpoint().getEdges().size();
-
-    if (baseEdgeEndpointEdgesQuantity > 1 && otherEdgeEndpointEdgesQuantity > 1)
+    for (MissingSquaresUniqueEdgesData noSquareAtAllMissingSquare : noSquareAtAllMissingSquares)
     {
-      cycleToBeSearchedFor = true;
+      Edge baseEdge = noSquareAtAllMissingSquare.getBaseEdge();
+      Edge otherEdge = noSquareAtAllMissingSquare.getOtherEdge();
+
+      List<Edge> currentNoSquareAtAllMissingEdges = new LinkedList<>();
+      if (baseEdge.getLabel().getColor() == 0)
+      {
+        currentNoSquareAtAllMissingEdges.add(baseEdge);
+      }
+      if (otherEdge.getLabel().getColor() == 0)
+      {
+        currentNoSquareAtAllMissingEdges.add(otherEdge);
+      }
+
+      for (Edge currentNoSquareAtAllMissingEdge : currentNoSquareAtAllMissingEdges)
+      {
+        if (!collectedEdgesIncluded[currentNoSquareAtAllMissingEdge.getEndpoint().getVertexNo()][currentNoSquareAtAllMissingEdge.getOrigin().getVertexNo()])
+        {
+          collectedEdgesIncluded[currentNoSquareAtAllMissingEdge.getEndpoint().getVertexNo()][currentNoSquareAtAllMissingEdge.getOrigin().getVertexNo()] = true;
+          collectedEdgesIncluded[currentNoSquareAtAllMissingEdge.getOrigin().getVertexNo()][currentNoSquareAtAllMissingEdge.getEndpoint().getVertexNo()] = true;
+          collectedEdges.add(currentNoSquareAtAllMissingEdge);
+
+          if (currentNoSquareAtAllMissingEdge.getEndpoint().getEdges().size() == 1)
+          {
+            spikeIncluded = true;
+            break;
+          }
+        }
+      }
     }
-    return cycleToBeSearchedFor;
+
+    if (spikeIncluded)
+    {
+      squareReconstructionData.setMissingEdgesFormation(MissingEdgesFormation.SPIKE);
+    }
+    else
+    {
+      if (collectedEdges.size() == 1)
+      {
+        squareReconstructionData.setSingleBridgeEdge(collectedEdges.get(0));
+      }
+      squareReconstructionData.setMissingEdgesFormation(MissingEdgesFormation.CYCLE);
+    }
   }
 }

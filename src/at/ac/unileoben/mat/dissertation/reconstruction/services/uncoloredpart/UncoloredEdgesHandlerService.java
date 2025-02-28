@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface UncoloredEdgesHandlerService
 {
-  List<MissingSquaresUniqueEdgesData> filterCorrectNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData, boolean cycleOfIrregularNoSquareAtAllMissingSquares);
+  List<MissingSquaresUniqueEdgesData> filterCorrectNoSquareAtAllMissingSquares(List<MissingSquaresUniqueEdgesData> noSquareAtAllMissingSquares, SquareReconstructionData squareReconstructionData);
 
   boolean areNormalEdgesOfGivenColorProperty(Edge baseEdge, Edge otherEdge, boolean havingSameColorWanted);
 }

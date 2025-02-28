@@ -1,7 +1,6 @@
 package at.ac.unileoben.mat.dissertation.reconstruction.services.impl.squarehandling;
 
 import at.ac.unileoben.mat.dissertation.linearfactorization.services.ColoringService;
-import at.ac.unileoben.mat.dissertation.reconstruction.services.SingleSquaresHandlingService;
 import at.ac.unileoben.mat.dissertation.reconstruction.services.SquareHandlingStrategy;
 import at.ac.unileoben.mat.dissertation.structure.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,55 +17,6 @@ public abstract class AbstractSquareHandlingStrategy implements SquareHandlingSt
 
   @Autowired
   protected ColoringService coloringService;
-
-  @Autowired
-  SingleSquaresHandlingService singleSquaresHandlingService;
-
-  protected int findExtensionColor(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
-  {
-    int extensionColor = -1;
-
-    SquareMatchingEdgeData[][] squareMatchingEdgesByEdge = squareReconstructionData.getSquareMatchingEdgesByEdge();
-    SquareMatchingEdgeData squareMatchingEdgesData = squareMatchingEdgesByEdge[otherColorBaseEdge.getOrigin().getVertexNo()][otherColorBaseEdge.getEndpoint().getVertexNo()];
-
-    if (squareMatchingEdgesData == null)
-    {
-      return extensionColor;
-    }
-    Edge[][] adjacencyMatrix = graph.getAdjacencyMatrix();
-    Edge otherColorSquareEdge = adjacencyMatrix[baseEdge.getEndpoint().getVertexNo()][squareEdge.getEndpoint().getVertexNo()];
-
-    for (Integer existingColor : squareMatchingEdgesData.getExistingColors())
-    {
-      List<Edge> squareMatchingEdges = squareMatchingEdgesData.getEdgesByColors()[existingColor];
-
-      for (Edge squareMatchingEdge : squareMatchingEdges)
-      {
-        if (squareMatchingEdge == otherColorSquareEdge)
-        {
-          continue;
-        }
-
-        Edge baseEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getOrigin().getVertexNo()][squareMatchingEdge.getOrigin().getVertexNo()];
-        Edge squareEdgeExtendingEdge = adjacencyMatrix[otherColorBaseEdge.getEndpoint().getVertexNo()][squareMatchingEdge.getEndpoint().getVertexNo()];
-
-        SingleSquareList baseEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(baseEdgeExtendingEdge, baseEdge, squareReconstructionData);
-        SingleSquareList squareEdgeSquares = singleSquaresHandlingService.findSquaresForGivenEdges(squareEdgeExtendingEdge, squareEdge, squareReconstructionData);
-
-        if (CollectionUtils.isEmpty(baseEdgeSquares) && CollectionUtils.isEmpty(squareEdgeSquares))
-        {
-          extensionColor = baseEdgeExtendingEdge.getLabel().getColor();
-          break;
-        }
-      }
-
-      if (extensionColor != -1)
-      {
-        break;
-      }
-    }
-    return extensionColor;
-  }
 
   protected void storeSquareMatchingEdges(Edge baseEdge, Edge squareEdge, Edge otherColorBaseEdge, SquareReconstructionData squareReconstructionData)
   {

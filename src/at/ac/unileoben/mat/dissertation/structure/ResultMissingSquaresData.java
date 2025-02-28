@@ -7,17 +7,17 @@ public class ResultMissingSquaresData
   List<MissingSquaresUniqueEdgesData> resultNoSquareAtAllMissingSquares;
   List<MissingSquaresUniqueEdgesData>[] resultMissingSquaresByColor;
   List<Integer> resultIncludedColors;
-  boolean cycleOfIrregularNoSquareAtAllMissingSquares;
+  MissingEdgesFormation missingEdgesFormation;
 
   public ResultMissingSquaresData(List<MissingSquaresUniqueEdgesData> resultNoSquareAtAllMissingSquares,
                                   List<MissingSquaresUniqueEdgesData>[] resultMissingSquaresByColor,
                                   List<Integer> resultIncludedColors,
-                                  boolean cycleOfIrregularNoSquareAtAllMissingSquares)
+                                  MissingEdgesFormation missingEdgesFormation)
   {
     this.resultNoSquareAtAllMissingSquares = resultNoSquareAtAllMissingSquares;
     this.resultMissingSquaresByColor = resultMissingSquaresByColor;
     this.resultIncludedColors = resultIncludedColors;
-    this.cycleOfIrregularNoSquareAtAllMissingSquares = cycleOfIrregularNoSquareAtAllMissingSquares;
+    this.missingEdgesFormation = missingEdgesFormation;
   }
 
   public List<MissingSquaresUniqueEdgesData> getResultNoSquareAtAllMissingSquares()
@@ -35,8 +35,8 @@ public class ResultMissingSquaresData
     return resultIncludedColors;
   }
 
-  public boolean isCycleOfIrregularNoSquareAtAllMissingSquares()
+  public MissingEdgesFormation getMissingEdgesFormation()
   {
-    return cycleOfIrregularNoSquareAtAllMissingSquares;
+    return missingEdgesFormation;
   }
 }

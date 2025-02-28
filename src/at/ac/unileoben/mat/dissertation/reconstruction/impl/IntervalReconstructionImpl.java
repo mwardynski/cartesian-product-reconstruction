@@ -70,7 +70,10 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
   @Override
   public Graph reconstruct(List<Vertex> vertices, Vertex root)
   {
-    reconstructionData.setOperationOnGraph(OperationOnGraph.FINDING_INTERVAL);
+    if (reconstructionData.getOperationOnGraph() == null)
+    {
+      reconstructionData.setOperationOnGraph(OperationOnGraph.FINDING_SQUARES);
+    }
 
     linearFactorization.prepare(vertices, root, false);
     Edge[][] adjacencyMatrix = graphHelper.createAdjacencyMatrix();
@@ -79,39 +82,6 @@ public class IntervalReconstructionImpl extends AbstractReconstruction implement
 
     SquareMatchingEdgeData[][] squareMatchingEdgesByEdgeAndColor1 = new SquareMatchingEdgeData[vertices.size()][vertices.size()];
     singleSquareReconstructionService.reconstructUsingSquares(squareMatchingEdgesByEdgeAndColor1);
-
-    if (true)
-    {
-      return null;
-    }
-
-    Graph originalGraph = new Graph(graph);
-
-    List<Vertex> originalGraphVertices = new LinkedList(originalGraph.getVertices());
-//    Collections.reverse(originalGraphVertices);
-
-    boolean reconstructed = false;
-    for (Vertex vertex : originalGraphVertices)
-    {
-      if (vertex.getBfsLayer() > 1)
-      {
-        //FIXME replace third vertices.size() with max grade
-        SquareMatchingEdgeData[][] squareMatchingEdgesByEdgeAndColor = new SquareMatchingEdgeData[vertices.size()][vertices.size()];
-
-        Vertex intervalRoot = findNotPrimeInterval(vertex, vertices, originalGraph, squareMatchingEdgesByEdgeAndColor);
-        if (intervalRoot != null)
-        {
-          graphHelper.overrideGlobalGraph(originalGraph);
-          singleSquareReconstructionService.reconstructUsingSquares(squareMatchingEdgesByEdgeAndColor);
-//          factorsFromIntervalReconstructionService.reconstructUsingIntervalFactors(intervalRoot);
-          return null;
-        }
-      }
-//      if (vertex.getBfsLayer() == 1 || reconstructed)
-//      {
-//        break;
-//      }
-    }
 
     return null;
   }
